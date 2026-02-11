@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Member Profile Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Noto+Sans:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2c2c2c", 
+                        "background-light": "#fcfcf9", 
+                        "background-dark": "#111621",
+                        "text-main": "#1a1a1a",
+                        "text-muted": "#555555",
+                        "cream-accent": "#f2f2ed",
+                        "charcoal": "#333333"
+                    },
+                    fontFamily: {
+                        "display": ["Newsreader", "serif"],
+                        "sans": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fcfcf9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-gray-100 font-display min-h-screen flex flex-col overflow-x-hidden antialiased selection:bg-charcoal/10 selection:text-charcoal">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-charcoal/5 px-8 py-6 lg:px-20 bg-background-light dark:bg-background-dark sticky top-0 z-50 transition-colors duration-300">
+<div class="flex items-center gap-3 group cursor-pointer">
+<div class="size-6 text-text-main dark:text-white">
+<span class="material-symbols-outlined text-[26px] font-light">school</span>
+</div>
+<h2 class="text-text-main dark:text-white text-lg font-semibold tracking-tight italic">Legacy Core</h2>
+</div>
+<nav class="hidden md:flex items-center gap-12">
+<a class="text-text-main dark:text-gray-300 text-sm font-sans uppercase tracking-widest hover:text-charcoal/70 transition-colors" href="#">Memories</a>
+<a class="text-text-main dark:text-gray-300 text-sm font-sans uppercase tracking-widest hover:text-charcoal/70 transition-colors" href="#">Gallery</a>
+<a class="text-text-main dark:text-gray-300 text-sm font-sans uppercase tracking-widest hover:text-charcoal/70 transition-colors" href="#">Stories</a>
+<a class="text-text-main dark:text-gray-300 text-sm font-sans uppercase tracking-widest border-b border-charcoal pb-0.5" href="#">Members</a>
+</nav>
+<div class="flex gap-5 items-center">
+<button class="flex items-center justify-center size-8 text-text-main dark:text-white transition-colors hover:opacity-60">
+<span class="material-symbols-outlined text-[22px]">search</span>
+</button>
+<div class="size-8 rounded-full bg-gray-200 overflow-hidden md:hidden">
+<img alt="User avatar" class="w-full h-full object-cover" data-alt="User avatar placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsNuQHNJeXxPtYCeMOMSFdANpX8Be2H93mTEkF_kxFcYYRvWqfWU0kJGl3XWxcM94lG13G_ZeKFZPF8IhuIUlyLNK5gfq81kMmjUR8vCmr6KcLBLa5ba5xZL9cly5uH0NT8g4Zvfkj4CcaF89JKv_Ar5EJmwIjGJig_lP9Wa8hvZrcu_R0I9j38ZmzlTkpcJQ2uExdJOfQOYzyYb6LFDvX0SgjzMUEwGFGzh7k8k9YOxE2eHnbQKAaIG0j1ca8XG5BudVSqOOzbcI"/>
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col w-full max-w-[1200px] mx-auto px-6 lg:px-12 py-16 lg:py-28">
+<section class="flex flex-col items-center text-center w-full mb-20 lg:mb-32">
+<h1 class="text-text-main dark:text-white text-[4rem] md:text-[6rem] lg:text-[8rem] font-medium leading-[0.9] tracking-tighter mb-8 font-display italic">
+                Eleanor<br/><span class="ml-16 md:ml-24">Vance</span>
+</h1>
+<div class="flex flex-col md:flex-row items-center gap-3 md:gap-6 text-text-muted dark:text-gray-400 text-xs md:text-sm font-sans font-medium uppercase tracking-[0.2em]">
+<span>Class of 2014</span>
+<span class="hidden md:inline-block size-1 bg-current rounded-full opacity-40"></span>
+<span>History of Art</span>
+<span class="hidden md:inline-block size-1 bg-current rounded-full opacity-40"></span>
+<span>Magna Cum Laude</span>
+</div>
+</section>
+<section class="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-24 items-start mb-32 lg:mb-40">
+<div class="md:col-span-5 flex flex-col items-center md:items-end pt-4">
+<div class="relative size-48 md:size-64 rounded-full overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 ease-out">
+<img alt="Portrait of Eleanor Vance" class="w-full h-full object-cover" data-alt="Close up portrait of a young woman with a soft smile in natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFg7PDI4ce3uPi-iuzEycJHh4lGVgXasE7E7FktQiQ46PiDYXyWQ2BvIK0zJEnAmfQ3-_ZqRNmTa_4ybLDK2f2eayRVd9KNIay_3UhDsMZ41w_IHPxvMfurINIOjSZskS6zzX04X-DAlfgivS1m09Tqn6S8a0JWIp-4KGYdY6SnPk5c3A82Of-y0yW-nI8rDgx2CLSiiIWK8qNqb0tCy9_jR8Ns93cxzHT1PT0sNwqGs9svq4B2Av9BWf3gsmdYt0Etgu17BcmWZ4"/>
+</div>
+<div class="flex gap-6 mt-8">
+<button aria-label="Email" class="text-text-muted hover:text-text-main transition-colors">
+<span class="material-symbols-outlined font-light text-[24px]">mail</span>
+</button>
+<button aria-label="Share" class="text-text-muted hover:text-text-main transition-colors">
+<span class="material-symbols-outlined font-light text-[24px]">ios_share</span>
+</button>
+<button aria-label="Bookmark" class="text-text-muted hover:text-text-main transition-colors">
+<span class="material-symbols-outlined font-light text-[24px]">bookmark_border</span>
+</button>
+</div>
+</div>
+<div class="md:col-span-7 flex flex-col justify-center">
+<div class="prose prose-lg dark:prose-invert">
+<p class="text-2xl md:text-3xl lg:text-4xl text-text-main dark:text-gray-200 font-display font-normal leading-tight mb-8">
+                        "Currently restoring a Victorian home in upstate New York. Still obsessed with dark academia aesthetics and brewing the perfect cup of Earl Grey."
+                    </p>
+<p class="text-lg text-text-muted dark:text-gray-400 font-display leading-relaxed max-w-lg">
+                        Remembering the nights we spent in the library archives. After graduation, I spent three years in Florence studying Renaissance preservation before returning to the states. I'm now working as a consultant for historical societies across New England.
+                    </p>
+</div>
+</div>
+</section>
+<section class="w-full max-w-4xl mx-auto">
+<div class="flex items-baseline justify-between mb-12 border-b border-black text-black pb-4 dark:border-white dark:text-white">
+<h3 class="text-4xl md:text-5xl font-display font-light italic">Narratives</h3>
+<span class="text-sm font-sans uppercase tracking-widest">Index of Stories</span>
+</div>
+<div class="flex flex-col gap-0">
+<article class="group relative grid grid-cols-1 md:grid-cols-12 gap-6 py-8 border-b border-charcoal/10 dark:border-white/10 hover:bg-black/[0.02] transition-colors duration-500">
+<div class="md:col-span-3 flex flex-col justify-start pt-1">
+<span class="text-4xl font-display font-light text-text-muted/40 group-hover:text-text-main transition-colors duration-300">01</span>
+<span class="text-xs font-sans font-bold uppercase tracking-widest text-text-muted mt-2">Oct 12, 2023</span>
+</div>
+<div class="md:col-span-9 flex flex-col gap-3">
+<a class="block" href="#">
+<h4 class="text-3xl md:text-4xl font-display font-medium text-text-main dark:text-white leading-tight group-hover:underline decoration-1 underline-offset-4 decoration-charcoal/30">
+                                The Midnight Library Sessions
+                            </h4>
+</a>
+<p class="text-lg text-text-muted dark:text-gray-400 font-display leading-relaxed line-clamp-2 max-w-2xl">
+                            Reflecting on the quiet chaos of finals week, the smell of old paper, and the friendships forged in the silence of the stacks.
+                        </p>
+<div class="mt-2 flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-wider text-text-main opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                            Read Story <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</div>
+</div>
+</article>
+<article class="group relative grid grid-cols-1 md:grid-cols-12 gap-6 py-8 border-b border-charcoal/10 dark:border-white/10 hover:bg-black/[0.02] transition-colors duration-500">
+<div class="md:col-span-3 flex flex-col justify-start pt-1">
+<span class="text-4xl font-display font-light text-text-muted/40 group-hover:text-text-main transition-colors duration-300">02</span>
+<span class="text-xs font-sans font-bold uppercase tracking-widest text-text-muted mt-2">Sep 05, 2023</span>
+</div>
+<div class="md:col-span-9 flex flex-col gap-3">
+<a class="block" href="#">
+<h4 class="text-3xl md:text-4xl font-display font-medium text-text-main dark:text-white leading-tight group-hover:underline decoration-1 underline-offset-4 decoration-charcoal/30">
+                                A Toast to the Old Dorms
+                            </h4>
+</a>
+<p class="text-lg text-text-muted dark:text-gray-400 font-display leading-relaxed line-clamp-2 max-w-2xl">
+                            Before the renovation erased the graffiti and the creaky floorboards, we gathered one last time to say goodbye to the place we called home.
+                        </p>
+<div class="mt-2 flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-wider text-text-main opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                            Read Story <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</div>
+</div>
+</article>
+<article class="group relative grid grid-cols-1 md:grid-cols-12 gap-6 py-8 border-b border-charcoal/10 dark:border-white/10 hover:bg-black/[0.02] transition-colors duration-500">
+<div class="md:col-span-3 flex flex-col justify-start pt-1">
+<span class="text-4xl font-display font-light text-text-muted/40 group-hover:text-text-main transition-colors duration-300">03</span>
+<span class="text-xs font-sans font-bold uppercase tracking-widest text-text-muted mt-2">Aug 22, 2023</span>
+</div>
+<div class="md:col-span-9 flex flex-col gap-3">
+<a class="block" href="#">
+<h4 class="text-3xl md:text-4xl font-display font-medium text-text-main dark:text-white leading-tight group-hover:underline decoration-1 underline-offset-4 decoration-charcoal/30">
+                                The 2012 Winter Ball Incident
+                            </h4>
+</a>
+<p class="text-lg text-text-muted dark:text-gray-400 font-display leading-relaxed line-clamp-2 max-w-2xl">
+                            It wasn't about the music or the decorations. It was the unexpected snowstorm that trapped us inside the Great Hall until dawn.
+                        </p>
+<div class="mt-2 flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-wider text-text-main opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                            Read Story <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</div>
+</div>
+</article>
+</div>
+<div class="mt-16 text-center">
+<a class="inline-block border-b border-black pb-1 text-sm font-sans font-bold uppercase tracking-[0.15em] hover:text-charcoal/70 transition-colors" href="#">
+                    Archive View
+                </a>
+</div>
+</section>
+</main>
+<footer class="w-full border-t border-charcoal/5 dark:border-gray-800 py-16">
+<div class="max-w-[1200px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-2 opacity-80">
+<span class="material-symbols-outlined text-[20px]">school</span>
+<span class="text-sm font-display italic font-medium">Legacy Core</span>
+</div>
+<div class="flex gap-8 text-xs font-sans font-medium uppercase tracking-widest text-text-muted">
+<a class="hover:text-text-main transition-colors" href="#">Privacy</a>
+<a class="hover:text-text-main transition-colors" href="#">Terms</a>
+<a class="hover:text-text-main transition-colors" href="#">Help</a>
+</div>
+<p class="text-xs font-sans text-text-muted/50">© 2024</p>
+</div>
+</footer>
+
+</body></html>

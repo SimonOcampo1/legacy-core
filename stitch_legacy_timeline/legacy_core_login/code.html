@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Legacy Core Login v2</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&amp;family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "warm-white": "#FDFCF8",
+              "soft-grey": "#F2F2F0",
+              "charcoal": "#2C2C2C",
+              "charcoal-light": "#4A4A4A",
+              "gold-accent": "#D4AF37",
+              "border-thin": "#E5E5E5",
+            },
+            fontFamily: {
+              "serif": ["Playfair Display", "serif"],
+              "sans": ["Inter", "sans-serif"]
+            },
+            boxShadow: {
+              "elegant": "0 4px 20px rgba(0,0,0,0.03)"
+            }
+          },
+        },
+      }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FDFCF8;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E5E5E5;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="font-sans bg-warm-white text-charcoal min-h-screen flex flex-col md:flex-row overflow-hidden selection:bg-gold-accent selection:text-white">
+<div class="relative hidden md:flex w-full md:w-1/2 lg:w-[55%] h-screen flex-col justify-end p-16 bg-soft-grey">
+<div class="absolute inset-4 z-0 overflow-hidden">
+<div class="w-full h-full bg-cover bg-center grayscale-[20%] sepia-[10%] transition-transform duration-1000 hover:scale-105" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCG59wrLNs7JaHsB2e56tc7ZJNLjM9SfofAoHeim-85J4nhfWYfdmRopsRoL-qIgqD-Rom8cp2zFpvaVzTiqJkRULcGOMgRTzvT7l5mSvBRatwW3pod0CxwufkM2ibWor-wn771ivGTTDuu0erSSLb0X2f7Y3y377XD2O3hCPL2TUL1WGWwBj8N2LfS6KsHN6Nr-UCgB835W0a6RewjEXqoBGQYUZ7De4CsA1VCX5mOPuzAZgmM07-gpW1QPQpw0k6VMmACjnlbd1I');">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+<div class="absolute inset-0 border-[1px] border-white/20 m-4 pointer-events-none"></div>
+</div>
+<div class="relative z-10 max-w-xl mb-6 ml-6">
+<div class="flex items-center gap-4 mb-8">
+<span class="material-symbols-outlined text-3xl text-white font-light">school</span>
+<span class="text-sm font-sans tracking-[0.2em] text-white/90 uppercase border-b border-white/30 pb-1">Est. 2014</span>
+</div>
+<h2 class="font-serif text-5xl lg:text-6xl text-white mb-6 leading-tight italic">
+            "Preserving the moments that shaped us."
+        </h2>
+<p class="font-sans text-white/80 font-light leading-relaxed max-w-md text-base tracking-wide">
+            A digital archive for the Class of '14. Reconnect with old friends and relive the golden days in a space designed for memory.
+        </p>
+</div>
+</div>
+<div class="w-full md:w-1/2 lg:w-[45%] h-screen flex flex-col justify-center items-center p-8 bg-warm-white relative">
+<div class="absolute top-8 right-8 hidden md:block">
+<div class="h-16 w-[1px] bg-charcoal/10 mx-auto mb-2"></div>
+<span class="text-[10px] uppercase tracking-widest text-charcoal/40 vertical-rl">Login V.02</span>
+</div>
+<div class="w-full max-w-sm space-y-12">
+<div class="text-center space-y-4">
+<div class="md:hidden flex justify-center mb-6">
+<span class="material-symbols-outlined text-4xl text-charcoal">school</span>
+</div>
+<p class="text-xs font-sans font-medium tracking-[0.2em] text-gold-accent uppercase">The Archives</p>
+<h1 class="font-serif text-4xl lg:text-5xl text-charcoal tracking-tight">Legacy Core</h1>
+<div class="w-12 h-[1px] bg-charcoal mx-auto mt-6 mb-8"></div>
+<h2 class="text-lg font-sans font-light text-charcoal-light">Welcome Back to the Core</h2>
+</div>
+<form class="space-y-8">
+<div class="group relative">
+<input autocomplete="email" class="block w-full border-0 border-b border-border-thin bg-transparent py-3 text-charcoal placeholder-charcoal/30 focus:border-charcoal focus:ring-0 sm:text-sm transition-all duration-300" id="email" name="email" placeholder="Email Address" required="" type="email"/>
+</div>
+<div class="group relative">
+<input autocomplete="current-password" class="block w-full border-0 border-b border-border-thin bg-transparent py-3 text-charcoal placeholder-charcoal/30 focus:border-charcoal focus:ring-0 sm:text-sm transition-all duration-300" id="password" name="password" placeholder="Password" required="" type="password"/>
+<div class="absolute right-0 top-3">
+<a class="text-xs font-medium text-charcoal/40 hover:text-charcoal transition-colors uppercase tracking-wider" href="#">Forgot?</a>
+</div>
+</div>
+<div class="pt-4 space-y-6">
+<button class="w-full bg-charcoal text-white font-sans text-xs uppercase tracking-[0.15em] py-4 px-4 hover:bg-charcoal/90 hover:shadow-lg transition-all duration-300" type="submit">
+                    Enter Archives
+                </button>
+<div class="flex items-center justify-between">
+<div class="flex items-center">
+<input class="h-3 w-3 text-charcoal focus:ring-charcoal/20 border-charcoal/20 rounded-sm bg-transparent" id="remember-me" name="remember-me" type="checkbox"/>
+<label class="ml-2 block text-xs text-charcoal/60 font-light" for="remember-me">
+                            Remember me
+                        </label>
+</div>
+<p class="text-xs text-charcoal/60 font-light">
+                        New here? 
+                        <a class="font-medium text-charcoal hover:underline decoration-1 underline-offset-4" href="#">Request Access</a>
+</p>
+</div>
+</div>
+</form>
+<div class="pt-12 flex justify-center gap-8 opacity-40 hover:opacity-100 transition-opacity duration-300">
+<a aria-label="Help" class="text-charcoal hover:text-gold-accent transition-colors flex items-center gap-1 text-xs uppercase tracking-wide" href="#">
+                Help
+            </a>
+<span class="text-charcoal/20">|</span>
+<a aria-label="Privacy" class="text-charcoal hover:text-gold-accent transition-colors flex items-center gap-1 text-xs uppercase tracking-wide" href="#">
+                Privacy
+            </a>
+</div>
+</div>
+</div>
+
+</body></html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Legacy Timeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:ital,wght@0,300;0,400;0,500;1,300;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2C3E50","cream": "#FAF9F6","line-grey": "#E0E0E0","text-main": "#333333",
+                        "text-muted": "#777777",
+                        "accent": "#9CA3AF"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                    },
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF9F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+        .hairline {
+            width: 1px;
+        }
+    </style>
+</head>
+<body class="bg-cream text-text-main font-display overflow-x-hidden min-h-screen flex flex-col">
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap bg-cream/90 backdrop-blur-md px-10 py-5 border-b border-transparent">
+<div class="flex items-center gap-3">
+<h2 class="text-xl font-serif font-medium tracking-wide text-primary">Legacy<span class="text-accent italic">.</span></h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="hidden md:flex items-center gap-10">
+<a class="text-text-muted hover:text-primary text-xs uppercase tracking-widest font-medium transition-colors" href="#">Timeline</a>
+<a class="text-text-muted hover:text-primary text-xs uppercase tracking-widest font-medium transition-colors" href="#">Gallery</a>
+<a class="text-text-muted hover:text-primary text-xs uppercase tracking-widest font-medium transition-colors" href="#">Members</a>
+<a class="text-text-muted hover:text-primary text-xs uppercase tracking-widest font-medium transition-colors" href="#">About</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="hidden sm:flex cursor-pointer items-center justify-center rounded-sm px-5 py-2 border border-primary/20 hover:border-primary/50 hover:bg-white transition-all text-primary text-xs uppercase tracking-widest font-medium">
+<span class="truncate">Add Memory</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 opacity-90 hover:opacity-100 transition-opacity" data-alt="User profile picture placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBvcmGtrhyjXhuw8N888kZ67i5uhGL61FZ8h3-9qo2HCFutB5h_Jvd7-kNzQbJg920LPwxnFLO3-Z3vBu2fiBuSltrpN77RP45kuK-Ws96EEZqNzwkb7s9f0qeeBBSU4ugoyS4QfT2zlx2NSqhIRHtokxww3r2ZrOh8DdFhyGlMCwtToPWmSZkUSXml9_tFi59mOTuUMRlB-keDyWdzTetCwuq2k6dKUWL86oKSfKqoHAtBFLQF3lFzHzuQJBGhlrPLl7JmeMfrY0A");'></div>
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center w-full px-4 sm:px-8 py-16">
+<div class="w-full max-w-4xl text-center mb-24 relative">
+<h1 class="text-5xl md:text-7xl font-serif font-light tracking-tight mb-6 text-primary relative z-10">
+            Our Journey
+        </h1>
+<p class="text-lg md:text-xl text-text-muted max-w-xl mx-auto font-display font-light leading-relaxed">
+            A curated collection of moments, captured in time.
+        </p>
+<div class="flex flex-wrap justify-center gap-8 mt-12 border-b border-line-grey pb-4 max-w-md mx-auto">
+<button class="text-primary border-b border-primary pb-4 -mb-4.5 text-xs uppercase tracking-widest font-medium transition-all">All Time</button>
+<button class="text-text-muted hover:text-primary text-xs uppercase tracking-widest font-medium transition-all">2024</button>
+<button class="text-text-muted hover:text-primary text-xs uppercase tracking-widest font-medium transition-all">2023</button>
+<button class="text-text-muted hover:text-primary text-xs uppercase tracking-widest font-medium transition-all">2022</button>
+</div>
+</div>
+<div class="w-full max-w-6xl relative">
+<div class="absolute left-4 md:left-1/2 top-0 bottom-0 hairline bg-line-grey md:-translate-x-1/2 h-full z-0"></div>
+<div class="flex flex-col gap-24 md:gap-36 pb-20">
+<article class="relative flex flex-col md:flex-row md:justify-between group">
+<div class="flex md:w-1/2 md:justify-end md:pr-16 mb-4 md:mb-0 order-2 md:order-1 pl-12 md:pl-0 w-full relative">
+<div class="text-left md:text-right sticky top-32 self-start transition-opacity duration-500">
+<span class="block text-primary font-serif font-light text-4xl md:text-5xl mb-2">Dec 15</span>
+<span class="block text-text-muted font-display font-light text-xl mb-1">2023</span>
+<span class="text-xs font-medium uppercase tracking-widest text-accent">New York City</span>
+</div>
+</div>
+<div class="absolute left-4 md:left-1/2 top-2 md:top-6 w-2 h-2 bg-white border border-primary rounded-full z-10 md:-translate-x-1/2 flex items-center justify-center order-1 md:order-2">
+</div>
+<div class="flex md:w-1/2 md:pl-16 order-3 pl-12 w-full">
+<div class="bg-white rounded-sm p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-500 w-full hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+<div class="aspect-[4/3] w-full bg-cream mb-6 overflow-hidden relative group/image">
+<img alt="Friends gathered around a dinner table laughing" class="w-full h-full object-cover grayscale group-hover/image:grayscale-0 transition-all duration-700 ease-in-out" data-alt="Friends gathered around a dinner table laughing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIr2MyxEV_dH51JHk1zoYC0583g4X-HjWPSannUhQkESWlHcSMaOmwtplTjfjnblVol-sHcqz30FWMZc0CnWJ9rYjQGEbHrbw-uEiY22q50iJl_TV94q2TlExmkuHs9O_f2bZebjZRZDWTb6YIc2gRXrY0cHIiWDRWSPzoE59BeRkALXfIsGlhviSDXwLNEyEFwa59-0rGxpwImFCxJ75_CqAcJT3n2u251AcdgRRoMMV6EiNZ7NDWhKZxg5OHnhRNxOrUPHkAqsc"/>
+</div>
+<div class="max-w-md">
+<h3 class="text-2xl font-serif font-normal text-primary mb-3">Winter Reunion</h3>
+<p class="text-text-muted font-display font-light text-sm leading-7 mb-6">
+                                A chaotic dinner at Mark's new apartment. We burned the lasagna, but the wine and stories made up for it. It felt like no time had passed at all.
+                            </p>
+<div class="flex items-center gap-3 pt-4 border-t border-line-grey/30">
+<div class="flex -space-x-3 overflow-hidden">
+<img alt="Mark" class="inline-block h-8 w-8 rounded-full ring-2 ring-white grayscale hover:grayscale-0 transition-all" data-alt="Portrait of Mark" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeiEJBsrk5H-9Q1IqkmwBeohlhU60lD9yNRk6T7dEZh9FYIDnpTtDWrGGkoWQyjDyZt-9Ow_2yVNTkTGAZCq7xW0zkaSk6BRNv0wclevU-SNkB0CuPKtMfNrfIXpLEcApgqT_d-AiZTP4E8OyDXIuR3MW1GxL98tcz22idQVwfPzivpplnc9hwOszXZw_QXzEiyAyfTwTziItlEkQ_NwOH8SK87xD20ny54xOKqhRgah2M3tkTkkNA6LnkOTB79htTXkUbzInSm5k"/>
+<img alt="Sarah" class="inline-block h-8 w-8 rounded-full ring-2 ring-white grayscale hover:grayscale-0 transition-all" data-alt="Portrait of Sarah" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhg9Ibo6ds_JLlp3kdsPgaR28wLA14wNfp7oWyQQwpM9zXOloJH9-0CC8s7j25NOJykimTRDacIMVbk2EBOc6yRAuDCQuJYFYz9Eh8LRZNEe_pHBAzePsruEou6s_dSyXDaJNWlN1IUJxdHu--Q11kLtaszn6KWAbN0T7otXwCu_N2L1EWKBqU5w4FkxoHsFWXgws_rTSoWx5pG0tIHCljT3HsF4M_vZXBewLsctJymUGy-8Ao0qlaQ5GF38oCQguTL2CqJT2zNtg"/>
+</div>
+<span class="text-xs text-text-muted font-normal font-display">+ 3 others</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+<article class="relative flex flex-col md:flex-row md:justify-between group">
+<div class="flex md:w-1/2 md:justify-end md:pr-16 mb-4 md:mb-0 order-3 md:order-1 pl-12 md:pl-0 w-full">
+<div class="bg-white rounded-sm p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-500 w-full hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] md:text-right">
+<div class="aspect-[4/3] w-full bg-cream mb-6 overflow-hidden relative group/image ml-auto">
+<img alt="Graduation caps thrown in the air" class="w-full h-full object-cover grayscale group-hover/image:grayscale-0 transition-all duration-700 ease-in-out" data-alt="Graduation caps thrown in the air" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwGnUcyeu8AHzhDBBcNYxqyl9XD56yhM3JNVayrq9McHNrqcZNrwIddXrsVuzDdX64su0tw0yafgjguJVZc5nCURyOE3EU2gyY7Boay8SlAHmkQqyXwUFydYLVGtRf3YjJsFlfZubWz15IfDZinVJlbvKx8Xk3TKlSbhBcbPZ6DgR2T8GmA5hLc7li2a21YZ3W_zC3204nW9PziEh6XsGiuCsJwJnTSLMHzBUmGL3WAdGirDNpHZeUu4Ywd8L1CdMNANX4oXIV0ck"/>
+</div>
+<div class="max-w-md ml-auto">
+<h3 class="text-2xl font-serif font-normal text-primary mb-3">Graduation Day</h3>
+<p class="text-text-muted font-display font-light text-sm leading-7 mb-6">
+                                The end of an era, the start of everything else. We promised to stay in touch no matter where life took us.
+                            </p>
+<div class="flex items-center justify-between md:flex-row-reverse pt-4 border-t border-line-grey/30">
+<div class="flex -space-x-3 overflow-hidden">
+<img alt="Jessica" class="inline-block h-8 w-8 rounded-full ring-2 ring-white grayscale hover:grayscale-0 transition-all" data-alt="Portrait of Jessica" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYk4MRrwg7h8TY3OcPdtnocv_LAVuVUhn_4uIBx_sT-xgUdkUqcjZ-iROOwzzA2lgc1y1BDphkGMi89zF_385XLulpixPunXAmThMZ327iPZy1WiLNZooteMe8p-xl2z_MSN98VcVAwKLdX91LIP_KxzX9UFr3IWcqV1o1IDlh1Aa176LkhuMZ9Vp3cUAqfussiyF-zN4Nfo-4uTQ8zGJgESx1RoldRlk9lnpIB_qyDJI9QAF1UkMKJC-29akf7k1eAOcdJRZLHxU"/>
+<img alt="Tom" class="inline-block h-8 w-8 rounded-full ring-2 ring-white grayscale hover:grayscale-0 transition-all" data-alt="Portrait of Tom" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXeeEAYilviEAHFvOtx77K4GeG-OWzMze0y2gu5f6zuPl_NV6jDOKbYsDd03eZPGmhz-oSlrAyyH88Py925AF-Cvne8yLTAoXyruKjXK-Agdu7pp9Sy0MNoTjYgdWwtwbD2iGWST6EoBEiMPwivpE3R2Lq1BQ0Ms_KThKh5ARMSZhsgBR4EIfc7X6RFEmFvWBeBLjeT02e8_DIDjaeNiceDIiumF_kddHUMQRVbDEcw5G8zVR9JQIoM8ka79SA2q4agn2TLL98VD0"/>
+<img alt="Alex" class="inline-block h-8 w-8 rounded-full ring-2 ring-white grayscale hover:grayscale-0 transition-all" data-alt="Portrait of Alex" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0Jyp_fSefPFcQWQFCbYw_QEn_sRr_CfKT5yECTQglH57IAov-c5s-Nr7JZaacuxoFSD0HhS_pos5sS5H1KiTJdGGNZNBZ1aAPwU2c6LfV1_ZGcu-WobySjXr5bqTnpAS7LISuXXRAfSPM2oggQKvQWoDA8darl8JU3_Z7Q17_roBh77UuGVbFmB9GZ4Gy50AXGNoDF3tA_8txbniXaliNnFJEeWDWbi4BoTAPx5RtftUNZZ1w0t_64ptYzAVfy1U-gem8jRl6C6o"/>
+</div>
+<div class="flex items-center gap-1 text-primary text-xs font-medium uppercase tracking-widest cursor-pointer hover:opacity-70 transition-opacity">
+<span>View Album</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute left-4 md:left-1/2 top-2 md:top-6 w-2 h-2 bg-white border border-primary rounded-full z-10 md:-translate-x-1/2 flex items-center justify-center order-1 md:order-2">
+</div>
+<div class="flex md:w-1/2 md:pl-16 mb-4 md:mb-0 order-2 pl-12 w-full relative">
+<div class="text-left sticky top-32 self-start">
+<span class="block text-primary font-serif font-light text-4xl md:text-5xl mb-2">May 22</span>
+<span class="block text-text-muted font-display font-light text-xl mb-1">2023</span>
+<span class="text-xs font-medium uppercase tracking-widest text-accent">University Campus</span>
+</div>
+</div>
+</article>
+<article class="relative flex flex-col md:flex-row md:justify-between group">
+<div class="flex md:w-1/2 md:justify-end md:pr-16 mb-4 md:mb-0 order-2 md:order-1 pl-12 md:pl-0 w-full relative">
+<div class="text-left md:text-right sticky top-32 self-start">
+<span class="block text-primary font-serif font-light text-4xl md:text-5xl mb-2">Nov 10</span>
+<span class="block text-text-muted font-display font-light text-xl mb-1">2022</span>
+<span class="text-xs font-medium uppercase tracking-widest text-accent">Route 66</span>
+</div>
+</div>
+<div class="absolute left-4 md:left-1/2 top-2 md:top-6 w-2 h-2 bg-white border border-primary rounded-full z-10 md:-translate-x-1/2 flex items-center justify-center order-1 md:order-2">
+</div>
+<div class="flex md:w-1/2 md:pl-16 order-3 pl-12 w-full">
+<div class="bg-white rounded-sm p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-500 w-full hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+<div class="aspect-[16/9] w-full bg-cream mb-6 overflow-hidden relative group/image">
+<img alt="Car driving on a scenic road during sunset" class="w-full h-full object-cover grayscale group-hover/image:grayscale-0 transition-all duration-700 ease-in-out" data-alt="Car driving on a scenic road during sunset" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7ycwYvT5X5OkzGeD2-ibdUS5e5y9AYL0HBr0-c3CtJ1P5xoccbmJfnUMlsPxqJ7JUYDgVb2jasdhMBy5YgkGiY02R4dvmveHulJlqV0brgHQEmGxul4Yg1WVQGE9BaG4Xx4KooTG4r0QbIuutqPJT3gN_VdfTUXjPxEdnm24gnvk0nj80LYTq1ViUaAXQsnUGhmOjsU_5ZAtw7NvCI7whShdhBZKW5aAfKWRO937SgRXHMP5qBRt7AS-vb-7JDC5UvtvluJj-QEE"/>
+<div class="absolute bottom-4 left-4 text-white drop-shadow-md flex items-center gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity duration-500">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+<span class="text-xs font-medium tracking-wide">Arizona</span>
+</div>
+</div>
+<div class="max-w-md">
+<h3 class="text-2xl font-serif font-normal text-primary mb-3">First Road Trip</h3>
+<p class="text-text-muted font-display font-light text-sm leading-7 mb-6">
+                                We didn't know where we were going, but the playlist was perfect. The car broke down twice, but honestly? That was the best part.
+                            </p>
+</div>
+</div>
+</div>
+</article>
+<article class="relative flex flex-col md:flex-row md:justify-between group">
+<div class="flex md:w-1/2 md:justify-end md:pr-16 mb-4 md:mb-0 order-3 md:order-1 pl-12 md:pl-0 w-full">
+<div class="bg-white rounded-sm p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-500 w-full hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] md:text-right">
+<div class="aspect-[4/3] w-full bg-cream mb-6 overflow-hidden relative group/image ml-auto">
+<img alt="Students studying late in a library" class="w-full h-full object-cover grayscale group-hover/image:grayscale-0 transition-all duration-700 ease-in-out" data-alt="Students studying late in a library" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBkin3LDG0iipggRecF7lxpFRVeCMhZhMENizNni-LB4pmQIEAU5eR3IK6wUZuBCz6BmviozGywTc25FzuW9I7NuwaoLTm73koBokFHXM8xR7GX6whcc0Ika4KvnKD8Fm7ven7qw_sbPSTHs_isDiOjdrN972CYVVMCG00Q7N3wEwwHemb6dzgmMST06iBmwzmjhH9ZaIytxffXMaKuMnba27g5HMCCn1KbjSAYcneS6lqKppHb3Lepv43n4OVOWpcNCvgY7x46I8"/>
+</div>
+<div class="max-w-md ml-auto">
+<h3 class="text-2xl font-serif font-normal text-primary mb-3">The Last Exam</h3>
+<p class="text-text-muted font-display font-light text-sm leading-7 mb-6">
+                                4 AM at the library. Coffee cups stacked like towers. The delirium setting in right before the sun came up.
+                            </p>
+<div class="flex items-center gap-2 md:justify-end pt-4 border-t border-line-grey/30">
+<span class="text-xs text-text-muted font-light italic">Anecdote</span>
+<span class="text-xs text-text-muted font-light italic">Academics</span>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute left-4 md:left-1/2 top-2 md:top-6 w-2 h-2 bg-white border border-primary rounded-full z-10 md:-translate-x-1/2 flex items-center justify-center order-1 md:order-2">
+</div>
+<div class="flex md:w-1/2 md:pl-16 mb-4 md:mb-0 order-2 pl-12 w-full relative">
+<div class="text-left sticky top-32 self-start">
+<span class="block text-primary font-serif font-light text-4xl md:text-5xl mb-2">May 15</span>
+<span class="block text-text-muted font-display font-light text-xl mb-1">2022</span>
+<span class="text-xs font-medium uppercase tracking-widest text-accent">Main Library</span>
+</div>
+</div>
+</article>
+</div>
+<div class="absolute left-4 md:left-1/2 bottom-0 w-px h-16 bg-gradient-to-b from-line-grey to-transparent md:-translate-x-1/2 translate-y-full"></div>
+</div>
+<button aria-label="Add new memory" class="fixed bottom-10 right-10 z-40 bg-white text-primary rounded-full p-4 shadow-xl border border-line-grey hover:bg-primary hover:text-white transition-all duration-500 group">
+<span class="material-symbols-outlined text-[24px] font-light">add</span>
+</button>
+</main>
+<footer class="w-full border-t border-line-grey py-10 bg-cream mt-auto">
+<div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex flex-col md:items-start items-center gap-1">
+<span class="font-serif text-lg text-primary">Legacy<span class="italic text-accent">.</span></span>
+<span class="text-xs text-text-muted font-light tracking-wide">© 2024 Legacy Timeline. For the Class of '22.</span>
+</div>
+<div class="flex gap-8">
+<a class="text-text-muted hover:text-primary transition-colors text-xs uppercase tracking-widest" href="#">Privacy</a>
+<a class="text-text-muted hover:text-primary transition-colors text-xs uppercase tracking-widest" href="#">Terms</a>
+<a class="text-text-muted hover:text-primary transition-colors text-xs uppercase tracking-widest" href="#">Help</a>
+</div>
+</div>
+</footer>
+
+</body></html>

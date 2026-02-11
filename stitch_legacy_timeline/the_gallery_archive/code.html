@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Gallery Archive</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&amp;family=Playfair+Display:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#000000",
+                        "background-light": "#ffffff",
+                        "accent": "#9CA3AF", 
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0",
+                        "lg": "0",
+                        "xl": "0",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .gallery-card img {
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: grayscale(20%);
+        }
+        .gallery-card:hover img {
+            transform: scale(1.02);
+            filter: grayscale(0%);
+        }
+        .gallery-info {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+        }
+        .gallery-card:hover .gallery-info {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background-color: black;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900 font-sans antialiased min-h-screen flex flex-col">
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm pt-8 pb-6">
+<div class="max-w-[1600px] mx-auto px-6 lg:px-12">
+<div class="flex items-center justify-between h-16 relative">
+<nav class="hidden md:flex items-center gap-12 w-1/3">
+<a class="text-xs tracking-[0.2em] uppercase font-medium text-gray-500 hover:text-black transition-colors" href="#">Index</a>
+<a class="text-xs tracking-[0.2em] uppercase font-medium text-black relative nav-link active transition-colors" href="#">Collections</a>
+<a class="text-xs tracking-[0.2em] uppercase font-medium text-gray-500 hover:text-black transition-colors" href="#">Journal</a>
+</nav>
+<div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+<h1 class="text-2xl md:text-3xl font-serif font-medium tracking-wide text-black italic">The Gallery Archive</h1>
+</div>
+<div class="flex items-center justify-end gap-8 w-1/3">
+<button class="text-gray-900 hover:text-gray-600 transition-colors">
+<span class="material-symbols-outlined text-[20px] font-light">search</span>
+</button>
+<button class="text-xs tracking-widest uppercase font-medium border-b border-black pb-0.5 hover:border-gray-400 transition-colors">
+                        Submit
+                    </button>
+<div class="size-6 bg-gray-100 overflow-hidden rounded-full">
+<img alt="User Profile" class="w-full h-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4452hX1-RR2zY5Tfo0p7zUSYMuboecWuZ16Zq4nqv1oY4t6hlLyM1FyEu3wr7846_1YYY0Fkr1odZZeQ7u0IlKux5cUSnZ3Vo9rC6wUZYL2vS-7L1I4SbO8PFsrDVB2ZwUzmTmCCtvNKFb7HD8MNnsmLl-KxiKItuSKzBqCKylwA3PxCscu0rZFqDdniEKQ5ziLdQKRd_E1EP7c-NvMfHst-S6_NXvxv-t1OixD74PnwA3zwoqgqX5xA-NyRh581IkfOMaZV5kZE"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col pt-12">
+<div class="w-full mb-12">
+<div class="max-w-[1600px] mx-auto px-6 lg:px-12 text-center">
+<h2 class="font-serif text-4xl md:text-5xl font-light italic text-gray-900 mb-10">The Summer of 2022</h2>
+<div class="border-t border-b border-gray-100 py-6 mb-8 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+<div class="flex items-center gap-4">
+<span class="font-serif italic text-gray-400 text-sm">Year</span>
+<div class="flex gap-4 text-xs tracking-[0.15em] uppercase text-gray-500">
+<button class="text-black transition-colors">2022</button>
+<button class="hover:text-black transition-colors">2021</button>
+<button class="hover:text-black transition-colors">2020</button>
+</div>
+</div>
+<div class="w-px h-8 bg-gray-100 hidden md:block"></div>
+<div class="flex items-center gap-4">
+<span class="font-serif italic text-gray-400 text-sm">Event Type</span>
+<div class="flex gap-4 text-xs tracking-[0.15em] uppercase text-gray-500">
+<button class="text-black transition-colors">All</button>
+<button class="hover:text-black transition-colors">Editorial</button>
+<button class="hover:text-black transition-colors">Parties</button>
+<button class="hover:text-black transition-colors">Travel</button>
+</div>
+</div>
+<div class="w-px h-8 bg-gray-100 hidden md:block"></div>
+<div class="flex items-center gap-4">
+<span class="font-serif italic text-gray-400 text-sm">Person</span>
+<div class="flex gap-4 text-xs tracking-[0.15em] uppercase text-gray-500">
+<button class="hover:text-black transition-colors">Elena</button>
+<button class="hover:text-black transition-colors">Marc</button>
+<button class="hover:text-black transition-colors">Sarah</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-grow px-6 lg:px-12 pb-20 max-w-[1800px] mx-auto w-full">
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-12">
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Graduates throwing caps in the air" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1Wltig-HbU5SfFzcHS0ht9jFaP9SUpX74RyuaTwduTKiimw6QGlHX3wU_NDlFN_mVMBbJmVstdio1Ap2CYG0f6pVPTLVakva4Y_lQa3QGvF9uEhQr3TFkVd8zWxqNZImcI0ivwLboYlH2-IPJ_yEemoEFBR-9VAJ5yz-_LnposkP1a2TRZzine6_Zcg02u39_35NvJXfg1ABL1Oxss67bgW1qs2USX19h_hi3uTJv3q0ymnlP8xwI0zoxf6ThyRr4qveKGiEk_vk"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">Commencement</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">May 2023</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Students laughing in a dorm room" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmZV0TkYQgVRfVGNk9mVk7yI1WVBiZZTmUG0aEqEqI98M1GAX4j4u69viUl9PdjbtxSJ4WUfX_m0we6UHnlJRoDBwmM25Gynbfqob-PGOxGfDMSOca9yBKRsJSroARpIiWF2ynkbSW5M1iASRdYzmLJHeiY-rVf6KsTyB5yqdDFiRufDx_zSSGcoFx0D_JM0h6_vIceTeGUm_M04CHmuBLJ567Ie9iuaeUAP0Su9nnMl5PFDkZ4o16a-nZVNtlTVm7fESpiWS9XI4"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">Dormitory Nights</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">Nov 2021</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Man holding a coffee cup looking thoughtful" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLY7tWpvc5wAOiVp4Il4mSpMA1xlofF1LVI1SiouFFSja2he815d-Wa1udLt6AZj2z_kQTsoVe-l--3fLSw-8ABtBz4tFsqCbgPGfUwxYHDqUq7QJhrDLfo8v3uCGWg0rtib4NaQ3CokTI3NR1Ptgjf4EiilnrNHfwyFgTp7LTzK7yM3mWMBhxFtgIl9WIkruF40z8OoByFORV3GQscC09gUMXs5cQBMAZi_D_JLyRk2Z8Zv1ZHDY1r-VoaxudKc0WGFSett_poa8"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">Morning Ritual</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">Feb 2022</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Group of friends walking on campus" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxWn40sccxCiCmldKi1_pef1FlGCFAtvPdLWQ9JHDqWyEbwqYuDGmTu6XLGPWcIv6wnnxudize_09oL8TkpvPZPCaDG_YtpBiLxDylDJhhJuDEXJc9yYj1ria2x74spPaiKsT9wgLVCBFvFXSJpF8f3LaulioEjzan6sgliGb0CsywuO2DkpSKT6VIYUa0csfFJLstVl9qERglJldSft61tL8ecOhEQmsQQ9J_ld4RXbPYLBt-kNHVcjSgS53vmbMWKuNzbxKKJt4"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">Freshman Orientation</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">Sep 2019</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Team working on a project with laptops" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFyo-yDmlFRvrtKRyBetsgA0cI6upgFNNvT-WT9WdOo8pMvpauk-kCMorKtVQjpDbFbLZGpdGV8hhPkzTCA6SQX1xmaHzWz03Z1R3jTN2zZI6e5FmyqsGNKcF_lzIjmHbomTMkd6vOlMjcYw38z1DkDG7Wmv1baM78_QAcM37aJtwjaj6s-4wZTwtTtpQDUqMSGBConIoFKEZJwk4y57F3AU7LqvWYM9Yo5M5mj7yxV_-GQ0q4RfQAVWn_m9dmiYRNe_WX16-ARfU"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">The Hackathon</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">Oct 2021</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Friends jumping on a beach at sunset" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLvE0HXCQydceihpeJdPujWekhBtec6kHFqGxV0rU2h4H11k_M113ojNg7WNo9LotKjBnb-AdIFoAKTP8dbZXIs8txnj1DL1alP9n4rWP7nr8Mo6UW1DP7vU6r2jLvqe9nZHm4x-H53zvt7stEdHJEl3Iz-8qbALD6BypH0K8AzbFl1eFNzP5mj8F5HzNtlUx1iFqIlmE4gETqgCo3OeU5XiGoir7Fj_hcQS1GBm9eVUFp6s3HnBeA45Uh2VdIoqMvDf603CB7GdM"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">Spring Break</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">Mar 2022</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Couple dancing at a formal event" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVJprcYkXhttU2fWh5E0cQm5WU1DIMPmJAq9BrXqH5P0ZzJKE6Z9XJ4aorGaAkRZ0LR_6NANBDNHOieuZN0l00ByRkgdVt862zuXLfsCIVbOk-KJBRZOBs4zHysBYP5zDzK_s1xOK2XrnXMcse-bWUr8IC3fJ6wY-8VmtXAkYqU4mHFQRIN2cdwalkl1QtMi_VlFfkG59LCM7LOHb_TSk4j-HW1N3G9QenT-85sd4fgrmsPYUcFbix7lIdt1z_kQ4dh3cOt_0qlCE"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">Winter Formal</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">Dec 2022</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Stack of old books in library" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaGeROOExM1dyMVu4OhBJ5vzFFo9nZggnwov1-e0KpK6L1LX4LP9WKfnRK0h2Mk_AMgPMw8NInN_ArUwjcpFJESZ8Cv-Jb78jh5Zz0XvG9sXMcWLVdgS6_38D3uo7gSErP8Mw4SoMNka014dw_cbd4qv7ZMLSIgusbFn5AsiwAWTPwsgzNvkHfnRJb8leeM0gJcenPIPTgCyxnUs6HJm8nJrR1BlceMCCgEciuTQjOeRJUK3hc0fJgeHT47PSmRrW0jX5E1i4kIGY"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">Finals Week</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">May 2021</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50">
+<img alt="Snow covered university building" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZtKSlE_2wJI8UMFce3TUPjMAeX9dQJ4VfQ_dyvsOTSiKB36dHfGLDFEx4ZY3d1PXBEjPdmKNY3a9qYH0rqSaRnprdhfD203hgL333Ugcm1ao5AxIqXh59cU6vARamZxeAS6krR1mBX0zbEhR89oza1Tu9dRqTRvPBv0Bsf-awurMsRyXaDv4Ny4Y6TJog6-szJ2kPUfPygr1iJ5hJO7llAeQ4s1CI2AAGMQY6YN46vWZxaEWPNu06Jk-256tVEaEneF4OsYoA3VM"/>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">The Big Freeze</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">Jan 2020</p>
+</div>
+</div>
+<div class="gallery-card cursor-pointer group">
+<div class="relative overflow-hidden mb-3 aspect-square bg-gray-50 flex items-center justify-center border border-gray-100">
+<span class="font-serif italic text-gray-300">More...</span>
+</div>
+<div class="gallery-info text-center">
+<p class="font-serif text-base italic text-gray-900 mb-0.5">Archive</p>
+<p class="text-[9px] tracking-[0.2em] uppercase text-gray-400">View All</p>
+</div>
+</div>
+</div>
+<div class="flex justify-center items-center py-20">
+<button class="text-xs tracking-[0.2em] uppercase text-gray-400 hover:text-black transition-colors border-b border-transparent hover:border-black pb-1">
+                    Load More Moments
+                </button>
+</div>
+</div>
+</main>
+<footer class="border-t border-gray-100 py-12 bg-white mt-auto">
+<div class="max-w-[1600px] mx-auto px-6 lg:px-12 flex flex-col items-center gap-6">
+<h3 class="font-serif italic text-2xl text-gray-900">The Gallery Archive</h3>
+<div class="flex gap-8">
+<a class="text-xs tracking-widest text-gray-400 hover:text-black uppercase" href="#">Instagram</a>
+<a class="text-xs tracking-widest text-gray-400 hover:text-black uppercase" href="#">Twitter</a>
+<a class="text-xs tracking-widest text-gray-400 hover:text-black uppercase" href="#">Email</a>
+</div>
+<p class="text-[10px] text-gray-300 tracking-widest uppercase mt-8">© 2023 Est. MMXIX</p>
+</div>
+</footer>
+
+</body></html>

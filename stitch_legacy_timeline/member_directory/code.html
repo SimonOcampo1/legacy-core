@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Member Directory - The Archives</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&amp;family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a1a1a",
+                        "secondary": "#666666",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0a0a0a",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "editorial": ["Cormorant Garamond", "serif"],
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .grayscale-img {
+                filter: grayscale(100%);
+                transition: filter 0.5s ease;
+            }
+            .grayscale-img:hover {
+                filter: grayscale(0%);
+            }
+            .editorial-grid {
+                display: grid;
+                grid-template-columns: repeat(12, 1fr);
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-slate-200 selection:text-slate-900">
+<header class="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-transparent">
+<div class="max-w-[1600px] mx-auto px-6 lg:px-12">
+<div class="flex items-center justify-between h-24">
+<div class="flex items-center gap-3">
+<span class="font-serif text-2xl font-medium tracking-wide">The Archives</span>
+</div>
+<nav class="hidden md:flex items-center gap-12">
+<a class="text-xs uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Timeline</a>
+<a class="text-xs uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Gallery</a>
+<a class="text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white font-semibold border-b border-slate-900 dark:border-white pb-1" href="#">Directory</a>
+</nav>
+<div class="flex items-center gap-6">
+<button class="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl font-light">search</span>
+</button>
+<div class="text-right hidden sm:block">
+<p class="font-serif text-lg italic leading-none">Alex Smith</p>
+</div>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-16 md:py-24">
+<div class="mb-24 grid grid-cols-1 md:grid-cols-12 gap-12 items-end border-b border-slate-200 dark:border-slate-800 pb-16">
+<div class="md:col-span-8 lg:col-span-7">
+<span class="block text-xs font-bold uppercase tracking-[0.3em] text-slate-400 mb-6 pl-1">Class of 2014</span>
+<h1 class="font-serif text-6xl md:text-7xl lg:text-8xl text-slate-900 dark:text-white leading-[0.9] tracking-tight">
+                    The<br/>Members.
+                </h1>
+</div>
+<div class="md:col-span-4 lg:col-span-5 md:pb-4">
+<p class="font-editorial text-2xl md:text-3xl italic text-slate-600 dark:text-slate-400 leading-relaxed font-light">
+                    "Rekindle old friendships and walk down memory lane. Our shared history, preserved in digital amber."
+                </p>
+<div class="mt-8 flex gap-8 text-sm">
+<button class="uppercase tracking-widest text-xs font-semibold border-b border-slate-300 pb-1 hover:border-slate-900 transition-colors">Filter by Major</button>
+<button class="uppercase tracking-widest text-xs font-semibold border-b border-slate-300 pb-1 hover:border-slate-900 transition-colors">Sort A-Z</button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
+<div class="group cursor-pointer flex flex-col items-center text-center">
+<div class="w-full aspect-[3/4] overflow-hidden mb-8 bg-slate-100 dark:bg-slate-900">
+<img alt="Eleanor Rigby" class="w-full h-full object-cover grayscale-img transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzCUZg4rxhbo5Kc0xfjF23jOeEegTWqoMSZU32gyWDrE01OmLZLsy3dxuwSaFRO7sr4aiilHNYM07CJJh2t8BYPLP2t9pq7bVfrCXJJk2cV-mBDavPyiDlQdsfDfSUGsdnQ84kXHzR0dH4-RuT0f0UY_lU9TsTZ5gf92OIuE18gayFCmgURUEqQ8AZOM_1FCJhR2EYp2shQxxQTA_pLwHWDEgSlK2I2u2PES3V5VdpH4NBHbROpLiufPLpnJJ0YWDiOFwbE4amTAc"/>
+</div>
+<div class="space-y-3 max-w-xs mx-auto">
+<h3 class="font-serif text-3xl text-slate-900 dark:text-white tracking-wide">Eleanor Rigby</h3>
+<p class="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-slate-300 inline-block pb-1 transition-colors">History of Art</p>
+<p class="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">"Remembering the sunrise sketch sessions on the library roof."</p>
+</div>
+</div>
+<div class="group cursor-pointer flex flex-col items-center text-center">
+<div class="w-full aspect-[3/4] overflow-hidden mb-8 bg-slate-100 dark:bg-slate-900">
+<img alt="Marcus Chen" class="w-full h-full object-cover grayscale-img transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUuoYpcpVSxDFu7kPn6v9CAjwRir6_arAH96YlDy7eqgjWwZ-AknOqFhnCanEf0zZ2Vlsq7fT0do5jzqqmMlzkfPX1MngNiXZKGz8v77M-hrb7GNrQ1cWiXo2gXogkshHqSCbWH0AUu-lZZQfS1r7k5VgisundJgcFBGub0L4YVJFRi-iKapWYivLZ-u_crFSk-N4GDKseTSuyY8mcKLU_LMu3v7NEW5TFGgx55NQfDTUiJPgdG6E4Q0udixkCovkqmwpkUxBN-O4"/>
+</div>
+<div class="space-y-3 max-w-xs mx-auto">
+<h3 class="font-serif text-3xl text-slate-900 dark:text-white tracking-wide">Marcus Chen</h3>
+<p class="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-slate-300 inline-block pb-1 transition-colors">Computer Science</p>
+<p class="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">"Still have the code for our terrible freshman year hackathon project."</p>
+</div>
+</div>
+<div class="group cursor-pointer flex flex-col items-center text-center">
+<div class="w-full aspect-[3/4] overflow-hidden mb-8 bg-slate-100 dark:bg-slate-900">
+<img alt="Sarah Jenkins" class="w-full h-full object-cover grayscale-img transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC12l_CUI0L8Cg-GazHVSVJH5biiG52_MU_ZtI0PCCrejyZN4NamLpFAiUg_ZZngWtszeBN_QCFQSZftiASIBRyDZL0e9VBkJp6gqgsGRVKTU5rTUcv1KUlYm7XKbeKCk1JQ5HzhJjy6XbCVATPBIpDRdhGH4Nf_MxCLmxYFXC0HvcXEdWLVFTfPeGCoGnrYKtFbCTHFhn25QZgRCTl85rsV1cqvz6Hhu3kr2_-lJBhg6rlne9Dk_Y59Ujx0zFnUVjpWxBXHo4mj64"/>
+</div>
+<div class="space-y-3 max-w-xs mx-auto">
+<h3 class="font-serif text-3xl text-slate-900 dark:text-white tracking-wide">Sarah Jenkins</h3>
+<p class="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-slate-300 inline-block pb-1 transition-colors">Journalism</p>
+<p class="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">"The Daily Tribune office coffee was terrible, but the company was the best."</p>
+</div>
+</div>
+<div class="group cursor-pointer flex flex-col items-center text-center">
+<div class="w-full aspect-[3/4] overflow-hidden mb-8 bg-slate-100 dark:bg-slate-900">
+<img alt="David Rossi" class="w-full h-full object-cover grayscale-img transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYEUGKbkDViA9O5_u6TFvxWoa4Z_37xJ_05RfqfYpC8bGKIbMKbPZ8SozWEiIBQu1row-hldzpYhVG0YmpFDm43R-j-pfW2eB0BseMRBliHhTqbleLsvAheQOYiN9Ghe-z1XnmRFXuK1k0TflUB-42O44dqSEA_Bc04fJpn4JnKs-bCayP9DP8nhPhqqhI2kg3aMsgYNe6KjQpoLD1o6UAZQHPyRUqgU_B25yqSQ26qmcU4qICjZryR_gtOLolXbGMacdUZI57lCA"/>
+</div>
+<div class="space-y-3 max-w-xs mx-auto">
+<h3 class="font-serif text-3xl text-slate-900 dark:text-white tracking-wide">David Rossi</h3>
+<p class="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-slate-300 inline-block pb-1 transition-colors">Architecture</p>
+<p class="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">"Building models until 4am and eating cold pizza."</p>
+</div>
+</div>
+<div class="group cursor-pointer flex flex-col items-center text-center">
+<div class="w-full aspect-[3/4] overflow-hidden mb-8 bg-slate-100 dark:bg-slate-900">
+<img alt="Priya Patel" class="w-full h-full object-cover grayscale-img transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx38wGULRkCFAZfX2Jmbq0XV2d7ZjojcD3wFAj7NBc39Cd5SgVhAqszh6OtSdSN8zBjfE8N2aRGXQvadcqATN5_tTp2TyDRPwomw-AoejrS6q-kHKk6KluUx-fNX3ajjbj4BoYeKTagtnHVCqpPlR6-DQ0msAbXl9osd4U-yDnJXzcLzSQv1iwOyBTNzhU2N2uud8gZZyct2KJwYuz94iUmCe48x7q1vCwXrM-a4-3cgqAaCeNAbcXCGSfsUL-JSsXRsKk87TYdr8"/>
+</div>
+<div class="space-y-3 max-w-xs mx-auto">
+<h3 class="font-serif text-3xl text-slate-900 dark:text-white tracking-wide">Priya Patel</h3>
+<p class="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-slate-300 inline-block pb-1 transition-colors">Political Science</p>
+<p class="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">"Campaign strategy meetings in the dorm lounge."</p>
+</div>
+</div>
+<div class="group cursor-pointer flex flex-col items-center text-center">
+<div class="w-full aspect-[3/4] overflow-hidden mb-8 bg-slate-100 dark:bg-slate-900">
+<img alt="James Wilson" class="w-full h-full object-cover grayscale-img transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl3pFX7JeAAEnFj4xNB4Edrkg7yYTWisFidVS_tR-MouTPhMfJnln2R-4pE-DKZJFVTF5rg-RC3HPrSvww_rf6zI58rnVFODX5ksJa2QIOscO2anhtpzsq0YnBv1l8tlTXuYsQ4YgaSia8XVxQrHdwjxrcTu0BWlwy0rmtmC7VMgkTEGnLrhI2ppcq7yZieVlZvznIA1esu7ir1izXyYL-2npWA3g9AL7h6ohdcG_LTYYlo_tIDgZUOl3PU6sWb6Q-e6ITyfR59_4"/>
+</div>
+<div class="space-y-3 max-w-xs mx-auto">
+<h3 class="font-serif text-3xl text-slate-900 dark:text-white tracking-wide">James Wilson</h3>
+<p class="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-slate-300 inline-block pb-1 transition-colors">Economics</p>
+<p class="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">"Macro theory debates that lasted way too long."</p>
+</div>
+</div>
+<div class="group cursor-pointer flex flex-col items-center text-center">
+<div class="w-full aspect-[3/4] overflow-hidden mb-8 bg-slate-100 dark:bg-slate-900">
+<img alt="Aisha Khan" class="w-full h-full object-cover grayscale-img transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVsImNiY55A88TDvMgtI0KLtH6hj18RzJxwGvlCf5ZstcMjjA9Ot0ALLhEzjQ5BKJVtnwFnG_5k2XxRghaWtlufxRHFpoefyRDcP6pYGf90MeMvGTe-BAauxvzOGM7LAhg6wrP7EMNs4kz6X-WUaTuQL6zIkM3E_mJl0ItmMofADrsaX070vfung6RMc82ZFgOw1i095w4wJoUZKyRd563l1za9macBXKgSmGJdV7bsgRv2nEeqXqk8_DEf8QdTSsB1ic9o980vLU"/>
+</div>
+<div class="space-y-3 max-w-xs mx-auto">
+<h3 class="font-serif text-3xl text-slate-900 dark:text-white tracking-wide">Aisha Khan</h3>
+<p class="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-slate-300 inline-block pb-1 transition-colors">Bioengineering</p>
+<p class="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">"Lab coat life and the endless pursuit of perfect data."</p>
+</div>
+</div>
+<div class="group cursor-pointer flex flex-col items-center text-center">
+<div class="w-full aspect-[3/4] overflow-hidden mb-8 bg-slate-100 dark:bg-slate-900">
+<img alt="Thomas Anderson" class="w-full h-full object-cover grayscale-img transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq3lt7q3HtRLsYX1ObMDnAH4INwqrUjcqKjwI3-pelj35j80XLg4rLx2mRKnQtt7HVmAOoP_WfBp6mBtiodbWjDggN1WsG1qz6-20Q4JFSnMEqlrE-XlWrRyTDK6Kq1Ge-G5OUiAKWaOUrLPebFlGd49vXa3sZM_vyGnXUoUgzg_r77LQLQTAcwI4My0qwssipJb-98wVOOl8JvgevUc-B9OE0hXwS1IkxNcjcL4fpGhzMqHFGOILoZg6_8y3WMmnzUBXHjzIFsxg"/>
+</div>
+<div class="space-y-3 max-w-xs mx-auto">
+<h3 class="font-serif text-3xl text-slate-900 dark:text-white tracking-wide">Thomas Anderson</h3>
+<p class="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-slate-300 inline-block pb-1 transition-colors">Philosophy</p>
+<p class="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">"Existential dread over coffee on the quad."</p>
+</div>
+</div>
+<div class="group cursor-pointer flex flex-col items-center text-center opacity-0 pointer-events-none hidden lg:flex">
+</div>
+</div>
+<div class="mt-32 flex justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-8">
+<a class="text-xs uppercase tracking-[0.2em] font-semibold text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Previous</a>
+<div class="font-serif italic text-slate-500">Page 1 of 8</div>
+<a class="text-xs uppercase tracking-[0.2em] font-semibold text-slate-900 dark:text-white" href="#">Next</a>
+</div>
+</main>
+<footer class="bg-white dark:bg-[#0a0a0a] mt-auto border-t border-transparent">
+<div class="max-w-[1600px] mx-auto py-16 px-6 lg:px-12">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
+<div>
+<span class="font-serif text-3xl font-medium tracking-wide block mb-6">The Archives</span>
+<p class="text-sm text-slate-400 max-w-xs font-light leading-relaxed">
+                        A collection of moments, faces, and stories from the Class of 2014. Preserved for posterity.
+                    </p>
+</div>
+<div class="flex gap-12 text-xs uppercase tracking-[0.2em] text-slate-500">
+<a class="hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Privacy</a>
+<a class="hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Terms</a>
+<a class="hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Contact</a>
+</div>
+</div>
+<div class="mt-16 text-[10px] uppercase tracking-widest text-slate-300 text-center md:text-left">
+                © 2024 University Friends Group
+            </div>
+</div>
+</footer>
+
+</body></html>
