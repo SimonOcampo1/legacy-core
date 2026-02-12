@@ -196,14 +196,14 @@ export function Profile() {
                                     <span className="text-xs font-sans uppercase tracking-widest">Index of Stories</span>
                                 </div>
                                 <div className="flex flex-col gap-0">
-                                    {narratives.map((story) => (
+                                    {narratives.map((story, index) => (
                                         <article
                                             key={story.id}
                                             className="group relative grid grid-cols-1 md:grid-cols-12 gap-6 py-8 border-b border-slate-200 dark:border-slate-800 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors duration-500 cursor-pointer"
                                         >
                                             <div className="md:col-span-2 flex flex-col justify-start pt-1">
                                                 <span className="text-3xl font-newsreader font-light text-slate-300 group-hover:text-[#C5A059]/60 transition-colors duration-300 ml-2">
-                                                    {story.id.substring(0, 2)}
+                                                    {(index + 1).toString().padStart(2, '0')}
                                                 </span>
                                                 <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-slate-500 mt-2">
                                                     {story.date}
