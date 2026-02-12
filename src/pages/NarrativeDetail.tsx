@@ -214,7 +214,7 @@ export function NarrativeDetail() {
                 <style>{`
                     .nostalgic-filter {
                         filter: grayscale(100%) contrast(105%) sepia(5%);
-                        transition: filter 0.5s ease;
+                        transition: filter 0.8s cubic-bezier(0.2, 0, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0, 0.2, 1);
                     }
                     .nostalgic-filter:hover {
                          filter: grayscale(0%) contrast(100%) sepia(0%);

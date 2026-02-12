@@ -1,6 +1,6 @@
 import { PageTransition } from "../components/PageTransition";
 import { motion, useScroll, useTransform, type Variants } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { TextReveal } from "../components/ui/TextReveal";
 import { GraphiteBackground } from "../components/ui/GraphiteBackground";
@@ -36,6 +36,7 @@ interface GalleryImage {
 }
 
 export function Home() {
+    const navigate = useNavigate();
     const containerRef = useRef(null);
     const { scrollYProgress } = useScroll({
         target: containerRef,
@@ -220,6 +221,7 @@ export function Home() {
                             <motion.article
                                 key={story.id}
                                 variants={fadeInUp}
+                                onClick={() => navigate(`/narratives/${story.id}`)}
                                 className="group relative py-24 border-b border-charcoal/10 dark:border-white/10 hover:bg-stone-50/50 dark:hover:bg-white/5 transition-colors duration-500 cursor-pointer"
                             >
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-baseline">

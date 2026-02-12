@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Play, Pause, Trash2 } from 'lucide-react';
+import { Mic, Square, Play, Pause, Trash2, MicOff } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AudioRecorderProps {
     onRecordingComplete: (audioBlob: Blob) => void;
@@ -21,16 +23,33 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
 
     useEffect(() => {
         return () => {
-            if (audioUrl) {
-                URL.revokeObjectURL(audioUrl);
-            }
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-            }
+            if (audioUrl) URL.revokeObjectURL(audioUrl);
+            if (timerRef.current) clearInterval(timerRef.current);
         };
     }, [audioUrl]);
 
+    const checkMicrophone = async () => {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const hasMic = devices.some(device => device.kind === 'audioinput');
+            if (!hasMic) {
+                toast.error("No microphone detected", {
+                    description: "Please connect a microphone to record audio comments.",
+                    icon: <MicOff className="w-4 h-4" />
+                });
+                return false;
+            }
+            return true;
+        } catch (err) {
+            console.error("Mic check error:", err);
+            return true; // Fallback to prompt anyway
+        }
+    };
+
     const startRecording = async () => {
+        const hasMic = await checkMicrophone();
+        if (!hasMic) return;
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const mediaRecorder = new MediaRecorder(stream);
@@ -38,9 +57,7 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
 
             const chunks: BlobPart[] = [];
             mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    chunks.push(e.data);
-                }
+                if (e.data.size > 0) chunks.push(e.data);
             };
 
             mediaRecorder.onstop = () => {
@@ -49,15 +66,12 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
                 setAudioBlob(blob);
                 setAudioUrl(url);
                 onRecordingComplete(blob);
-
-                // Stop all tracks
                 stream.getTracks().forEach(track => track.stop());
             };
 
             mediaRecorder.start();
             setIsRecording(true);
 
-            // Start timer
             const startTime = Date.now();
             timerRef.current = window.setInterval(() => {
                 setRecordingTime(Math.floor((Date.now() - startTime) / 1000));
@@ -65,7 +79,9 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
 
         } catch (error) {
             console.error("Error accessing microphone:", error);
-            alert("Could not access microphone. Please allow permissions.");
+            toast.error("Microphone access denied", {
+                description: "Please allow microphone permissions in your browser settings."
+            });
         }
     };
 
@@ -82,17 +98,10 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
 
     const togglePlayback = () => {
         if (audioRef.current) {
-            if (isPlaying) {
-                audioRef.current.pause();
-            } else {
-                audioRef.current.play();
-            }
+            if (isPlaying) audioRef.current.pause();
+            else audioRef.current.play();
             setIsPlaying(!isPlaying);
         }
-    };
-
-    const handleAudioEnded = () => {
-        setIsPlaying(false);
     };
 
     const deleteRecording = () => {
@@ -101,9 +110,7 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
         setRecordingTime(0);
         setIsPlaying(false);
         onDelete();
-        if (audioUrl) {
-            URL.revokeObjectURL(audioUrl);
-        }
+        if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
 
     const formatTime = (seconds: number) => {
@@ -114,71 +121,86 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
 
     if (audioUrl && audioBlob) {
         return (
-            <div className="flex items-center gap-2 p-2 bg-stone-100 rounded-full border border-stone-200 w-fit">
-                <audio ref={audioRef} src={audioUrl} onEnded={handleAudioEnded} className="hidden" />
+            <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 p-1.5 bg-stone-100 dark:bg-stone-800 rounded-full border border-stone-200 dark:border-stone-700 w-fit"
+            >
+                <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} className="hidden" />
 
                 <button
                     onClick={togglePlayback}
-                    className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-700 transition-colors"
+                    className="h-7 w-7 flex items-center justify-center rounded-full bg-charcoal dark:bg-white text-white dark:text-charcoal hover:opacity-85 transition-opacity"
                     type="button"
                 >
-                    {isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+                    {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" className="ml-0.5" />}
                 </button>
 
-                <div className="flex flex-col px-2">
-                    <span className="text-xs font-medium text-slate-700">Voice Note</span>
-                    <span className="text-[10px] text-slate-400">{formatTime(recordingTime)}</span>
+                <div className="flex flex-col px-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal dark:text-stone-300">Voice Note</span>
+                    <span className="text-[9px] text-stone-500 font-mono">{formatTime(recordingTime)}</span>
                 </div>
 
-                <div className="h-6 w-[1px] bg-stone-300 mx-1"></div>
+                <div className="h-5 w-[1px] bg-stone-300 dark:bg-stone-700 mx-0.5"></div>
 
                 <button
                     onClick={deleteRecording}
                     disabled={isUploading}
-                    className="p-1.5 text-stone-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors disabled:opacity-50"
+                    className="p-1 text-stone-400 hover:text-red-500 transition-colors disabled:opacity-50"
                     type="button"
                 >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                 </button>
-            </div>
+            </motion.div>
         );
     }
 
     return (
         <div className="flex items-center gap-3">
-            {isRecording ? (
-                <div className="flex items-center gap-3 animate-in fade-in duration-200">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-full border border-red-100">
-                        <div className="relative h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            <AnimatePresence mode="wait">
+                {isRecording ? (
+                    <motion.div
+                        key="recording"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="flex items-center gap-3"
+                    >
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-full border border-red-100 dark:border-red-900/50">
+                            <div className="relative h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </div>
+                            <span className="font-mono text-xs font-bold w-10 text-center">{formatTime(recordingTime)}</span>
                         </div>
-                        <span className="font-mono text-xs font-medium w-10 text-center">{formatTime(recordingTime)}</span>
-                    </div>
 
-                    <button
-                        onClick={stopRecording}
-                        className="h-8 w-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm"
+                        <button
+                            onClick={stopRecording}
+                            className="h-8 w-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm"
+                            type="button"
+                        >
+                            <Square size={12} fill="currentColor" />
+                        </button>
+                    </motion.div>
+                ) : (
+                    <motion.button
+                        key="idle"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        onClick={startRecording}
+                        disabled={isUploading}
+                        className={cn(
+                            "flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all",
+                            "text-stone-500 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700",
+                            isUploading && "opacity-50 cursor-not-allowed"
+                        )}
                         type="button"
                     >
-                        <Square size={12} fill="currentColor" />
-                    </button>
-                </div>
-            ) : (
-                <button
-                    onClick={startRecording}
-                    disabled={isUploading}
-                    className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                        "text-slate-600 bg-stone-100 hover:bg-stone-200 border border-stone-200",
-                        isUploading && "opacity-50 cursor-not-allowed"
-                    )}
-                    type="button"
-                >
-                    <Mic size={14} />
-                    <span>Record Audio</span>
-                </button>
-            )}
+                        <Mic size={14} className="text-[#C5A059]" />
+                        <span>Record Audio</span>
+                    </motion.button>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -1,5 +1,6 @@
-import { useParams, Link } from "react-router-dom";
-import { Mail, Share, Bookmark, ArrowRight } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Mail, Share, Bookmark, ArrowRight, Shield } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
 // import { cn } from "../lib/utils";
 import { useState, useEffect } from "react";
@@ -19,10 +20,13 @@ interface ProfileNarrative {
 }
 
 export function Profile() {
+    const navigate = useNavigate();
+    const { user: currentUser } = useAuth();
     const { id } = useParams<{ id: string }>();
     const [member, setMember] = useState<Member | null>(null);
     const [narratives, setNarratives] = useState<ProfileNarrative[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isPending, setIsPending] = useState(false);
     const BUCKET_ID = "legacy_core_assets";
 
     useEffect(() => {
@@ -52,6 +56,14 @@ export function Profile() {
 
                 // Parse honors if it's a string disguised as array or just use raw
                 const honors = memberDoc.honors || [];
+
+                if (!memberDoc.is_authorized && memberDoc.$id !== currentUser?.$id) {
+                    throw new Error("This profile is currently private or pending approval.");
+                }
+
+                if (!memberDoc.is_authorized) {
+                    setIsPending(true);
+                }
 
                 const mappedMember: Member = {
                     id: memberDoc.$id,
@@ -122,6 +134,23 @@ export function Profile() {
     }
 
     const honors = member.honors || ["Class of 2014", member.role];
+
+    if (isPending) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-background-light dark:bg-background-dark text-charcoal dark:text-white px-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-8">
+                    <Shield className="w-8 h-8 text-amber-500 animate-pulse" />
+                </div>
+                <h2 className="font-serif text-4xl italic mb-4">Membership Pending Approval</h2>
+                <p className="max-w-md text-stone-500 dark:text-stone-400 font-light leading-relaxed mb-8">
+                    Your profile has been created successfully, {member.name}. An administrator will review your application soon. Once approved, you'll be visible in the community directory.
+                </p>
+                <Link to="/" className="text-sm uppercase tracking-widest border-b border-current pb-1 hover:opacity-60 transition-opacity">
+                    Return to Home
+                </Link>
+            </div>
+        );
+    }
 
     return (
         <PageTransition>
@@ -199,6 +228,7 @@ export function Profile() {
                                     {narratives.map((story, index) => (
                                         <article
                                             key={story.id}
+                                            onClick={() => navigate(`/narratives/${story.id}`)}
                                             className="group relative grid grid-cols-1 md:grid-cols-12 gap-6 py-8 border-b border-slate-200 dark:border-slate-800 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors duration-500 cursor-pointer"
                                         >
                                             <div className="md:col-span-2 flex flex-col justify-start pt-1">

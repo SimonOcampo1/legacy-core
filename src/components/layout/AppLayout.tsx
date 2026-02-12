@@ -1,11 +1,11 @@
 import { LoginModal } from "../auth/LoginModal";
 import { type ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Lock } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { ModeToggle } from "../mode-toggle";
 import { MagneticButton } from "../ui/MagneticButton";
 import { PpgLogo } from "../ui/PpgLogo";
+import { UserMenu } from "./UserMenu";
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -14,7 +14,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { isAdmin, user } = useAuth();
+    const { user } = useAuth();
     const isNarrativeDetail = location.pathname.startsWith("/narratives/");
     const isHome = location.pathname === "/";
     const [isScrolled, setIsScrolled] = useState(false);
@@ -76,7 +76,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
 
 
-    const isStandalone = location.pathname === "/login" || location.pathname.startsWith("/admin");
+    const isStandalone = location.pathname.startsWith("/admin");
 
     if (isStandalone) {
         return (
@@ -115,11 +115,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                             </div>
 
                             <div className="justify-self-end flex items-center gap-6 border-l border-stone-200 dark:border-white/20 pl-6">
-                                <div className="hidden md:block">
+                                <div className="hidden md:flex items-center gap-4">
                                     {user ? (
-                                        <Link to="/admin" className="font-serif text-lg italic leading-none transition-colors duration-300 text-charcoal dark:text-white hover:text-[#C5A059]">
-                                            {user.name?.split(' ')[0] || 'Admin'}
-                                        </Link>
+                                        <UserMenu />
                                     ) : (
                                         <button
                                             onClick={() => setIsLoginModalOpen(true)}
@@ -173,25 +171,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                             {/* Right Actions */}
                             <div className="justify-self-end flex items-center gap-6">
                                 <div className="flex items-center gap-4 border-r border-stone-200 dark:border-stone-800 pr-6 mr-2">
-                                    {isAdmin && (
-                                        <MagneticButton strength={15}>
-                                            <Link to="/admin" className={`${isHome && !isScrolled ? "text-charcoal/80 dark:text-white/80" : "text-slate-400"
-                                                } hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer p-2`}>
-                                                <Lock className="w-4 h-4" strokeWidth={1.5} />
-                                            </Link>
-                                        </MagneticButton>
-                                    )}
-                                    <MagneticButton strength={15}>
-                                        <button className={`${isHome && !isScrolled ? "text-charcoal/80 dark:text-white/80" : "text-slate-400"
-                                            } hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer p-2`}>
-                                            <Search className="w-5 h-5 font-light" strokeWidth={1.5} />
-                                        </button>
-                                    </MagneticButton>
                                     <div className="text-right hidden sm:block">
                                         {user ? (
-                                            <Link to="/admin" className={`font-serif text-lg italic leading-none hover:text-[#C5A059] transition-colors ${isHome && !isScrolled ? "text-charcoal dark:text-white" : ""}`}>
-                                                {user.name?.split(' ')[0] || 'Admin'}
-                                            </Link>
+                                            <UserMenu isHome={isHome} isScrolled={isScrolled} />
                                         ) : (
                                             <button
                                                 onClick={() => setIsLoginModalOpen(true)}

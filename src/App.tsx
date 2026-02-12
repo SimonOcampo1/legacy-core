@@ -7,7 +7,6 @@ import { Timeline } from "./pages/Timeline";
 import { Gallery } from "./pages/Gallery";
 import { NarrativeDetail } from "./pages/NarrativeDetail";
 import { SharedNarratives } from "./pages/SharedNarratives";
-import { Login } from "./pages/Login";
 import { AdminConsole } from "./pages/AdminConsole";
 import { AnimatePresence } from "framer-motion";
 import { GrainOverlay } from "./components/ui/GrainOverlay";
@@ -30,7 +29,8 @@ function AnimatedRoutes() {
         <Route path="/narratives/:id" element={<NarrativeDetail />} />
 
         {/* Standalone Pages */}
-        <Route path="/login" element={<Login />} />
+
+        {/* Auth callback handled by session persistence in Context */}
 
         <Route element={<ProtectedRoute adminOnly={true} />}>
           <Route path="/admin" element={<AdminConsole />} />

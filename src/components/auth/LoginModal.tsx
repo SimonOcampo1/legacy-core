@@ -4,6 +4,7 @@ import { PpgLogo } from "../ui/PpgLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -12,30 +13,39 @@ interface LoginModalProps {
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const navigate = useNavigate();
-    const { login, loginWithGoogle, verifying } = useAuth();
+    const { login, register, loginWithGoogle, checkUserStatus, verifying } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
 
-    // Reset state when modal opens
+    // Reset state when modal opens or tab changes
     useEffect(() => {
         if (isOpen) {
             setError(null);
             setEmail("");
             setPassword("");
+            setName("");
         }
-    }, [isOpen]);
+    }, [isOpen, activeTab]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         try {
-            await login(email, password);
-            onClose();
-            navigate("/admin");
+            if (activeTab === 'login') {
+                await login(email, password);
+                onClose();
+                navigate("/admin");
+            } else {
+                await register(name, email, password);
+                onClose();
+                toast.success("Account created! Waiting for admin approval.");
+            }
         } catch (err: any) {
             console.error(err);
-            setError(err.message || "Login failed. Please check your credentials.");
+            setError(err.message || "Action failed. Please check your credentials.");
         }
     };
 
@@ -83,14 +93,38 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 {/* Header */}
                                 <div className="flex flex-col items-center text-center space-y-4">
                                     <div className="mb-2">
-                                        <PpgLogo className="h-20 w-auto text-[#C5A059]" />
+                                        <PpgLogo className="h-16 w-auto text-[#C5A059]" />
                                     </div>
                                     <h2 className="text-3xl font-serif font-medium text-stone-900 dark:text-white">
-                                        Welcome Back
+                                        {activeTab === 'login' ? "Welcome Back" : "Join the Legacy"}
                                     </h2>
                                     <p className="text-sm text-stone-500 dark:text-stone-400">
-                                        Enter your credentials to access the archives
+                                        {activeTab === 'login'
+                                            ? "Enter your credentials to access the archives"
+                                            : "Create your account to become part of the digital community"}
                                     </p>
+                                </div>
+
+                                {/* Tab Toggle */}
+                                <div className="flex p-1 bg-stone-100 dark:bg-stone-900 rounded-xl w-full">
+                                    <button
+                                        onClick={() => setActiveTab('login')}
+                                        className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'login'
+                                            ? "bg-white dark:bg-stone-800 text-[#C5A059] shadow-sm"
+                                            : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                                            }`}
+                                    >
+                                        Sign In
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('register')}
+                                        className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'register'
+                                            ? "bg-white dark:bg-stone-800 text-[#C5A059] shadow-sm"
+                                            : "text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                                            }`}
+                                    >
+                                        Join
+                                    </button>
                                 </div>
 
                                 {/* Form */}
@@ -102,6 +136,18 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     )}
 
                                     <div className="space-y-4">
+                                        {activeTab === 'register' && (
+                                            <div className="group relative">
+                                                <input
+                                                    type="text"
+                                                    value={name}
+                                                    onChange={(e) => setName(e.target.value)}
+                                                    placeholder="Full Name"
+                                                    required
+                                                    className="w-full rounded-lg border border-stone-200 dark:border-stone-700 bg-transparent px-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] outline-none transition-all"
+                                                />
+                                            </div>
+                                        )}
                                         <div className="group relative">
                                             <input
                                                 type="email"
@@ -132,10 +178,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                         {verifying ? (
                                             <>
                                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                                Verifying...
+                                                Processing...
                                             </>
                                         ) : (
-                                            "Sign In"
+                                            activeTab === 'login' ? "Sign In" : "Create Account"
                                         )}
                                     </button>
                                 </form>
@@ -160,6 +206,17 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     </svg>
                                     Google
                                 </button>
+
+                                <div className="pt-2 w-full">
+                                    <button
+                                        onClick={async () => {
+                                            await checkUserStatus();
+                                        }}
+                                        className="w-full text-[10px] text-stone-400 hover:text-[#C5A059] uppercase tracking-[0.2em] transition-colors"
+                                    >
+                                        Sync Session (Diagnostic)
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </motion.div>

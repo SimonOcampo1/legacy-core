@@ -23,4 +23,5 @@ export const TIMELINE_COLLECTION_ID = "timeline";
 export const PROFILES_COLLECTION_ID = "profiles";
 export const GALLERY_COLLECTION_ID = "gallery";
 export const COMMENTS_COLLECTION_ID = "comments";
+export const MEMBERS_COLLECTION_ID = "profiles";
 export const AUDIO_BUCKET_ID = "audio_comments";

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { motion } from 'framer-motion';
 
 interface AudioPlayerProps {
     src: string;
@@ -12,6 +13,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isMuted, setIsMuted] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const progressRef = useRef<HTMLDivElement | null>(null);
@@ -22,6 +24,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
 
         const setAudioData = () => {
             setDuration(audio.duration);
+            setIsLoading(false);
         };
 
         const setAudioTime = () => {
@@ -30,19 +33,23 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
 
         const handleEnded = () => {
             setIsPlaying(false);
+            setCurrentTime(0);
         };
 
-        audio.addEventListener('loadeddata', setAudioData);
+        const handleCanPlay = () => {
+            setIsLoading(false);
+        };
+
+        audio.addEventListener('loadedmetadata', setAudioData);
         audio.addEventListener('timeupdate', setAudioTime);
         audio.addEventListener('ended', handleEnded);
-
-        // Preload metadata
-        audio.preload = "metadata";
+        audio.addEventListener('canplay', handleCanPlay);
 
         return () => {
-            audio.removeEventListener('loadeddata', setAudioData);
+            audio.removeEventListener('loadedmetadata', setAudioData);
             audio.removeEventListener('timeupdate', setAudioTime);
             audio.removeEventListener('ended', handleEnded);
+            audio.removeEventListener('canplay', handleCanPlay);
         };
     }, []);
 
@@ -84,29 +91,37 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
     };
 
     return (
-        <div className={cn("flex items-center gap-3 p-2 pr-4 bg-stone-50 rounded-full border border-stone-200 w-full max-w-xs", className)}>
-            <audio ref={audioRef} src={src} />
+        <div className={cn("flex items-center gap-3 p-1.5 pr-4 bg-stone-100/50 dark:bg-stone-900/30 rounded-full border border-stone-200/50 dark:border-stone-800/50 w-full max-w-[240px] group/player transition-all hover:bg-stone-100 dark:hover:bg-stone-900/50", className)}>
+            <audio ref={audioRef} src={src} preload="metadata" />
 
             <button
                 onClick={togglePlay}
-                className="flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+                disabled={isLoading}
+                className="flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-full bg-charcoal dark:bg-white text-white dark:text-charcoal shadow-sm transition-all active:scale-95 disabled:opacity-50"
                 type="button"
             >
-                {isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
+                {isLoading ? (
+                    <Loader2 size={12} className="animate-spin" />
+                ) : isPlaying ? (
+                    <Pause size={12} fill="currentColor" />
+                ) : (
+                    <Play size={12} fill="currentColor" className="ml-0.5" />
+                )}
             </button>
 
             <div className="flex-1 flex flex-col gap-1 min-w-0">
                 <div
                     ref={progressRef}
-                    className="h-1.5 bg-stone-200 rounded-full cursor-pointer relative overflow-hidden group"
+                    className="h-1 bg-stone-200 dark:bg-stone-800 rounded-full cursor-pointer relative overflow-hidden"
                     onClick={handleProgressClick}
                 >
-                    <div
-                        className="absolute left-0 top-0 h-full bg-emerald-600 rounded-full transition-all duration-100 group-hover:bg-emerald-500"
-                        style={{ width: `${(currentTime / duration) * 100}%` }}
+                    <motion.div
+                        className="absolute left-0 top-0 h-full bg-[#C5A059] rounded-full"
+                        animate={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+                        transition={{ type: "spring", bounce: 0, duration: 0.2 }}
                     />
                 </div>
-                <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                <div className="flex justify-between text-[9px] font-bold tracking-widest text-stone-400 dark:text-stone-600 uppercase">
                     <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(duration)}</span>
                 </div>
@@ -114,10 +129,10 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
 
             <button
                 onClick={toggleMute}
-                className="flex-shrink-0 text-stone-400 hover:text-stone-600 transition-colors"
+                className="flex-shrink-0 text-stone-300 dark:text-stone-700 hover:text-[#C5A059] transition-colors"
                 type="button"
             >
-                {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
             </button>
         </div>
     );

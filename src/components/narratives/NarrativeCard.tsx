@@ -1,5 +1,5 @@
 import { storage } from "../../lib/appwrite";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { Narrative } from "../../types";
 
 interface NarrativeCardProps {
@@ -7,6 +7,7 @@ interface NarrativeCardProps {
 }
 
 export function NarrativeCard({ narrative }: NarrativeCardProps) {
+    const navigate = useNavigate();
     const getImageUrl = () => {
         const id = narrative.cover_image_id;
         if (!id) return "https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=1200&auto=format&fit=crop";
@@ -24,7 +25,10 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
     });
 
     return (
-        <article className="flex flex-col gap-12 mb-32 group">
+        <article
+            onClick={() => navigate(`/narratives/${narrative.$id}`)}
+            className="flex flex-col gap-12 mb-32 group cursor-pointer"
+        >
             <Link to={`/narratives/${narrative.$id}`} className="w-full relative cursor-pointer overflow-hidden shadow-sm block rounded-xl">
                 <div className="aspect-[3/2] w-full bg-stone-200 dark:bg-stone-800 overflow-hidden relative rounded-xl">
                     <div
@@ -46,7 +50,13 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
                 <div className="flex items-center justify-center gap-3 mb-10">
                     <div className="flex flex-col text-center">
                         <span className="font-serif italic text-sm text-stone-500 dark:text-stone-400">
-                            by <Link to={`/profile/${narrative.author_id}`} className="hover:text-[#C5A059] transition-colors">{narrative.author || narrative.author_id || "Unknown"}</Link>
+                            by <Link
+                                to={`/profile/${narrative.author_id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="hover:text-[#C5A059] transition-colors"
+                            >
+                                {narrative.author || narrative.author_id || "Unknown"}
+                            </Link>
                         </span>
                     </div>
                 </div>

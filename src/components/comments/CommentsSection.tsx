@@ -3,12 +3,10 @@ import { useAuth } from '../../context/AuthContext';
 import { databases, storage, DATABASE_ID, COMMENTS_COLLECTION_ID, AUDIO_BUCKET_ID } from '../../lib/appwrite';
 import { ID, Query, Permission, Role } from 'appwrite';
 import { CommentItem } from './CommentItem';
-import { Loader2, MessageSquare } from 'lucide-react';
+import { AudioRecorder } from './AudioRecorder';
+import { Loader2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
-
 import type { Comment } from '../../types';
-
-// removed local Comment interface
 
 interface CommentsSectionProps {
     narrativeId: string;
@@ -19,6 +17,7 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
     const fetchComments = async () => {
@@ -32,18 +31,15 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                 ]
             );
 
-            // Transform flat list to tree
             const flatComments = response.documents as unknown as Comment[];
             const commentMap: Record<string, Comment> = {};
             const rootComments: Comment[] = [];
 
-            // First pass: create map and Initialize replies array
             flatComments.forEach(comment => {
                 comment.replies = [];
                 commentMap[comment.$id] = comment;
             });
 
-            // Second pass: build tree
             flatComments.forEach(comment => {
                 if (comment.parent_id && comment.parent_id !== 'root' && commentMap[comment.parent_id]) {
                     commentMap[comment.parent_id].replies?.push(comment);
@@ -52,8 +48,6 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                 }
             });
 
-            // Sort replies by date (oldest first for conversation flow, or newest? usually oldest first for nested)
-            // Root comments are already newest first from query.
             const sortReplies = (comment: Comment) => {
                 if (comment.replies && comment.replies.length > 0) {
                     comment.replies.sort((a, b) => new Date(a.$createdAt).getTime() - new Date(b.$createdAt).getTime());
@@ -75,33 +69,27 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
         fetchComments();
     }, [narrativeId]);
 
-    const handlePostComment = async (parentId: string = 'root', content: string, audioBlob?: Blob) => {
+    const handlePostComment = async (parentId: string = 'root', content: string, recordingBlob?: Blob) => {
         if (!user) {
-            toast.error("You must be logged in to comment.");
+            toast.error("Sign in to join the conversation");
             return;
         }
+
+        const finalAudioBlob = recordingBlob || audioBlob;
+        if (!content.trim() && !finalAudioBlob) return;
 
         setSubmitting(true);
         try {
             let audioUrl = undefined;
 
-            if (audioBlob) {
-                // Upload audio
-                const file = new File([audioBlob], `voice_c_${Date.now()}.webm`, { type: 'audio/webm' });
+            if (finalAudioBlob) {
+                const file = new File([finalAudioBlob], `voice_c_${Date.now()}.webm`, { type: 'audio/webm' });
                 try {
-                    const upload = await storage.createFile(
-                        AUDIO_BUCKET_ID,
-                        ID.unique(),
-                        file
-                    );
-                    const fileId = upload.$id;
-                    // generated URL might need adjustment depending on Appwrite version/setup, usually getFileView
-                    audioUrl = storage.getFileView(AUDIO_BUCKET_ID, fileId).toString();
+                    const upload = await storage.createFile(AUDIO_BUCKET_ID, ID.unique(), file);
+                    audioUrl = storage.getFileView(AUDIO_BUCKET_ID, upload.$id).toString();
                 } catch (uploadError) {
-                    console.error("Audio upload failed, trying legacy bucket if generic failed or just logging", uploadError);
-                    // Fallback to legacy bucket if audio bucket doesn't exist? 
-                    // Ideally we catch this. For now let's assume it works or fail gracefully.
-                    toast.error("Failed to upload audio. Posting text only.");
+                    console.error("Audio upload failed:", uploadError);
+                    toast.error("Failed to upload audio note");
                 }
             }
 
@@ -123,28 +111,26 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                 ]
             );
 
-            toast.success("Comment posted!");
+            toast.success("Comment shared successfully");
             setNewCommentText("");
-            fetchComments(); // Refresh list
+            setAudioBlob(null);
+            fetchComments();
 
         } catch (error) {
             console.error("Error posting comment:", error);
-            toast.error("Failed to post comment.");
+            toast.error("Failed to share your thought");
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleLike = async (commentId: string, currentLikes: number) => {
-        // Optimistic update handled in CommentItem, this is for backend persistence
         try {
             await databases.updateDocument(
                 DATABASE_ID,
                 COMMENTS_COLLECTION_ID,
                 commentId,
-                {
-                    likes: currentLikes + 1 // Basic implementation, doesn't track *who* liked to prevent double likes yet
-                }
+                { likes: currentLikes + 1 }
             );
         } catch (error) {
             console.error("Error liking comment:", error);
@@ -152,92 +138,106 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
     };
 
     const handleDelete = async (commentId: string) => {
-        if (!confirm("Delete this comment?")) return;
         try {
-            await databases.deleteDocument(
-                DATABASE_ID,
-                COMMENTS_COLLECTION_ID,
-                commentId
-            );
-            toast.success("Comment deleted.");
+            await databases.deleteDocument(DATABASE_ID, COMMENTS_COLLECTION_ID, commentId);
+            toast.success("Comment removed");
             fetchComments();
         } catch (error) {
             console.error("Error deleting comment:", error);
-            toast.error("Failed to delete.");
+            toast.error("Failed to remove comment");
         }
-    }
+    };
 
     return (
-        <div className="bg-white dark:bg-background-dark rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-6 md:p-8 transition-colors duration-300">
-            <h3 className="font-serif text-xl text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                <MessageSquare size={20} className="text-[#C5A059]" />
-                Comments
-            </h3>
+        <div className="mt-16 space-y-12">
+            <div className="flex items-center gap-4 border-b border-stone-200 dark:border-stone-800 pb-6">
+                <h3 className="font-serif text-2xl text-charcoal dark:text-white italic">
+                    Conversations
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-[10px] font-bold uppercase tracking-widest text-[#C5A059]">
+                    {comments.length}
+                </span>
+            </div>
 
             {/* Post Comment Input */}
-            <div className="mb-8 bg-stone-50 dark:bg-stone-900/20 p-4 rounded-lg border border-stone-100 dark:border-stone-800">
+            <div className="group relative">
                 {user ? (
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-8 h-8 rounded-full bg-[#C5A059] flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                    <div className="flex flex-col space-y-4">
+                        <div className="flex items-start gap-4">
+                            <div className="h-10 w-10 shrink-0 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-xs font-serif font-bold text-charcoal dark:text-white shadow-sm ring-2 ring-transparent group-focus-within:ring-stone-100 dark:group-focus-within:ring-stone-900 transition-all">
                                 {user.name?.charAt(0) || 'U'}
                             </div>
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{user.name}</span>
-                        </div>
-                        <textarea
-                            value={newCommentText}
-                            onChange={(e) => setNewCommentText(e.target.value)}
-                            placeholder="Write your thought..."
-                            className="w-full bg-transparent border-none focus:ring-0 p-0 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-stone-500 text-sm resize-none mb-4"
-                            rows={3}
-                        />
-                        <div className="flex justify-between items-center pt-2 border-t border-stone-200 dark:border-stone-800">
-                            <button
-                                onClick={() => handlePostComment('root', newCommentText)}
-                                disabled={submitting || !newCommentText.trim()}
-                                className="flex items-center gap-2 px-6 py-2 bg-[#C5A059] text-white text-sm font-medium rounded-full hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                            >
-                                {submitting ? 'Posting...' : 'Post Comment'}
-                            </button>
+                            <div className="flex-1 min-w-0">
+                                <textarea
+                                    value={newCommentText}
+                                    onChange={(e) => setNewCommentText(e.target.value)}
+                                    placeholder="Add to the narrative..."
+                                    className="w-full bg-transparent border-none focus:ring-0 p-0 text-lg font-serif italic text-charcoal dark:text-stone-200 placeholder:text-stone-300 dark:placeholder:text-stone-700 resize-none min-h-[80px]"
+                                    rows={1}
+                                />
+
+                                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-stone-100 dark:border-stone-900/50">
+                                    <div className="flex items-center gap-2">
+                                        <AudioRecorder
+                                            onRecordingComplete={setAudioBlob}
+                                            onDelete={() => setAudioBlob(null)}
+                                            isUploading={submitting}
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={() => handlePostComment('root', newCommentText)}
+                                        disabled={submitting || (!newCommentText.trim() && !audioBlob)}
+                                        className="h-10 px-8 bg-charcoal dark:bg-white text-white dark:text-charcoal text-[11px] font-bold uppercase tracking-[0.2em] rounded-full hover:opacity-90 transition-all disabled:opacity-30 disabled:grayscale shadow-xl"
+                                    >
+                                        {submitting ? 'Sharing...' : 'Share Thought'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-4">
-                        <p className="text-sm text-stone-500 dark:text-stone-400 mb-3 italic">Sign in to leave a comment</p>
+                    <div className="text-center py-12 rounded-2xl bg-stone-50/50 dark:bg-stone-950/20 border border-dashed border-stone-200 dark:border-stone-800">
+                        <MessageCircle className="mx-auto w-6 h-6 text-stone-300 dark:text-stone-700 mb-4" />
+                        <p className="text-sm font-serif italic text-stone-500 mb-6">Join the narrative flow to leave a comment</p>
                         <button
                             onClick={() => (window as any).openLoginModal?.()}
-                            className="text-xs uppercase tracking-widest text-[#C5A059] border-b border-[#C5A059] pb-0.5 hover:text-[#D4AF37] transition-colors"
+                            className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C5A059] border-b border-[#C5A059]/30 pb-1 hover:border-[#C5A059] transition-all"
                         >
-                            Log In
+                            Sign In
                         </button>
                     </div>
                 )}
             </div>
 
             {/* Comments List */}
-            {loading ? (
-                <div className="flex justify-center py-8">
-                    <Loader2 className="animate-spin text-[#C5A059]" />
-                </div>
-            ) : comments.length > 0 ? (
-                <div className="space-y-6">
-                    {comments.map((comment) => (
-                        <CommentItem
-                            key={comment.$id}
-                            comment={comment}
-                            depth={0} // Added depth prop
-                            onReply={handlePostComment}
-                            onLike={handleLike} // Kept onLike
-                            onDelete={handleDelete}
-                            currentUserId={user?.$id}
-                        />
-                    ))}
-                </div>
-            ) : (
-                <div className="text-center py-8 text-slate-400 dark:text-stone-600 text-sm italic">
-                    No comments yet. Be the first to start the conversation.
-                </div>
-            )}
+            <div className="space-y-8 pt-4">
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                        <Loader2 className="w-5 h-5 animate-spin text-[#C5A059]" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Loading memories</span>
+                    </div>
+                ) : comments.length > 0 ? (
+                    <div className="divide-y divide-stone-100 dark:divide-stone-900/50">
+                        {comments.map((comment) => (
+                            <div key={comment.$id} className="py-8 first:pt-0">
+                                <CommentItem
+                                    comment={comment}
+                                    depth={0}
+                                    onReply={handlePostComment}
+                                    onLike={handleLike}
+                                    onDelete={handleDelete}
+                                    currentUserId={user?.$id}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-20">
+                        <p className="font-serif italic text-stone-400 dark:text-stone-600">The silence is inviting. Be the first to share a thought.</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

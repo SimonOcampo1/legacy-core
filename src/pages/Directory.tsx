@@ -34,6 +34,7 @@ export function Directory() {
                     PROFILES_COLLECTION_ID,
                     [
                         Query.limit(100),
+                        Query.equal("is_authorized", true)
                         // Query.orderAsc("name") // Optional: sort by name
                     ]
                 );

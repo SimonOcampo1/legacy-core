@@ -1,8 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { motion } from "framer-motion";
 
 export function ProtectedRoute({ adminOnly = false }: { adminOnly?: boolean }) {
-    const { user, loading, isAdmin } = useAuth();
+    const { user, loading, isAdmin, isAuthorized } = useAuth();
 
     if (loading) {
         return (
@@ -12,13 +13,26 @@ export function ProtectedRoute({ adminOnly = false }: { adminOnly?: boolean }) {
         );
     }
 
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
+    console.log("ProtectedRoute check:", { path: window.location.pathname, userEmail: user?.email, isAdmin, adminOnly });
 
-    if (adminOnly && !isAdmin) {
+    if (!user) {
+        console.log("No user found in ProtectedRoute, redirecting to home.");
         return <Navigate to="/" replace />;
     }
 
-    return <Outlet />;
+    if (adminOnly && !isAuthorized) {
+        console.log("User is not authorized in ProtectedRoute, redirecting to home.");
+        return <Navigate to="/" replace />;
+    }
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="h-full w-full"
+        >
+            <Outlet />
+        </motion.div>
+    );
 }
