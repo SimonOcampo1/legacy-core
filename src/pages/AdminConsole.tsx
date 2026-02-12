@@ -93,6 +93,10 @@ export function AdminConsole() {
                         <div className="pt-8 mt-4">
                             <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">System</p>
                             <Link className="flex items-center gap-3 px-4 py-2 rounded-none text-slate-500 hover:text-slate-900 hover:bg-gray-50 transition-all" to="#">
+                                <span className="material-symbols-outlined text-[18px] font-light">group</span>
+                                <span className="text-sm">Authorized Users</span>
+                            </Link>
+                            <Link className="flex items-center gap-3 px-4 py-2 rounded-none text-slate-500 hover:text-slate-900 hover:bg-gray-50 transition-all" to="#">
                                 <span className="material-symbols-outlined text-[18px] font-light">settings</span>
                                 <span className="text-sm">Settings</span>
                             </Link>
