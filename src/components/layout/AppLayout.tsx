@@ -1,8 +1,9 @@
+import { LoginModal } from "../auth/LoginModal";
 import { type ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Lock } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import { ModeToggle } from "../mode-toggle";
-import { members } from "../../data/members";
 import { MagneticButton } from "../ui/MagneticButton";
 import { PpgLogo } from "../ui/PpgLogo";
 
@@ -13,9 +14,11 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
     const location = useLocation();
     const navigate = useNavigate();
+    const { isAdmin, user } = useAuth();
     const isNarrativeDetail = location.pathname.startsWith("/narratives/");
     const isHome = location.pathname === "/";
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -23,8 +26,13 @@ export function AppLayout({ children }: AppLayoutProps) {
             setIsScrolled(window.scrollY > threshold);
         };
 
+        (window as any).openLoginModal = () => setIsLoginModalOpen(true);
+
         window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            delete (window as any).openLoginModal;
+        };
     }, [isNarrativeDetail, isHome]);
 
     const isActive = (path: string) => location.pathname === path;
@@ -45,19 +53,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     };
 
     // Logic to determine "Back" destination for active member
-    let activeMemberProfileLink = "/";
-    if (isNarrativeDetail) {
-        const narrativeId = location.pathname.split("/narratives/")[1];
-        if (narrativeId) {
-            const member = members.find(m => m.narratives?.some(n => n.id === narrativeId));
-            if (member) {
-                // Assuming profile route is /profile/:memberId - need to verify if Profile route exists separately or if it's Directory based
-                // Based on previous chats, there is a Profile page. Let's assume /profile/:id or similar.
-                // Route defined in App.tsx is /directory/:id
-                activeMemberProfileLink = `/directory/${member.id}`;
-            }
-        }
-    }
+    // Simplified to always go to /narratives for now to avoid fetching all members
+    const activeMemberProfileLink = "/narratives";
 
     // Determine header background/border based on state
     const getHeaderClasses = () => {
@@ -78,6 +75,18 @@ export function AppLayout({ children }: AppLayoutProps) {
     };
 
 
+
+    const isStandalone = location.pathname === "/login" || location.pathname.startsWith("/admin");
+
+    if (isStandalone) {
+        return (
+            <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark transition-colors duration-300">
+                <main className="flex-grow">
+                    {children}
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark transition-colors duration-300">
@@ -106,7 +115,20 @@ export function AppLayout({ children }: AppLayoutProps) {
                             </div>
 
                             <div className="justify-self-end flex items-center gap-6 border-l border-stone-200 dark:border-white/20 pl-6">
-                                <p className="hidden md:block font-serif text-lg italic leading-none transition-colors duration-300 text-charcoal dark:text-white">Alex Smith</p>
+                                <div className="hidden md:block">
+                                    {user ? (
+                                        <Link to="/admin" className="font-serif text-lg italic leading-none transition-colors duration-300 text-charcoal dark:text-white hover:text-[#C5A059]">
+                                            {user.name?.split(' ')[0] || 'Admin'}
+                                        </Link>
+                                    ) : (
+                                        <button
+                                            onClick={() => setIsLoginModalOpen(true)}
+                                            className="font-serif text-lg italic leading-none transition-colors duration-300 text-charcoal dark:text-white hover:text-[#C5A059]"
+                                        >
+                                            Login
+                                        </button>
+                                    )}
+                                </div>
                                 <div>
                                     <MagneticButton strength={15}>
                                         <ModeToggle />
@@ -132,7 +154,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
                             {/* Desktop Navigation - Perfectly Centered */}
                             <nav className="hidden md:flex items-center justify-center gap-12 justify-self-center">
-                                {["Timeline", "Gallery", "Directory"].map((item) => (
+                                {["Timeline", "Gallery", "Directory", "Narratives"].map((item) => (
                                     <Link
                                         key={item}
                                         to={`/${item.toLowerCase()}`}
@@ -151,6 +173,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                             {/* Right Actions */}
                             <div className="justify-self-end flex items-center gap-6">
                                 <div className="flex items-center gap-4 border-r border-stone-200 dark:border-stone-800 pr-6 mr-2">
+                                    {isAdmin && (
+                                        <MagneticButton strength={15}>
+                                            <Link to="/admin" className={`${isHome && !isScrolled ? "text-charcoal/80 dark:text-white/80" : "text-slate-400"
+                                                } hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer p-2`}>
+                                                <Lock className="w-4 h-4" strokeWidth={1.5} />
+                                            </Link>
+                                        </MagneticButton>
+                                    )}
                                     <MagneticButton strength={15}>
                                         <button className={`${isHome && !isScrolled ? "text-charcoal/80 dark:text-white/80" : "text-slate-400"
                                             } hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer p-2`}>
@@ -158,8 +188,18 @@ export function AppLayout({ children }: AppLayoutProps) {
                                         </button>
                                     </MagneticButton>
                                     <div className="text-right hidden sm:block">
-                                        <p className={`font-serif text-lg italic leading-none ${isHome && !isScrolled ? "text-charcoal dark:text-white" : ""
-                                            }`}>Alex Smith</p>
+                                        {user ? (
+                                            <Link to="/admin" className={`font-serif text-lg italic leading-none hover:text-[#C5A059] transition-colors ${isHome && !isScrolled ? "text-charcoal dark:text-white" : ""}`}>
+                                                {user.name?.split(' ')[0] || 'Admin'}
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                onClick={() => setIsLoginModalOpen(true)}
+                                                className={`font-serif text-lg italic leading-none hover:text-[#C5A059] transition-colors ${isHome && !isScrolled ? "text-charcoal dark:text-white" : ""}`}
+                                            >
+                                                Login
+                                            </button>
+                                        )}
                                     </div>
                                     <MagneticButton strength={15}>
                                         <ModeToggle />
@@ -177,18 +217,22 @@ export function AppLayout({ children }: AppLayoutProps) {
             </main>
 
 
-            <footer className="bg-background-light dark:bg-background-dark py-12 border-t border-stone-200 dark:border-stone-800 transition-colors duration-300">
-                <div className="max-w-[1800px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <p className="font-serif text-stone-500 dark:text-stone-400 italic">
-                        © 2024 The Archives. All formatting preserved.
-                    </p>
-                    <div className="flex gap-8 text-xs uppercase tracking-widest text-stone-400 dark:text-stone-500">
-                        <a href="#" className="hover:text-charcoal dark:hover:text-white transition-colors">Privacy</a>
-                        <a href="#" className="hover:text-charcoal dark:hover:text-white transition-colors">Terms</a>
+            <footer className="bg-background-light dark:bg-background-dark py-24 border-t border-stone-100 dark:border-stone-900 transition-all duration-500">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="opacity-20 pointer-events-none select-none filter grayscale brightness-125 dark:brightness-200">
+                        <PpgLogo className="h-10 w-auto text-charcoal dark:text-slate-400" />
+                    </div>
+
+                    <div className="flex flex-col items-center gap-2">
+                        <p className="text-[10px] tracking-[0.2em] font-sans font-medium text-stone-400 dark:text-stone-500 uppercase">
+                            © 2026 PPG BRAND • SINCE 2022
+                        </p>
                     </div>
                 </div>
             </footer>
 
+
+            <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
         </div>
     );
 }

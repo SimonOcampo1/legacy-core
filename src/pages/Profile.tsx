@@ -1,15 +1,118 @@
 import { useParams, Link } from "react-router-dom";
 import { Mail, Share, Bookmark, ArrowRight } from "lucide-react";
-import { members } from "../data/members";
 import { PageTransition } from "../components/PageTransition";
+import { cn } from "../lib/utils";
+import { useState, useEffect } from "react";
+import { databases, storage, DATABASE_ID, PROFILES_COLLECTION_ID, NARRATIVES_COLLECTION_ID } from "../lib/appwrite";
+import { Query } from "appwrite";
+import type { Member, Narrative } from "../types";
+
+// Local interface for the display-ready narrative structure
+interface ProfileNarrative {
+    id: string;
+    title: string;
+    excerpt: string;
+    date: string;
+    // Optional fields if needed for UI but not present in current mapping
+    role?: string;
+    category?: string;
+}
 
 export function Profile() {
     const { id } = useParams<{ id: string }>();
-    const member = members.find((m) => m.id === id);
+    const [member, setMember] = useState<Member | null>(null);
+    const [narratives, setNarratives] = useState<ProfileNarrative[]>([]);
+    const [loading, setLoading] = useState(true);
+    const BUCKET_ID = "legacy_core_assets";
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (!id) return;
+            setLoading(true);
+            try {
+                // Fetch Member
+                const memberDoc = await databases.getDocument(
+                    DATABASE_ID,
+                    PROFILES_COLLECTION_ID,
+                    id
+                );
+
+                let imageUrl = "https://placehold.co/400x400/png?text=Profile";
+                if (memberDoc.avatar_id) {
+                    if (memberDoc.avatar_id.startsWith("http")) {
+                        imageUrl = memberDoc.avatar_id;
+                    } else {
+                        try {
+                            imageUrl = storage.getFileView(BUCKET_ID, memberDoc.avatar_id).toString();
+                        } catch (e) {
+                            console.error("Error getting image view:", e);
+                        }
+                    }
+                }
+
+                // Parse honors if it's a string disguised as array or just use raw
+                const honors = memberDoc.honors || [];
+
+                const mappedMember: Member = {
+                    id: memberDoc.$id,
+                    name: memberDoc.name,
+                    role: memberDoc.role,
+                    imageUrl: imageUrl,
+                    bio: memberDoc.bio,
+                    bioIntro: memberDoc.bioIntro,
+                    quote: memberDoc.quote,
+                    honors: honors,
+                    social: {
+                        email: memberDoc.has_email ? "mailto:email@example.com" : undefined,
+                        linkedin: memberDoc.has_linkedin ? "#" : undefined
+                    }
+                };
+                setMember(mappedMember);
+
+                // Fetch Narratives for this member
+                const narrativesResponse = await databases.listDocuments(
+                    DATABASE_ID,
+                    NARRATIVES_COLLECTION_ID,
+                    [
+                        Query.equal("author_id", [memberDoc.name]), // Matching by Name
+                        Query.orderDesc("date_event")
+                    ]
+                );
+
+                const mappedNarratives: ProfileNarrative[] = (narrativesResponse.documents as unknown as Narrative[]).map((doc) => ({
+                    id: doc.$id,
+                    title: doc.title,
+                    excerpt: doc.content || "",
+                    date: doc.date_event ? new Date(doc.date_event).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "N/A",
+                }));
+
+                setNarratives(mappedNarratives);
+
+            } catch (error) {
+                console.error("Failed to fetch profile:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+                <div className="animate-pulse flex flex-col items-center">
+                    <div className="h-48 w-48 bg-stone-200 dark:bg-stone-800 rounded-full mb-8"></div>
+                    <div className="h-8 w-64 bg-stone-200 dark:bg-stone-800 rounded mb-4"></div>
+                    <div className="h-4 w-96 bg-stone-100 dark:bg-stone-900 rounded"></div>
+                </div>
+            </div>
+        );
+    }
 
     if (!member) {
         return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center">
+            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center bg-background-light dark:bg-background-dark text-charcoal dark:text-white">
                 <h2 className="font-serif text-4xl mb-4">Member Not Found</h2>
                 <Link to="/directory" className="text-sm uppercase tracking-widest border-b border-current pb-1 hover:opacity-60 transition-opacity">
                     Back to Directory
@@ -18,25 +121,35 @@ export function Profile() {
         );
     }
 
-    // Fallback data if fields are missing
-    const narratives = member.narratives || [];
     const honors = member.honors || ["Class of 2014", member.role];
 
     return (
         <PageTransition>
             <div className="font-display bg-background-light dark:bg-background-dark min-h-screen">
                 <div className="max-w-[1400px] mx-auto px-6 py-12 lg:py-20">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
+                    <div className={cn(
+                        "grid grid-cols-1 gap-12 lg:gap-24",
+                        narratives.length > 0 ? "lg:grid-cols-12" : "max-w-4xl mx-auto"
+                    )}>
 
                         {/* LEFT COLUMN: Profile Info (Sticky) */}
-                        <aside className="lg:col-span-4 lg:sticky lg:top-32 h-fit flex flex-col items-center lg:items-start text-center lg:text-left">
+                        <aside className={cn(
+                            "h-fit flex flex-col items-center text-center",
+                            narratives.length > 0 ? "lg:col-span-4 lg:sticky lg:top-32 lg:items-start lg:text-left" : "lg:col-span-12 mb-12"
+                        )}>
                             {/* 1. Portrait */}
-                            <div className="relative size-48 md:size-64 rounded-full overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 ease-out shadow-xl mb-8">
-                                <img
-                                    alt={`Portrait of ${member.name}`}
-                                    className="w-full h-full object-cover"
-                                    src={member.imageUrl}
-                                />
+                            <div className="relative size-48 md:size-64 rounded-full overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 ease-out shadow-xl mb-8 bg-stone-100 dark:bg-stone-900 flex items-center justify-center">
+                                {member.imageUrl ? (
+                                    <img
+                                        alt={`Portrait of ${member.name}`}
+                                        className="w-full h-full object-cover"
+                                        src={member.imageUrl}
+                                    />
+                                ) : (
+                                    <span className="text-6xl font-display text-gold opacity-40 select-none">
+                                        {member.name.charAt(0)}
+                                    </span>
+                                )}
                             </div>
 
                             {/* 2. Name */}
@@ -45,7 +158,7 @@ export function Profile() {
                             </h1>
 
                             {/* 3. Honors/Role */}
-                            <div className="flex flex-wrap justify-center lg:justify-start items-center gap-3 text-text-muted dark:text-gray-400 text-xs font-sans font-medium uppercase tracking-[0.2em] mb-8">
+                            <div className="flex flex-wrap justify-center items-center gap-3 text-text-muted dark:text-gray-400 text-xs font-sans font-medium uppercase tracking-[0.2em] mb-8">
                                 {honors.map((honor, index) => (
                                     <span key={index} className="flex items-center gap-3">
                                         {honor}
@@ -57,7 +170,10 @@ export function Profile() {
                             </div>
 
                             {/* 4. Bio/Description */}
-                            <div className="prose prose-sm dark:prose-invert mb-8 max-w-sm">
+                            <div className={cn(
+                                "prose prose-sm dark:prose-invert mb-8",
+                                narratives.length > 0 ? "max-w-sm" : "max-w-2xl"
+                            )}>
                                 {member.bioIntro && (
                                     <p className="text-lg text-slate-900 dark:text-slate-200 font-newsreader font-normal leading-tight mb-4">
                                         {member.bioIntro}
@@ -83,7 +199,10 @@ export function Profile() {
                         </aside>
 
                         {/* RIGHT COLUMN: Narratives (Main Content) */}
-                        <main className="lg:col-span-8 w-full">
+                        <main className={cn(
+                            "w-full",
+                            narratives.length > 0 ? "lg:col-span-8" : "lg:col-span-12"
+                        )}>
                             {narratives.length > 0 ? (
                                 <section className="w-full">
                                     <div className="flex items-baseline justify-between mb-12 border-b border-black text-black pb-4 dark:border-white dark:text-white">
@@ -98,7 +217,7 @@ export function Profile() {
                                             >
                                                 <div className="md:col-span-2 flex flex-col justify-start pt-1">
                                                     <span className="text-3xl font-newsreader font-light text-slate-300 group-hover:text-[#C5A059]/60 transition-colors duration-300 ml-2">
-                                                        {story.id}
+                                                        {story.id.substring(0, 2)}
                                                     </span>
                                                     <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-slate-500 mt-2">
                                                         {story.date}
@@ -108,9 +227,10 @@ export function Profile() {
                                                     <h4 className="text-2xl md:text-3xl font-newsreader font-medium text-slate-900 dark:text-white leading-tight group-hover:underline decoration-1 underline-offset-4 decoration-slate-300">
                                                         {story.title}
                                                     </h4>
-                                                    <p className="text-base text-slate-500 dark:text-slate-400 font-newsreader leading-relaxed line-clamp-2 max-w-2xl">
-                                                        {story.excerpt}
-                                                    </p>
+                                                    <div
+                                                        className="text-base text-slate-500 dark:text-slate-400 font-newsreader leading-relaxed line-clamp-2 max-w-2xl"
+                                                        dangerouslySetInnerHTML={{ __html: story.excerpt }}
+                                                    />
                                                     <Link
                                                         to={`/narratives/${story.id}`}
                                                         className="mt-2 flex items-center gap-2 text-[10px] font-sans font-bold uppercase tracking-wider text-slate-900 dark:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 group-hover:text-[#C5A059]"
@@ -131,14 +251,21 @@ export function Profile() {
                                     </div>
                                 </section>
                             ) : (
-                                <div className="h-full flex items-center justify-center opacity-40 italic font-serif">
-                                    No narratives available.
+                                <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center px-4">
+                                    <div className="w-24 h-px bg-stone-200 dark:bg-stone-800 mb-8"></div>
+                                    <p className="font-newsreader text-2xl italic text-stone-400 dark:text-stone-500 mb-4">
+                                        This chapter of the legacy is yet to be written.
+                                    </p>
+                                    <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400 opacity-60 max-w-xs leading-relaxed">
+                                        No narratives have been published by this member at this time.
+                                    </p>
+                                    <div className="w-12 h-px bg-stone-100 dark:bg-stone-900 mt-8"></div>
                                 </div>
                             )}
                         </main>
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
         </PageTransition >
     );
 }

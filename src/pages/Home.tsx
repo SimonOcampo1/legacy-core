@@ -1,10 +1,12 @@
 import { PageTransition } from "../components/PageTransition";
 import { motion, useScroll, useTransform, type Variants } from "framer-motion";
 import { Link } from "react-router-dom";
-import { members } from "../data/members";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { TextReveal } from "../components/ui/TextReveal";
 import { GraphiteBackground } from "../components/ui/GraphiteBackground";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
+import { databases, storage, DATABASE_ID, NARRATIVES_COLLECTION_ID, GALLERY_COLLECTION_ID } from "../lib/appwrite";
+import { Query } from "appwrite";
 
 const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 20 },
@@ -22,6 +24,17 @@ const staggerContainer: Variants = {
     }
 };
 
+interface HomeNarrative {
+    id: string;
+    title: string;
+    excerpt: string;
+}
+
+interface GalleryImage {
+    id: string;
+    imageUrl: string;
+}
+
 export function Home() {
     const containerRef = useRef(null);
     const { scrollYProgress } = useScroll({
@@ -31,6 +44,74 @@ export function Home() {
 
     const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
     const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+    const [narratives, setNarratives] = useState<HomeNarrative[]>([]);
+    const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+    const BUCKET_ID = "legacy_core_assets";
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch Gallery Images
+                const galleryResponse = await databases.listDocuments(
+                    DATABASE_ID,
+                    GALLERY_COLLECTION_ID,
+                    [Query.limit(50)] // Fetch a good number for randomization
+                );
+
+                const mappedGalleryImages = galleryResponse.documents.map((doc: any) => {
+                    let imageUrl = "";
+                    if (doc.image_id && doc.image_id.startsWith("http")) {
+                        imageUrl = doc.image_id;
+                    } else {
+                        try {
+                            // OPTIMIZATION: Use getFilePreview to load smaller thumbnails instead of original 4K images
+                            // Width: 400px, Height: 600px (matches aspect ratio), Quality: 80
+                            imageUrl = storage.getFilePreview(BUCKET_ID, doc.image_id, 400, 600, undefined, 80).toString();
+                        } catch (e) {
+                            console.error("Error getting image preview:", e);
+                            return null;
+                        }
+                    }
+                    return {
+                        id: doc.$id,
+                        imageUrl: imageUrl
+                    };
+                }).filter(item => item !== null) as GalleryImage[];
+
+                // Randomize Array (Fisher-Yates)
+                for (let i = mappedGalleryImages.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [mappedGalleryImages[i], mappedGalleryImages[j]] = [mappedGalleryImages[j], mappedGalleryImages[i]];
+                }
+
+                setGalleryImages(mappedGalleryImages);
+
+                // Fetch Narratives
+                const narrativesResponse = await databases.listDocuments(
+                    DATABASE_ID,
+                    NARRATIVES_COLLECTION_ID,
+                    [
+                        Query.orderDesc("date_event"),
+                        Query.limit(3)
+                    ]
+                );
+
+                const mappedNarratives: HomeNarrative[] = narrativesResponse.documents.map((doc: any) => ({
+                    id: doc.$id,
+                    title: doc.title,
+                    excerpt: doc.content || "",
+                }));
+                setNarratives(mappedNarratives);
+
+            } catch (error) {
+                console.error("Failed to fetch home data:", error);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     return (
         <PageTransition>
@@ -44,7 +125,7 @@ export function Home() {
                         />
 
 
-                        <div className="max-w-[1800px] w-full mx-auto relative z-10 flex flex-col items-center justify-center h-full text-center pb-24 md:pb-32">
+                        <div className="max-w-[1800px] w-full mx-auto relative z-10 flex flex-col items-center justify-center h-full text-center pb-24 md:pb-32 pt-32 md:pt-48">
                             <div className="flex items-center gap-4 mb-6 md:mb-8 opacity-80">
                                 <motion.span
                                     initial={{ width: 0 }}
@@ -103,7 +184,7 @@ export function Home() {
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 1.5, duration: 0.8 }}
-                            className="absolute bottom-40 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 text-charcoal dark:text-slate-300 z-20"
+                            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 text-charcoal dark:text-slate-300 z-20"
                         >
                             <motion.span
                                 animate={{ height: [40, 64, 40] }}
@@ -132,29 +213,10 @@ export function Home() {
                         variants={staggerContainer}
                         initial="hidden"
                         whileInView="visible"
-                        viewport={{ once: true, margin: "-100px" }}
+                        viewport={{ once: true, margin: "-10%" }}
                         className="flex flex-col border-t border-charcoal/10 dark:border-white/10"
                     >
-                        {[
-                            {
-                                id: "01",
-                                title: "The Late Night Library Sessions",
-                                excerpt:
-                                    "There is a specific kind of silence that falls over the humanities wing after hours. It's not empty; it's heavy with the whispers of a thousand lectures and the rustle of turning pages.",
-                            },
-                            {
-                                id: "02",
-                                title: "The Philosophy of Empty Corridors",
-                                excerpt:
-                                    "We used to walk these halls not to get somewhere, but to feel the weight of what we were learning settle into our bones. The echoes of our footsteps were the only punctuation.",
-                            },
-                            {
-                                id: "03",
-                                title: "The Daily Grind & Morning Coffee",
-                                excerpt:
-                                    "Where everybody knew your major and your coffee order. The corner table was always reserved, unofficially, for the dreamers sketching out their futures on napkins.",
-                            },
-                        ].map((story) => (
+                        {narratives.map((story, index) => (
                             <motion.article
                                 key={story.id}
                                 variants={fadeInUp}
@@ -163,21 +225,17 @@ export function Home() {
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-baseline">
                                     <div className="md:col-span-2 relative h-full min-h-[80px]">
                                         <span className="font-editorial italic text-6xl md:text-7xl lg:text-8xl text-stone-200 dark:text-stone-800 absolute top-1/2 -translate-y-1/2 left-8 select-none z-0 opacity-50 group-hover:opacity-100 group-hover:text-[#C5A059]/40 transition-all duration-500">
-                                            {story.id}
+                                            {(index + 1).toString().padStart(2, '0')}
                                         </span>
                                     </div>
                                     <div className="md:col-span-7">
                                         <h3 className="font-serif text-4xl md:text-5xl lg:text-6xl text-charcoal dark:text-white mb-6 leading-[1.1] tracking-tight group-hover:text-black dark:group-hover:text-slate-200 transition-colors duration-300">
-                                            {story.title.split(" & ").map((part, i, arr) => (
-                                                <span key={i}>
-                                                    {part}
-                                                    {i < arr.length - 1 && <br />}
-                                                </span>
-                                            ))}
+                                            {story.title}
                                         </h3>
-                                        <p className="font-serif text-lg md:text-xl text-stone-600 dark:text-slate-400 leading-relaxed max-w-2xl font-light">
-                                            {story.excerpt}
-                                        </p>
+                                        <div
+                                            className="font-serif text-lg md:text-xl text-stone-600 dark:text-slate-400 leading-relaxed max-w-2xl font-light line-clamp-3"
+                                            dangerouslySetInnerHTML={{ __html: story.excerpt }}
+                                        />
                                     </div>
                                     <div className="md:col-span-3 flex justify-end md:items-start pt-2 pr-8">
                                         <Link
@@ -211,9 +269,9 @@ export function Home() {
                     </motion.div>
 
                     {/* Infinite Marquee */}
-                    <div className="flex w-full overflow-hidden mask-image-hero">
+                    <div className="flex w-full overflow-hidden mask-image-hero py-8">
                         <motion.div
-                            className="flex gap-8 flex-nowrap"
+                            className="flex gap-8 flex-nowrap will-change-transform"
                             animate={{ x: ["0%", "-50%"] }}
                             transition={{
                                 repeat: Infinity,
@@ -221,13 +279,17 @@ export function Home() {
                                 duration: 40,
                             }}
                         >
-                            {[...members, ...members, ...members].map((member, idx) => (
-                                <div key={`${member.id}-${idx}`} className="relative h-[300px] aspect-[3/4] shrink-0 overflow-hidden rounded-sm group cursor-pointer">
+                            {[...galleryImages, ...galleryImages, ...galleryImages].map((image, idx) => (
+                                <div
+                                    key={`${image.id}-${idx}`}
+                                    className="relative h-[300px] aspect-[3/4] shrink-0 overflow-hidden rounded-sm group cursor-pointer hover:scale-105 hover:z-10 transition-transform duration-500 ease-in-out origin-center hover:shadow-xl"
+                                    onClick={() => setSelectedImageIndex(idx % galleryImages.length)}
+                                >
                                     <div className="absolute inset-0 bg-stone-200 dark:bg-stone-800 animate-pulse" />
                                     <img
-                                        src={member.imageUrl}
-                                        alt={member.name}
-                                        className="w-full h-full object-cover filter grayscale contrast-125 hover:grayscale-0 transition-all duration-700"
+                                        src={image.imageUrl}
+                                        alt="Gallery Memory"
+                                        className="w-full h-full object-cover filter grayscale contrast-125 group-hover:grayscale-0 transition-all duration-700 ease-in-out"
                                         loading="lazy"
                                     />
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
@@ -246,8 +308,50 @@ export function Home() {
                         </Link>
                     </div>
                 </div>
+
+                {/* Lightbox Overlay */}
+                {selectedImageIndex !== null && galleryImages[selectedImageIndex] && (
+                    <div
+                        className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm"
+                        onClick={() => setSelectedImageIndex(null)}
+                    >
+                        <button
+                            onClick={() => setSelectedImageIndex(null)}
+                            className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
+                        >
+                            <X className="w-8 h-8" />
+                        </button>
+
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedImageIndex((prev) => (prev === null ? null : (prev - 1 + galleryImages.length) % galleryImages.length));
+                            }}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors p-2 hidden md:block"
+                        >
+                            <ChevronLeft className="w-10 h-10" />
+                        </button>
+
+                        <div className="max-w-5xl max-h-[85vh] relative" onClick={(e) => e.stopPropagation()}>
+                            <img
+                                src={galleryImages[selectedImageIndex].imageUrl}
+                                alt="Gallery Lightbox"
+                                className="max-h-[80vh] w-auto object-contain shadow-2xl"
+                            />
+                        </div>
+
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedImageIndex((prev) => (prev === null ? null : (prev + 1) % galleryImages.length));
+                            }}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors p-2 hidden md:block"
+                        >
+                            <ChevronRight className="w-10 h-10" />
+                        </button>
+                    </div>
+                )}
             </div>
         </PageTransition>
     );
 }
-

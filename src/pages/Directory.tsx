@@ -1,7 +1,10 @@
-import { members } from "../data/members";
+import { useEffect, useState } from "react";
+import { databases, storage, DATABASE_ID, PROFILES_COLLECTION_ID } from "../lib/appwrite";
+import { Query } from "appwrite";
 import { MemberCard } from "../components/MemberCard";
 import { PageTransition } from "../components/PageTransition";
 import { motion, type Variants } from "framer-motion";
+import type { Member } from "../types";
 
 const container: Variants = {
     hidden: { opacity: 0 },
@@ -19,6 +22,70 @@ const item: Variants = {
 };
 
 export function Directory() {
+    const [members, setMembers] = useState<Member[]>([]);
+    const [loading, setLoading] = useState(true);
+    const BUCKET_ID = "legacy_core_assets";
+
+    useEffect(() => {
+        const fetchMembers = async () => {
+            try {
+                const response = await databases.listDocuments(
+                    DATABASE_ID,
+                    PROFILES_COLLECTION_ID,
+                    [
+                        Query.limit(100),
+                        // Query.orderAsc("name") // Optional: sort by name
+                    ]
+                );
+
+                const mappedMembers = response.documents.map((doc: any) => {
+                    // Map Appwrite document to Member interface
+                    let imageUrl = "https://placehold.co/400x400/png?text=Profile"; // Fallback
+                    if (doc.avatar_id) {
+                        if (doc.avatar_id.startsWith("http")) {
+                            imageUrl = doc.avatar_id;
+                        } else {
+                            try {
+                                imageUrl = storage.getFileView(BUCKET_ID, doc.avatar_id).toString();
+                            } catch (e) {
+                                console.error("Error getting image view:", e);
+                            }
+                        }
+                    }
+
+                    // Map social flags to object structure if needed, or pass as is if MemberCard handles logic differently
+                    // The Member interface expects: socials?: { email?: boolean; ... }
+                    const socials = {
+                        email: doc.has_email,
+                        linkedin: doc.has_linkedin,
+                        twitter: false // Not in DB currently
+                    };
+
+                    return {
+                        id: doc.$id, // Use document ID (user_id might be different)
+                        name: doc.name,
+                        role: doc.role,
+                        quote: doc.quote,
+                        imageUrl: imageUrl,
+                        bio: doc.bio,
+                        bioIntro: doc.bioIntro,
+                        honors: doc.honors || [],
+                        socials: socials,
+                        // narratives: [] // Populate if we have a relationship later
+                    } as Member;
+                });
+
+                setMembers(mappedMembers);
+            } catch (error) {
+                console.error("Failed to fetch members:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMembers();
+    }, []);
+
     return (
         <PageTransition>
             <div className="max-w-[1400px] mx-auto px-6 py-12">
@@ -47,19 +114,31 @@ export function Directory() {
                     </div>
                 </div>
 
-                <motion.div
-                    variants={container}
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24"
-                >
-                    {members.map((member) => (
-                        <motion.div key={member.id} variants={item}>
-                            <MemberCard member={member} />
-                        </motion.div>
-                    ))}
-                </motion.div>
+                {loading ? (
+                    <div className="flex bg-background-light dark:bg-background-dark py-32 justify-center">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-charcoal dark:border-stone-800 dark:border-t-stone-200"></div>
+                    </div>
+                ) : (
+                    <motion.div
+                        variants={container}
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true }}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24"
+                    >
+                        {members.length === 0 ? (
+                            <div className="col-span-full text-center text-slate-400 italic">
+                                No members found in directory.
+                            </div>
+                        ) : (
+                            members.map((member) => (
+                                <motion.div key={member.id} variants={item}>
+                                    <MemberCard member={member} />
+                                </motion.div>
+                            ))
+                        )}
+                    </motion.div>
+                )}
 
                 <div className="mt-32 flex justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-8">
                     <a
@@ -68,7 +147,7 @@ export function Directory() {
                     >
                         Previous
                     </a>
-                    <div className="font-serif italic text-slate-500">Page 1 of 8</div>
+                    <div className="font-serif italic text-slate-500">Page 1 of 1</div>
                     <a
                         href="#"
                         className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-900 dark:text-white hover:text-[#C5A059] transition-colors"

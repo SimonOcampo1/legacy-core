@@ -6,9 +6,14 @@ import { Profile } from "./pages/Profile";
 import { Timeline } from "./pages/Timeline";
 import { Gallery } from "./pages/Gallery";
 import { NarrativeDetail } from "./pages/NarrativeDetail";
+import { SharedNarratives } from "./pages/SharedNarratives";
+import { Login } from "./pages/Login";
+import { AdminConsole } from "./pages/AdminConsole";
 import { AnimatePresence } from "framer-motion";
 import { GrainOverlay } from "./components/ui/GrainOverlay";
 import { SmoothScroll } from "./components/ui/SmoothScroll";
+import { AuthProvider } from "./context/AuthContext";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -21,20 +26,33 @@ function AnimatedRoutes() {
         <Route path="/directory/:id" element={<Profile />} />
         <Route path="/timeline" element={<Timeline />} />
         <Route path="/gallery" element={<Gallery />} />
+        <Route path="/narratives" element={<SharedNarratives />} />
         <Route path="/narratives/:id" element={<NarrativeDetail />} />
+
+        {/* Standalone Pages */}
+        <Route path="/login" element={<Login />} />
+
+        <Route element={<ProtectedRoute adminOnly={true} />}>
+          <Route path="/admin" element={<AdminConsole />} />
+        </Route>
       </Routes>
     </AnimatePresence>
   );
 }
+
+import { Toaster } from "sonner";
 
 function App() {
   return (
     <Router>
       <SmoothScroll />
       <GrainOverlay />
-      <AppLayout>
-        <AnimatedRoutes />
-      </AppLayout>
+      <AuthProvider>
+        <AppLayout>
+          <AnimatedRoutes />
+          <Toaster position="top-center" />
+        </AppLayout>
+      </AuthProvider>
     </Router>
   );
 }
