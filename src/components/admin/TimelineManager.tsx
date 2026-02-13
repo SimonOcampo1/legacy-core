@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { DeleteConfirmationModal } from '../ui/DeleteConfirmationModal';
 import { useNavigate } from 'react-router-dom';
 
 interface TimelineEvent {
@@ -155,23 +155,25 @@ export const TimelineManager = () => {
     );
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b-2 border-black dark:border-white pb-6">
                 <div>
-                    <h2 className="text-3xl font-serif italic text-charcoal dark:text-white flex items-center gap-3">
-                        <History className="w-8 h-8 text-[#C5A059]" />
-                        Timeline Records
+                    <h2 className="text-4xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter flex items-center gap-4">
+                        CHRONO_LOG
                     </h2>
-                    <p className="text-sm text-stone-400 mt-1 uppercase tracking-[0.2em] font-bold">Chronological Archive Management</p>
+                    <p className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mt-2">
+                        // TIMELINE_EVENT_REGISTRY
+                    </p>
                 </div>
 
                 {!isAddingMode && (
                     <button
                         onClick={() => setIsAddingMode(true)}
-                        className="bg-charcoal dark:bg-white text-white dark:text-charcoal px-6 py-3 rounded-xl font-bold transition-all hover:bg-charcoal/90 dark:hover:bg-stone-100 text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 group active:scale-95"
+                        className="group flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-all"
                     >
-                        <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
-                        Add New Event
+                        <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+                        <span>APPEND_ENTRY</span>
                     </button>
                 )}
             </div>
@@ -179,99 +181,98 @@ export const TimelineManager = () => {
             <AnimatePresence mode="wait">
                 {isAddingMode ? (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800 rounded-3xl overflow-hidden shadow-2xl shadow-stone-200/50 dark:shadow-none"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden border border-black dark:border-white p-6 bg-gray-50 dark:bg-white/5"
                     >
-                        <div className="p-8 md:p-12">
-                            <div className="flex justify-between items-center mb-10">
-                                <h3 className="text-xl font-serif italic text-charcoal dark:text-white">
-                                    {editingEvent ? 'Refining Event Record' : 'Documenting New Milestone'}
-                                </h3>
-                                <button onClick={resetForm} className="p-2 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-full transition-colors text-stone-400">
-                                    <X className="w-5 h-5" />
-                                </button>
+                        <div className="flex justify-between items-center mb-8 pb-4 border-b border-black/10 dark:border-white/10">
+                            <h3 className="font-mono text-xs uppercase font-bold flex items-center gap-2">
+                                <Edit2 className="w-4 h-4" />
+                                {editingEvent ? 'MODIFYING_RECORD_ID:' + editingEvent.$id.substring(0, 6) : 'NEW_DATA_ENTRY'}
+                            </h3>
+                            <button onClick={resetForm} className="text-gray-500 hover:text-red-500 transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-6 md:col-span-2">
+                                <div className="space-y-2">
+                                    <label className="font-mono text-[10px] uppercase text-gray-500">EVENT_DESIGNATION_TITLE</label>
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        placeholder="ENTER_EVENT_TITLE..."
+                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-lg font-bold focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors"
+                                    />
+                                </div>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-6 md:col-span-2">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Event Title</label>
-                                        <input
-                                            type="text"
-                                            value={title}
-                                            onChange={(e) => setTitle(e.target.value)}
-                                            placeholder="Chronicle Title..."
-                                            className="w-full bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 rounded-2xl px-6 py-4 text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-[#C5A059]/10 focus:border-[#C5A059] transition-all font-serif text-lg italic"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6 md:col-span-2">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Description / Narrative</label>
-                                        <textarea
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            placeholder="The story behind this anchor..."
-                                            rows={4}
-                                            className="w-full bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 rounded-2xl px-6 py-4 text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-[#C5A059]/10 focus:border-[#C5A059] transition-all"
-                                        />
-                                    </div>
-                                </div>
-
+                            <div className="space-y-6 md:col-span-2">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Event Date</label>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-300" />
-                                        <input
-                                            type="date"
-                                            value={dateEvent}
-                                            onChange={(e) => setDateEvent(e.target.value)}
-                                            className="w-full bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 rounded-2xl pl-14 pr-6 py-4 text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-[#C5A059]/10 focus:border-[#C5A059] transition-all"
-                                        />
-                                    </div>
+                                    <label className="font-mono text-[10px] uppercase text-gray-500">NARRATIVE_DESCRIPTION</label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="ENTER_DETAILED_DESCRIPTION..."
+                                        rows={4}
+                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors"
+                                    />
                                 </div>
+                            </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold ml-1">Category</label>
-                                    <select
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value)}
-                                        className="w-full bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 rounded-2xl px-6 py-4 text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-[#C5A059]/10 focus:border-[#C5A059] transition-all appearance-none"
-                                    >
-                                        <option value="General">General History</option>
-                                        <option value="Academic">Academic Achievement</option>
-                                        <option value="Career">Professional Career</option>
-                                        <option value="Travel">Expedition</option>
-                                        <option value="Personal">Personal Milestone</option>
-                                    </select>
+                            <div className="space-y-2">
+                                <label className="font-mono text-[10px] uppercase text-gray-500">TEMPORAL_COORDINATES</label>
+                                <div className="relative">
+                                    <input
+                                        type="date"
+                                        value={dateEvent}
+                                        onChange={(e) => setDateEvent(e.target.value)}
+                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors uppercase"
+                                    />
+                                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 </div>
+                            </div>
 
-                                <div className="md:col-span-2 pt-6 border-t border-stone-50 dark:border-stone-800/50 flex justify-end gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={resetForm}
-                                        className="px-8 py-4 rounded-2xl text-stone-400 font-bold text-[10px] uppercase tracking-widest hover:text-charcoal dark:hover:text-white transition-colors"
-                                    >
-                                        Discard
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="bg-charcoal dark:bg-white text-white dark:text-charcoal px-10 py-4 rounded-2xl font-bold transition-all disabled:opacity-30 hover:bg-charcoal/90 dark:hover:bg-stone-100 text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-3 active:scale-95"
-                                    >
-                                        {isSubmitting ? (
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                        ) : (
-                                            <Check className="w-4 h-4" />
-                                        )}
-                                        {isSubmitting ? "Preserving..." : "Commit to Timeline"}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                            <div className="space-y-2">
+                                <label className="font-mono text-[10px] uppercase text-gray-500">CLASSIFICATION_CATEGORY</label>
+                                <select
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors appearance-none uppercase rounded-none"
+                                >
+                                    <option value="General">General History</option>
+                                    <option value="Academic">Academic Achievement</option>
+                                    <option value="Career">Professional Career</option>
+                                    <option value="Travel">Expedition</option>
+                                    <option value="Personal">Personal Milestone</option>
+                                </select>
+                            </div>
+
+                            <div className="md:col-span-2 pt-6 border-t border-black/10 dark:border-white/10 flex justify-end gap-4">
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    className="px-8 py-4 bg-transparent border border-transparent font-mono text-xs uppercase hover:text-red-500 transition-colors"
+                                >
+                                    CANCEL_OPERATION
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-10 py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-colors disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {isSubmitting ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Check className="w-4 h-4" />
+                                    )}
+                                    {isSubmitting ? "SAVING..." : "COMMIT_RECORD"}
+                                </button>
+                            </div>
+                        </form>
                     </motion.div>
                 ) : (
                     <motion.div
@@ -279,73 +280,75 @@ export const TimelineManager = () => {
                         animate={{ opacity: 1 }}
                         className="space-y-6"
                     >
+                        {/* Search Bar */}
                         <div className="relative group">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-300 group-focus-within:text-[#C5A059] transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#C5A059] transition-colors" />
                             <input
                                 type="text"
-                                placeholder="Search chronicles..."
+                                placeholder="SEARCH_DATABASE..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800 rounded-2xl pl-16 pr-6 py-5 text-charcoal dark:text-white focus:outline-none focus:ring-2 focus:ring-[#C5A059]/10 focus:border-[#C5A059] transition-all shadow-sm"
+                                className="w-full pl-12 pr-6 py-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors uppercase"
                             />
                         </div>
 
                         {isLoading ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-stone-400">
+                            <div className="flex flex-col items-center justify-center py-24 text-gray-400">
                                 <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                                <p className="text-[10px] uppercase tracking-widest font-bold">Accessing Archive...</p>
+                                <p className="font-mono text-xs uppercase tracking-widest">QUERYING_DATABASE...</p>
                             </div>
                         ) : filteredEvents.length === 0 ? (
-                            <div className="bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800 rounded-3xl p-16 text-center shadow-sm">
-                                <p className="text-stone-300 font-serif italic text-lg mb-6">No records match your search.</p>
+                            <div className="border border-dashed border-black/20 dark:border-white/20 p-24 text-center">
+                                <p className="font-mono text-sm uppercase text-gray-500 mb-4">NO_MATCHING_RECORDS_FOUND</p>
                                 <button
                                     onClick={() => setIsAddingMode(true)}
-                                    className="text-[#C5A059] text-[10px] uppercase tracking-widest font-bold hover:underline"
+                                    className="text-[#C5A059] font-mono text-xs underline decoration-1 underline-offset-4 hover:bg-[#C5A059] hover:text-black p-1 transition-colors uppercase"
                                 >
-                                    Create First Entry
+                                    CREATE_NEW_ENTRY
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 gap-4">
-                                {filteredEvents.map((event) => (
+                            <div className="border border-black dark:border-white overflow-hidden">
+                                {filteredEvents.map((event, index) => (
                                     <motion.div
                                         key={event.$id}
                                         layout
-                                        className="group bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-lg hover:shadow-stone-200/50 dark:hover:shadow-none transition-all"
+                                        className={`group flex flex-col md:flex-row items-stretch border-b border-black/10 dark:border-white/10 last:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${index % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]'}`}
                                     >
-                                        <div className="flex flex-col md:flex-row items-center gap-8 flex-1">
-                                            <div className="flex flex-col items-center justify-center min-w-[100px] border-r border-stone-50 dark:border-stone-800 pr-8">
-                                                <span className="text-2xl font-serif italic text-[#C5A059]">
-                                                    {new Date(event.date_event).getFullYear()}
-                                                </span>
-                                                <span className="text-[8px] uppercase tracking-widest text-stone-400 font-bold">
-                                                    {new Date(event.date_event).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                </span>
-                                            </div>
-
-                                            <div className="space-y-1 text-center md:text-left">
-                                                <div className="flex items-center justify-center md:justify-start gap-3">
-                                                    <span className="px-2 py-0.5 bg-stone-50 dark:bg-stone-800 text-stone-400 text-[8px] uppercase tracking-widest font-bold rounded">
-                                                        {event.category}
-                                                    </span>
-                                                </div>
-                                                <h4 className="text-lg font-serif italic text-charcoal dark:text-white leading-tight">
-                                                    {event.title}
-                                                </h4>
-                                                <p className="text-sm text-stone-400 line-clamp-1 italic max-w-xl">
-                                                    {event.description}
-                                                </p>
-                                            </div>
+                                        {/* Date Column */}
+                                        <div className="p-6 md:w-32 border-r border-black/10 dark:border-white/10 flex flex-col justify-center items-center md:items-start">
+                                            <span className="text-xl font-black text-[#C5A059]">
+                                                {new Date(event.date_event).getFullYear()}
+                                            </span>
+                                            <span className="font-mono text-[9px] uppercase text-gray-500">
+                                                {new Date(event.date_event).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+                                            </span>
                                         </div>
 
-                                        <div className="flex items-center gap-2">
+                                        {/* Content Column */}
+                                        <div className="p-6 flex-1 flex flex-col justify-center gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <span className="px-2 py-1 border border-black dark:border-white text-[10px] font-mono uppercase tracking-wider font-bold">
+                                                    {event.category}
+                                                </span>
+                                            </div>
+                                            <h4 className="text-2xl md:text-3xl font-black uppercase tracking-tighter leading-none">
+                                                {event.title}
+                                            </h4>
+                                            <p className="font-mono text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                                {event.description}
+                                            </p>
+                                        </div>
+
+                                        {/* Actions Column */}
+                                        <div className="p-6 md:w-48 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     startEditing(event);
                                                 }}
-                                                className="p-3 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-xl transition-colors text-stone-400 hover:text-charcoal dark:hover:text-white"
-                                                title="Edit Entry"
+                                                className="p-2 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                                                title="EDIT_ENTRY"
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
@@ -354,17 +357,10 @@ export const TimelineManager = () => {
                                                     e.stopPropagation();
                                                     handleDelete(event.$id);
                                                 }}
-                                                className="p-3 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors text-stone-400 hover:text-red-500"
-                                                title="Remove Entry"
+                                                className="p-2 border border-black dark:border-white hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
+                                                title="DELETE_ENTRY"
                                             >
                                                 <Trash2 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => navigate(`/timeline`)}
-                                                className="w-12 h-12 flex items-center justify-center text-stone-200 group-hover:text-[#C5A059] group-hover:translate-x-1 transition-all"
-                                                title="View in Timeline"
-                                            >
-                                                <ChevronRight className="w-5 h-5" />
                                             </button>
                                         </div>
                                     </motion.div>
@@ -375,12 +371,13 @@ export const TimelineManager = () => {
                 )}
             </AnimatePresence>
 
-            <ConfirmationModal
+            <DeleteConfirmationModal
                 isOpen={!!deletingEventId}
                 onClose={() => setDeletingEventId(null)}
                 onConfirm={confirmDelete}
-                title="Remove Entry"
-                message="Are you sure you want to remove this record from the timeline? This action cannot be undone."
+                title="CONFIRM DELETION"
+                message="PERMANENTLY DELETE TIMELINE RECORD? THIS ACTION IS IRREVERSIBLE."
+                itemDetails={events.find(e => e.$id === deletingEventId)?.title}
                 isLoading={isSubmitting}
             />
         </div>
