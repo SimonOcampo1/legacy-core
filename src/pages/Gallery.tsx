@@ -1,24 +1,8 @@
 import { useState, useEffect } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, type Variants } from "framer-motion";
 import { PageTransition } from "../components/PageTransition";
 import { databases, storage, DATABASE_ID, GALLERY_COLLECTION_ID } from "../lib/appwrite";
 import { Query } from "appwrite";
-
-const container: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.05
-        }
-    }
-};
-
-const itemVariant: Variants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    show: { opacity: 1, scale: 1 }
-};
 
 interface GalleryDisplayItem {
     id: string;
@@ -50,7 +34,6 @@ export function Gallery() {
                     if (doc.image_id.startsWith("http")) {
                         imageUrl = doc.image_id;
                     } else {
-                        // Fallback or file ID handling
                         try {
                             imageUrl = storage.getFileView(BUCKET_ID, doc.image_id).toString();
                         } catch (e) {
@@ -96,7 +79,29 @@ export function Gallery() {
 
     return (
         <PageTransition>
-            <div className="bg-white dark:bg-background-dark min-h-screen text-slate-900 dark:text-slate-100 font-sans relative">
+            <div className="bg-white dark:bg-[#09090b] min-h-screen text-black dark:text-gray-100 font-sans pt-12">
+
+                {/* Header */}
+                <div className="border-b-2 border-black dark:border-white/20 px-4 md:px-8 pb-8 pt-12 flex flex-col md:flex-row justify-between items-end gap-8">
+                    <div>
+                        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-2">
+                            Visual<span className="text-[#C5A059]">_Databank</span>
+                        </h1>
+                        <p className="font-mono text-xs md:text-sm text-gray-500">
+                            /// MEDIA REPOSITORY<br />
+                            INDEXED VISUAL RECORDS...
+                        </p>
+                    </div>
+                    {/* Filter Tabs - Brutalist */}
+                    <div className="flex gap-4 font-mono text-[10px] md:text-xs">
+                        {['ALL', 'EDITORIAL', 'PARTIES', 'TRAVEL'].map((filter) => (
+                            <button key={filter} className={`uppercase px-2 py-1 border border-transparent hover:border-[#C5A059] hover:text-[#C5A059] transition-all ${filter === 'ALL' ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-gray-500'}`}>
+                                [{filter}]
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Lightbox Overlay */}
                 {selectedImageIndex !== null && galleryItems[selectedImageIndex] && (
                     <div
@@ -105,132 +110,80 @@ export function Gallery() {
                     >
                         <button
                             onClick={closeLightbox}
-                            className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
+                            className="absolute top-6 right-6 text-white hover:text-[#C5A059] transition-colors"
                         >
                             <X className="w-8 h-8" />
                         </button>
 
                         <button
                             onClick={prevImage}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors p-2 hidden md:block"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-[#C5A059] transition-colors p-2 hidden md:block"
                         >
-                            <ChevronLeft className="w-10 h-10" />
+                            <ChevronLeft className="w-12 h-12" />
                         </button>
 
-                        <div className="max-w-5xl max-h-[85vh] relative" onClick={(e) => e.stopPropagation()}>
+                        <div className="max-w-6xl max-h-[90vh] relative p-1 border border-white/20 bg-black" onClick={(e) => e.stopPropagation()}>
                             <img
                                 src={galleryItems[selectedImageIndex].image}
                                 alt={galleryItems[selectedImageIndex].title}
-                                className="max-h-[80vh] w-auto object-contain shadow-2xl"
+                                className="max-h-[85vh] w-auto object-contain"
                             />
-                            <div className="text-center mt-4 text-white">
-                                <h3 className="font-serif text-2xl italic tracking-wide">{galleryItems[selectedImageIndex].title}</h3>
-                                <p className="text-xs uppercase tracking-widest text-white/60 mt-2">{galleryItems[selectedImageIndex].date}</p>
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm p-4 border-t border-white/20 flex justify-between items-end">
+                                <div>
+                                    <h3 className="font-bold text-xl uppercase tracking-tight text-white">{galleryItems[selectedImageIndex].title}</h3>
+                                    <p className="font-mono text-xs text-[#C5A059]">{galleryItems[selectedImageIndex].date}</p>
+                                </div>
+                                <span className="font-mono text-[10px] text-gray-500">IMG_{galleryItems[selectedImageIndex].id.substring(0, 6)}</span>
                             </div>
                         </div>
 
                         <button
                             onClick={nextImage}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors p-2 hidden md:block"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-[#C5A059] transition-colors p-2 hidden md:block"
                         >
-                            <ChevronRight className="w-10 h-10" />
+                            <ChevronRight className="w-12 h-12" />
                         </button>
                     </div>
                 )}
 
-                <div className="w-full mb-12 pt-12">
-                    {/* ... Header Filters ... */}
-                    <div className="max-w-[1600px] mx-auto px-6 lg:px-12 text-center">
-                        <h2 className="font-serif text-4xl md:text-5xl font-light italic text-gray-900 dark:text-white mb-10">
-                            The Summer of <span className="text-[#C5A059] not-italic font-normal">2022</span>
-                        </h2>
-                        <div className="border-t border-b border-gray-100 dark:border-gray-800 py-6 mb-8 flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
-                            <div className="flex items-center gap-4">
-                                <span className="font-serif italic text-gray-400 text-sm">Year</span>
-                                <div className="flex gap-4 text-xs tracking-[0.15em] uppercase text-gray-500 dark:text-gray-400">
-                                    <button className="text-[#C5A059] transition-colors font-bold border-b border-[#C5A059]">2022</button>
-                                    <button className="hover:text-[#C5A059] transition-colors">
-                                        2021
-                                    </button>
-                                    <button className="hover:text-[#C5A059] transition-colors">
-                                        2020
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="w-px h-8 bg-gray-100 dark:bg-gray-800 hidden md:block"></div>
-                            <div className="flex items-center gap-4">
-                                <span className="font-serif italic text-gray-400 text-sm">
-                                    Event Type
-                                </span>
-                                <div className="flex gap-4 text-xs tracking-[0.15em] uppercase text-gray-500 dark:text-gray-400">
-                                    <button className="text-[#C5A059] transition-colors font-bold border-b border-[#C5A059]">All</button>
-                                    <button className="hover:text-[#C5A059] transition-colors">
-                                        Editorial
-                                    </button>
-                                    <button className="hover:text-[#C5A059] transition-colors">
-                                        Parties
-                                    </button>
-                                    <button className="hover:text-[#C5A059] transition-colors">
-                                        Travel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex-grow px-6 lg:px-12 pb-20 max-w-[1800px] mx-auto w-full">
+                <div className="w-full">
                     {loading ? (
-                        <div className="min-h-[40vh] flex flex-col items-center justify-center">
-                            <div className="animate-pulse flex flex-col items-center gap-4">
-                                <div className="h-12 w-12 border-4 border-stone-200 border-t-[#C5A059] rounded-full animate-spin"></div>
-                                <p className="font-serif italic text-stone-400">Loading gallery...</p>
-                            </div>
+                        <div className="w-full h-64 flex items-center justify-center font-mono text-sm animate-pulse">
+                            [ LOADING_VISUALS ]
                         </div>
                     ) : (
-                        <motion.div
-                            variants={container}
-                            initial="hidden"
-                            whileInView="show"
-                            viewport={{ once: true }}
-                            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-12"
-                        >
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-px bg-black dark:bg-white/20 border-b border-black dark:border-white/20">
                             {galleryItems.map((item, index) => (
-                                <motion.div
+                                <div
                                     key={item.id}
-                                    variants={itemVariant}
-                                    className="cursor-pointer group"
+                                    className="relative aspect-square cursor-pointer group bg-gray-100 dark:bg-gray-900 overflow-hidden"
                                     onClick={() => openLightbox(index)}
                                 >
-                                    <div className="relative overflow-hidden mb-3 aspect-square bg-gray-50 dark:bg-gray-900">
-                                        <img
-                                            alt={item.title}
-                                            className="w-full h-full object-cover transition-all duration-700 ease-out filter grayscale-[20%] group-hover:scale-105 group-hover:grayscale-0"
-                                            src={item.image}
-                                        />
+                                    <img
+                                        alt={item.title}
+                                        className="w-full h-full object-cover transition-all duration-300 filter grayscale group-hover:grayscale-0 group-hover:scale-105"
+                                        src={item.image}
+                                        loading="lazy"
+                                    />
+                                    {/* Overlay */}
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100">
+                                        <p className="font-bold text-white uppercase text-sm leading-none">{item.title}</p>
+                                        <p className="font-mono text-[10px] text-[#C5A059] mt-1">{item.date}</p>
                                     </div>
-                                    <div className="text-center opacity-70 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-500">
-                                        <p className="font-serif text-base italic text-gray-900 dark:text-white mb-0.5">
-                                            {item.title}
-                                        </p>
-                                        <p className="text-[9px] tracking-[0.2em] uppercase text-gray-400">
-                                            {item.date}
-                                        </p>
-                                    </div>
-                                </motion.div>
+                                </div>
                             ))}
-                        </motion.div>
+                        </div>
                     )}
 
                     {!loading && (
-                        <div className="flex justify-center items-center py-20">
-                            <button className="text-xs tracking-[0.2em] uppercase text-gray-400 hover:text-[#C5A059] transition-colors border-b border-transparent hover:border-[#C5A059] pb-1">
-                                Load More Moments
+                        <div className="flex justify-center items-center py-20 border-t border-black dark:border-white/20">
+                            <button className="font-mono text-xs uppercase hover:text-[#C5A059] hover:border-b hover:border-[#C5A059] transition-all">
+                                [ LOAD_MORE_DATA ]
                             </button>
                         </div>
                     )}
                 </div>
             </div>
-        </PageTransition >
+        </PageTransition>
     );
 }

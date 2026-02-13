@@ -125,7 +125,7 @@ export function Home() {
             <div className="bg-white dark:bg-[#09090b] text-black dark:text-gray-100 min-h-screen font-sans selection:bg-[#C5A059] selection:text-black">
 
                 {/* Hero Section */}
-                <section ref={heroRef} className="relative w-full h-screen flex flex-col justify-between p-4 md:p-8 border-b-2 border-black dark:border-white/20 overflow-hidden">
+                <section id="hero" ref={heroRef} className="relative w-full h-screen flex flex-col justify-between p-4 md:p-8 border-b-2 border-black dark:border-white/20 overflow-hidden">
                     {/* Interactive Grid Background */}
                     <InteractiveGridBackground />
 

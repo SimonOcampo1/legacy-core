@@ -49,7 +49,7 @@ export function DeleteConfirmationModal({
                                 <div className="flex items-center gap-2">
                                     <AlertTriangle className="w-5 h-5 fill-white text-red-600" />
                                     <h2 className="font-mono text-sm font-bold uppercase tracking-wider">
-                                        SYSTEM_ALERT // {title}
+                                        SYSTEM ALERT // {title}
                                     </h2>
                                 </div>
                                 <button

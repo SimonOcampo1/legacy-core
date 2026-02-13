@@ -26,16 +26,33 @@ export function ConfirmationModal({
 }: ConfirmationModalProps) {
 
     const variantStyles = {
-        danger: "bg-red-950/10 text-red-500 border-red-500/20",
-        warning: "bg-amber-950/10 text-amber-500 border-amber-500/20",
-        info: "bg-stone-950 text-stone-300 border-stone-800"
+        danger: {
+            header: "bg-red-600 text-white",
+            border: "border-red-600",
+            shadow: "shadow-[8px_8px_0px_0px_rgba(220,38,38,1)]",
+            icon: "bg-red-600/10 text-red-600 border-red-600"
+        },
+        warning: {
+            header: "bg-[#C5A059] text-black",
+            border: "border-[#C5A059]",
+            shadow: "shadow-[8px_8px_0px_0px_rgba(197,160,89,1)]",
+            icon: "bg-[#C5A059]/10 text-[#C5A059] border-[#C5A059]"
+        },
+        info: {
+            header: "bg-black dark:bg-white text-white dark:text-black",
+            border: "border-black dark:border-white",
+            shadow: "shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]",
+            icon: "bg-black/5 dark:bg-white/5 text-black dark:text-white border-black dark:border-white"
+        }
     };
 
     const buttonStyles = {
-        danger: "bg-red-500 hover:bg-red-600 text-white shadow-red-500/10",
-        warning: "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/10",
-        info: "bg-stone-900 dark:bg-white text-white dark:text-stone-900"
+        danger: "bg-red-600 text-white hover:bg-red-700",
+        warning: "bg-[#C5A059] text-black hover:bg-[#b28f4c]",
+        info: "bg-black dark:bg-white text-white dark:text-black hover:bg-stone-800 dark:hover:bg-stone-200"
     };
+
+    const currentVariant = variantStyles[variant];
 
     return (
         <AnimatePresence>
@@ -47,7 +64,7 @@ export function ConfirmationModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm transition-all duration-300"
+                        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm transition-all duration-300"
                     />
 
                     {/* Modal Content */}
@@ -55,51 +72,59 @@ export function ConfirmationModal({
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed left-1/2 top-1/2 z-[110] w-full max-w-sm -translate-x-1/2 -translate-y-1/2 transform p-6"
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="fixed left-1/2 top-1/2 z-[110] w-full max-w-md -translate-x-1/2 -translate-y-1/2 transform p-4"
                     >
-                        <div className="relative overflow-hidden rounded-[2rem] bg-background-light dark:bg-stone-950 shadow-2xl ring-1 ring-stone-200 dark:ring-stone-800 p-8">
-                            {/* Close Button */}
-                            <button
-                                onClick={onClose}
-                                className="absolute right-6 top-6 rounded-full p-2 text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
+                        <div className={`relative bg-white dark:bg-[#09090b] border-2 ${currentVariant.border} ${currentVariant.shadow}`}>
 
-                            <div className="flex flex-col items-center text-center space-y-6">
+                            {/* Header */}
+                            <div className={`${currentVariant.header} p-3 flex justify-between items-center`}>
+                                <div className="flex items-center gap-2">
+                                    <AlertTriangle className="w-5 h-5" />
+                                    <h2 className="font-mono text-sm font-bold uppercase tracking-wider">
+                                        SYSTEM MESSAGE // {title}
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={onClose}
+                                    className="hover:bg-black/10 dark:hover:bg-white/10 p-1 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="p-8 flex flex-col items-center text-center space-y-6">
                                 {/* Icon */}
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center border ${variantStyles[variant]}`}>
-                                    <AlertTriangle className="w-8 h-8" />
+                                <div className={`w-20 h-20 flex items-center justify-center border-2 ${currentVariant.icon}`}>
+                                    <AlertTriangle className="w-10 h-10" />
                                 </div>
 
-                                {/* Header */}
-                                <div className="space-y-2">
-                                    <h2 className="text-2xl font-serif italic text-stone-900 dark:text-white">
-                                        {title}
-                                    </h2>
-                                    <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">
+                                {/* Body */}
+                                <div className="space-y-4 w-full">
+                                    <p className={`font-mono text-lg font-bold uppercase leading-tight ${variant === 'danger' ? 'text-red-600' : 'text-black dark:text-white'}`}>
                                         {message}
                                     </p>
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex flex-col w-full gap-3 pt-2">
-                                    <button
-                                        onClick={onConfirm}
-                                        disabled={isLoading}
-                                        className={`w-full py-4 rounded-2xl text-[10px] uppercase tracking-widest font-bold shadow-lg transition-all active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2 ${buttonStyles[variant]}`}
-                                    >
-                                        {isLoading ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : confirmText}
-                                    </button>
+                                <div className="grid grid-cols-2 gap-4 w-full pt-4">
                                     <button
                                         onClick={onClose}
                                         disabled={isLoading}
-                                        className="w-full py-4 rounded-2xl text-[10px] uppercase tracking-widest font-bold text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors"
+                                        className="py-4 border-2 border-black dark:border-white font-mono text-xs uppercase hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all disabled:opacity-50"
                                     >
-                                        {cancelText}
+                                        {cancelText.toUpperCase().replace(' ', '_')}
+                                    </button>
+                                    <button
+                                        onClick={onConfirm}
+                                        disabled={isLoading}
+                                        className={`py-4 font-mono text-xs uppercase font-bold transition-all disabled:opacity-50 flex justify-center items-center gap-2 ${buttonStyles[variant]}`}
+                                    >
+                                        {isLoading ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            confirmText.toUpperCase().replace(' ', '_')
+                                        )}
                                     </button>
                                 </div>
                             </div>

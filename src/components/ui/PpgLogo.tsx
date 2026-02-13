@@ -1,10 +1,10 @@
 import { cn } from "../../lib/utils";
 
-interface PpgLogoProps {
+interface PPGLogoProps {
     className?: string;
 }
 
-export function PpgLogo({ className }: PpgLogoProps) {
+export function PPGLogo({ className }: PPGLogoProps) {
     return (
         <svg
             version="1.0"

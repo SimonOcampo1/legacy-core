@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { ModeToggle } from "../components/mode-toggle";
 import { Link, useSearchParams } from "react-router-dom";
 import { NarrativeEditor } from "../components/admin/NarrativeEditor";
 import { GalleryManager } from "../components/admin/GalleryManager";
 import { MemberManager } from "../components/admin/MemberManager";
-import { TimelineManager } from "../components/admin/TimelineManager"; // Added TimelineManager import
+import { TimelineManager } from "../components/admin/TimelineManager";
 import { cn } from "../lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { databases, DATABASE_ID, NARRATIVES_COLLECTION_ID, GALLERY_COLLECTION_ID, MEMBERS_COLLECTION_ID } from "../lib/appwrite";
 import { Query } from "appwrite";
@@ -17,7 +15,8 @@ import {
     History,
     Users,
     ArrowLeft,
-    Shield
+    Shield,
+    TerminalSquare
 } from "lucide-react";
 
 type ViewType = 'dashboard' | 'create-narrative' | 'gallery' | 'timeline' | 'members';
@@ -47,13 +46,9 @@ export function AdminConsole() {
             });
         } catch (error: any) {
             console.error("Error fetching stats:", error);
-            if (error.code === 404) {
-                console.warn("Collection 'profiles' was not found in Appwrite. Please ensure MEMBERS_COLLECTION_ID is configured correctly.");
-            }
         }
     };
 
-    // Sync state with URL if it changes externally
     useEffect(() => {
         const tab = searchParams.get('tab') as ViewType;
         if (tab && tab !== currentView) {
@@ -68,42 +63,42 @@ export function AdminConsole() {
 
     const menuItems = [
         { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-        { id: 'create-narrative', label: 'Write', icon: Edit3 },
-        { id: 'gallery', label: 'Gallery', icon: ImageIcon },
+        { id: 'create-narrative', label: 'Write_Log', icon: Edit3 },
+        { id: 'gallery', label: 'Visuals', icon: ImageIcon },
         { id: 'timeline', label: 'Timeline', icon: History },
-        ...(isAdmin ? [{ id: 'members', label: 'Members', icon: Shield }] : []),
+        ...(isAdmin ? [{ id: 'members', label: 'Personnel', icon: Shield }] : []),
     ] as const;
 
     return (
-        <div className="min-h-screen bg-[#F5F5F3] dark:bg-stone-950 font-sans selection:bg-[#C5A059]/10 selection:text-[#C5A059]">
-            {/* Header / Nav Area */}
-            <div className="max-w-7xl mx-auto px-6 pt-12">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
-                    <div>
-                        <div className="flex items-center gap-4 mb-8">
-                            <Link
-                                to="/"
-                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800 text-stone-400 hover:text-charcoal dark:hover:text-white transition-all group"
-                            >
-                                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                                <span className="text-xs font-medium">Back to Homepage</span>
-                            </Link>
-                            <ModeToggle />
-                        </div>
+        <div className="min-h-screen bg-white dark:bg-[#09090b] font-sans text-black dark:text-white pb-24">
+            {/* Top Bar */}
+            <div className="border-b border-black dark:border-white/20 bg-gray-50 dark:bg-white/5 px-6 py-2 flex justify-between items-center sticky top-0 z-40">
+                <div className="flex items-center gap-2 font-mono text-xs text-gray-500">
+                    <TerminalSquare className="w-4 h-4 text-[#C5A059]" />
+                    <span>ADMIN_CONSOLE_V2.0</span>
+                    <span className="hidden md:inline text-gray-300">|</span>
+                    <span className="hidden md:inline">SECURE_CONNECTION</span>
+                </div>
+                <Link to="/" className="font-mono text-xs hover:text-[#C5A059] uppercase flex items-center gap-2">
+                    <ArrowLeft className="w-3 h-3" />
+                    Exit_Console
+                </Link>
+            </div>
 
-                        <div className="flex items-center gap-3 mb-4">
-                            <span className="text-[10px] uppercase tracking-[0.3em] text-stone-400 dark:text-stone-500 font-bold">Administrative Core</span>
-                            <div className="h-px w-12 bg-stone-200 dark:bg-stone-800"></div>
-                        </div>
-                        <h1 className="text-5xl md:text-6xl font-serif italic text-charcoal dark:text-white tracking-tight leading-none mb-4">
-                            Console
+            {/* Main Layout */}
+            <div className="flex flex-col md:flex-row min-h-[calc(100vh-41px)]">
+                {/* Sidebar Navigation */}
+                <div className="w-full md:w-64 border-r border-black dark:border-white/20 flex flex-col pt-8 md:pt-12 bg-white dark:bg-[#09090b]">
+                    <div className="px-6 mb-12">
+                        <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">
+                            Cmd<span className="text-[#C5A059]">/</span>Center
                         </h1>
-                        <p className="text-stone-500 dark:text-stone-400 font-light max-w-md leading-relaxed">
-                            Organize memories, curate the visual archive, and manage the digital legacy.
+                        <p className="font-mono text-xs text-gray-400 leading-tight">
+                            SYSTEM_CONTROL_INTERFACE
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white dark:bg-stone-950 p-1.5 rounded-full shadow-sm border border-stone-100 dark:border-stone-800 transition-all overflow-x-auto no-scrollbar">
+                    <nav className="flex flex-col gap-px border-y border-black dark:border-white/20 bg-black dark:bg-white/20">
                         {menuItems.map((item) => {
                             const Icon = item.icon;
                             const isActive = currentView === item.id;
@@ -112,96 +107,86 @@ export function AdminConsole() {
                                     key={item.id}
                                     onClick={() => changeView(item.id as ViewType)}
                                     className={cn(
-                                        "relative flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap",
-                                        isActive
-                                            ? "text-white dark:text-charcoal"
-                                            : "text-stone-500 dark:text-stone-400 hover:text-charcoal dark:hover:text-white"
+                                        "flex items-center gap-4 px-6 py-4 text-sm font-bold uppercase tracking-wider transition-all text-left bg-white dark:bg-[#09090b] hover:bg-black hover:text-[#C5A059] dark:hover:bg-white dark:hover:text-black group",
+                                        isActive && "bg-black text-[#C5A059] dark:bg-white dark:text-black hover:bg-black hover:text-[#C5A059]"
                                     )}
                                 >
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="active-tab"
-                                            className="absolute inset-0 bg-charcoal dark:bg-white rounded-full"
-                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                        />
-                                    )}
-                                    <Icon className={cn("w-4 h-4 relative z-10", isActive ? "opacity-100" : "opacity-60")} strokeWidth={isActive ? 2 : 1.5} />
-                                    <span className="relative z-10">{item.label}</span>
+                                    <Icon className={cn("w-4 h-4", isActive ? "text-[#C5A059] dark:text-black" : "text-gray-400 group-hover:text-[#C5A059] dark:group-hover:text-black")} />
+                                    <span>{item.label}</span>
+                                    {isActive && <div className="ml-auto w-2 h-2 bg-[#C5A059] dark:bg-black" />}
                                 </button>
                             );
                         })}
+                    </nav>
+
+                    <div className="mt-auto p-6">
+                        <div className="border border-black dark:border-white/20 p-4 font-mono text-[10px] text-gray-400">
+                            WARNING: CHANGES MADE HERE AFFECT THE LIVE ARCHIVE. PROCEED WITH CAUTION.
+                        </div>
                     </div>
                 </div>
 
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentView}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                        className="pb-24"
-                    >
+                {/* Content Area */}
+                <div className="flex-1 bg-white dark:bg-[#09090b] relative overflow-hidden">
+                    {/* Background Grid */}
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                        style={{
+                            backgroundImage: `linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)`,
+                            backgroundSize: '40px 40px'
+                        }}
+                    />
+
+                    <div className="relative z-10 p-6 md:p-12">
+                        {/* View Header */}
+                        <div className="mb-12 border-b-2 border-black dark:border-white/20 pb-4 flex items-end justify-between">
+                            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
+                                {menuItems.find(i => i.id === currentView)?.label}
+                            </h2>
+                            <span className="font-mono text-xs text-[#C5A059]">
+                                /// VIEW_MODE
+                            </span>
+                        </div>
+
                         {currentView === 'dashboard' && (
-                            <div className="max-w-4xl mx-auto py-12">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    <StatCard
-                                        label="Published Narratives"
-                                        value={stats.narratives.toString().padStart(2, '0')}
-                                        trend="live archive"
-                                        icon={Edit3}
-                                        color="brass"
-                                    />
-                                    <StatCard
-                                        label="Visual Assets"
-                                        value={stats.gallery.toString().padStart(2, '0')}
-                                        trend="gallery"
-                                        icon={ImageIcon}
-                                        color="stone"
-                                    />
-                                    <StatCard
-                                        label="Authorized Members"
-                                        value={stats.members.toString().padStart(2, '0')}
-                                        trend="collaborators"
-                                        icon={Users}
-                                        color="charcoal"
-                                    />
-                                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <StatCard
+                                    label="Total Narratives"
+                                    value={stats.narratives.toString().padStart(3, '0')}
+                                    id="LOGS"
+                                />
+                                <StatCard
+                                    label="Archived Images"
+                                    value={stats.gallery.toString().padStart(3, '0')}
+                                    id="IMGS"
+                                />
+                                <StatCard
+                                    label="Active Personnel"
+                                    value={stats.members.toString().padStart(3, '0')}
+                                    id="USRS"
+                                />
                             </div>
                         )}
 
-                        {currentView === 'create-narrative' && <NarrativeEditor />}
-                        {currentView === 'gallery' && <GalleryManager />}
-                        {currentView === 'members' && isAdmin && <MemberManager />}
-                        {currentView === 'timeline' && <TimelineManager />}
-                    </motion.div>
-                </AnimatePresence>
+                        {currentView === 'create-narrative' && <div className="border border-black dark:border-white/20 p-6 md:p-8 bg-gray-50 dark:bg-white/5"><NarrativeEditor /></div>}
+                        {currentView === 'gallery' && <div className="border border-black dark:border-white/20 p-6 md:p-8 bg-gray-50 dark:bg-white/5"><GalleryManager /></div>}
+                        {currentView === 'members' && isAdmin && <div className="border border-black dark:border-white/20 p-6 md:p-8 bg-gray-50 dark:bg-white/5"><MemberManager /></div>}
+                        {currentView === 'timeline' && <div className="border border-black dark:border-white/20 p-6 md:p-8 bg-gray-50 dark:bg-white/5"><TimelineManager /></div>}
+                    </div>
+                </div>
             </div>
         </div>
     );
 }
 
-function StatCard({ label, value, trend, icon: Icon, color }: { label: string, value: string, trend: string, icon: any, color: 'brass' | 'stone' | 'charcoal' }) {
-    const colorMap = {
-        brass: "bg-[#C5A059]/10 text-[#C5A059]",
-        stone: "bg-stone-100 text-stone-600 dark:bg-stone-950 dark:text-stone-300",
-        charcoal: "bg-stone-950 text-white"
-    };
-
+function StatCard({ label, value, id }: { label: string, value: string, id: string }) {
     return (
-        <div className="bg-white dark:bg-stone-950 p-8 rounded-3xl border border-stone-100 dark:border-stone-800/50 shadow-sm transition-transform hover:-translate-y-1 duration-500">
-            <div className="flex justify-between items-start mb-6">
-                <div className={cn("p-4 rounded-2xl", colorMap[color])}>
-                    <Icon className="w-6 h-6" strokeWidth={1.5} />
-                </div>
-                {trend !== 'stable' && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059] bg-[#C5A059]/10 px-2 py-1 rounded-full">
-                        {trend}
-                    </span>
-                )}
+        <div className="border border-black dark:border-white/20 p-6 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors group cursor-default">
+            <div className="flex justify-between items-start mb-8">
+                <span className="font-mono text-xs opacity-50">{id}</span>
+                <Users className="w-5 h-5 text-[#C5A059] group-hover:text-white dark:group-hover:text-black" />
             </div>
-            <h3 className="text-4xl font-serif italic text-charcoal dark:text-white mb-1 leading-none">{value}</h3>
-            <p className="text-xs uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500 font-bold">{label}</p>
+            <div className="text-5xl font-black mb-2 tracking-tighter">{value}</div>
+            <div className="font-mono text-xs uppercase tracking-widest opacity-70 group-hover:text-[#C5A059] dark:group-hover:text-black transition-colors">{label}</div>
         </div>
     );
 }

@@ -64,38 +64,38 @@ const MenuBar = ({ editor }: { editor: any }) => {
     }, [editor]);
 
     return (
-        <div className="flex flex-wrap items-center gap-1 p-3 border-b border-stone-100 dark:border-stone-800 bg-white/50 dark:bg-stone-950/50 backdrop-blur-sm sticky top-0 z-10 transition-all duration-300">
-            <div className="flex items-center gap-1 mr-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg p-1 border border-stone-100 dark:border-stone-800">
+        <div className="flex flex-wrap items-center gap-px p-4 border-b border-black dark:border-white bg-gray-50 dark:bg-white/5 sticky top-0 z-10">
+            <div className="flex items-center mr-4">
                 <button
                     onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                     className={cn(
-                        "p-2 rounded-md hover:bg-white dark:hover:bg-stone-800 hover:shadow-sm transition-all text-stone-500",
-                        editor.isActive('heading', { level: 1 }) ? 'bg-white dark:bg-stone-700 shadow-sm text-charcoal dark:text-white font-bold' : ''
+                        "p-2 font-black text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase",
+                        editor.isActive('heading', { level: 1 }) ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
                     )}
-                    title="Heading 1"
+                    title="H1"
                     type="button"
                 >
-                    <Heading1 className="w-4 h-4" />
+                    H1
                 </button>
                 <button
                     onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                     className={cn(
-                        "p-2 rounded-md hover:bg-white dark:hover:bg-stone-800 hover:shadow-sm transition-all text-stone-500",
-                        editor.isActive('heading', { level: 2 }) ? 'bg-white dark:bg-stone-700 shadow-sm text-charcoal dark:text-white font-bold' : ''
+                        "p-2 font-black text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase",
+                        editor.isActive('heading', { level: 2 }) ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
                     )}
-                    title="Heading 2"
+                    title="H2"
                     type="button"
                 >
-                    <Heading2 className="w-4 h-4" />
+                    H2
                 </button>
             </div>
 
-            <div className="flex items-center gap-1 mr-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg p-1 border border-stone-100 dark:border-stone-800">
+            <div className="flex items-center mr-4 border-l border-black dark:border-white pl-4">
                 <button
                     onClick={() => editor.chain().focus().toggleBold().run()}
                     className={cn(
-                        "p-2 rounded-md hover:bg-white dark:hover:bg-stone-800 hover:shadow-sm transition-all text-stone-500",
-                        editor.isActive('bold') ? 'bg-white dark:bg-stone-700 shadow-sm text-charcoal dark:text-white font-bold' : ''
+                        "p-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors",
+                        editor.isActive('bold') ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
                     )}
                     title="Bold"
                     type="button"
@@ -105,8 +105,8 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <button
                     onClick={() => editor.chain().focus().toggleItalic().run()}
                     className={cn(
-                        "p-2 rounded-md hover:bg-white dark:hover:bg-stone-800 hover:shadow-sm transition-all text-stone-500",
-                        editor.isActive('italic') ? 'bg-white dark:bg-stone-700 shadow-sm text-charcoal dark:text-white' : ''
+                        "p-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors",
+                        editor.isActive('italic') ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
                     )}
                     title="Italic"
                     type="button"
@@ -115,33 +115,33 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 </button>
             </div>
 
-            <div className="flex items-center gap-1 bg-stone-50 dark:bg-stone-800/50 rounded-lg p-1 border border-stone-100 dark:border-stone-800">
+            <div className="flex items-center border-l border-black dark:border-white pl-4">
                 <button
                     onClick={() => editor.chain().focus().toggleBlockquote().run()}
                     className={cn(
-                        "p-2 rounded-md hover:bg-white dark:hover:bg-stone-800 hover:shadow-sm transition-all text-stone-500",
-                        editor.isActive('blockquote') ? 'bg-white dark:bg-stone-700 shadow-sm text-charcoal dark:text-white' : ''
+                        "p-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors",
+                        editor.isActive('blockquote') ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
                     )}
                     title="Quote"
                     type="button"
                 >
                     <Quote className="w-4 h-4" />
                 </button>
-                <button onClick={addImage} className="p-2 rounded-md hover:bg-white dark:hover:bg-stone-800 hover:shadow-sm transition-all text-stone-500 relative" title="Image" type="button">
+                <button onClick={addImage} className="p-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors relative" title="Image" type="button">
                     <ImageIcon className="w-4 h-4" />
                     {isUploading && (
-                        <span className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-stone-950/80 rounded-md">
-                            <Loader2 className="w-3 h-3 text-charcoal dark:text-white animate-spin" />
+                        <span className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-black/80">
+                            <Loader2 className="w-3 h-3 animate-spin" />
                         </span>
                     )}
                 </button>
             </div>
 
-            <div className="ml-auto flex items-center gap-1 text-stone-400">
+            <div className="ml-auto flex items-center gap-1 border-l border-black dark:border-white pl-4">
                 <button
                     onClick={() => editor.chain().focus().undo().run()}
                     disabled={!editor.can().chain().focus().undo().run()}
-                    className="p-2 rounded hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors disabled:opacity-30"
+                    className="p-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors disabled:opacity-30"
                     title="Undo"
                     type="button"
                 >
@@ -150,7 +150,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <button
                     onClick={() => editor.chain().focus().redo().run()}
                     disabled={!editor.can().chain().focus().redo().run()}
-                    className="p-2 rounded hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors disabled:opacity-30"
+                    className="p-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors disabled:opacity-30"
                     title="Redo"
                     type="button"
                 >
@@ -177,24 +177,24 @@ export const NarrativeEditor = () => {
                 heading: { levels: [1, 2] },
                 blockquote: {
                     HTMLAttributes: {
-                        class: 'border-l-2 border-[#C5A059] pl-6 py-2 my-8 italic text-2xl font-serif text-charcoal dark:text-stone-300 bg-stone-50/50 dark:bg-stone-950/50 rounded-r-2xl',
+                        class: 'border-l-4 border-[#C5A059] pl-6 py-2 my-8 italic text-xl font-serif bg-gray-50 dark:bg-white/5',
                     },
                 },
             }),
             Image.configure({
                 HTMLAttributes: {
-                    class: 'rounded-2xl shadow-xl my-12 max-h-[700px] w-auto mx-auto object-cover border border-stone-100 dark:border-stone-800',
+                    class: 'shadow-none my-12 max-h-[700px] w-auto mx-auto object-cover border border-black dark:border-white',
                 },
             }),
             Placeholder.configure({
-                placeholder: 'Begin the record...',
-                emptyEditorClass: 'is-editor-empty before:content-[attr(data-placeholder)] before:text-stone-300 dark:before:text-stone-700 before:float-left before:pointer-events-none before:font-serif before:italic',
+                placeholder: 'BEGIN_RECORD...',
+                emptyEditorClass: 'is-editor-empty before:content-[attr(data-placeholder)] before:text-gray-300 dark:before:text-gray-700 before:float-left before:pointer-events-none before:font-mono',
             }),
         ],
         content: '',
         editorProps: {
             attributes: {
-                class: 'prose prose-stone prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[600px] p-8 md:p-16 font-serif leading-relaxed text-charcoal dark:text-stone-300 selection:bg-[#C5A059]/20',
+                class: 'prose prose-neutral prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[600px] p-8 md:p-12 font-serif leading-relaxed text-black dark:text-white selection:bg-[#C5A059] selection:text-black',
             },
         },
     });
@@ -258,90 +258,92 @@ export const NarrativeEditor = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 my-12 px-6">
-            <div className="bg-white dark:bg-stone-950 shadow-2xl shadow-stone-200/50 dark:shadow-none border border-stone-100 dark:border-stone-800 rounded-[2.5rem] overflow-hidden flex flex-col">
-                <div className="px-8 md:px-16 pt-16 pb-8 border-b border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-950 flex flex-col gap-10">
+        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="border border-black dark:border-white bg-white dark:bg-[#09090b]">
+                {/* Editor Header / Inputs */}
+                <div className="p-6 md:p-8 border-b border-black dark:border-white bg-white dark:bg-[#09090b] flex flex-col gap-8">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-                        <input
-                            type="text"
-                            placeholder="Title of the Record"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="flex-1 w-full text-5xl md:text-6xl font-serif text-charcoal dark:text-white placeholder-stone-200 dark:placeholder-stone-800 border-none focus:ring-0 focus:outline-none px-0 bg-transparent italic tracking-tight"
-                        />
+                        <div className="flex-1 w-full space-y-2">
+                            <label className="font-mono text-xs uppercase tracking-widest opacity-50 block">TITLE_RECORD</label>
+                            <input
+                                type="text"
+                                placeholder="ENTER TITLE..."
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="w-full text-4xl md:text-5xl font-black text-black dark:text-white placeholder-gray-300 dark:placeholder-gray-700 border-none focus:ring-0 focus:outline-none px-0 bg-transparent uppercase tracking-tighter"
+                            />
+                        </div>
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => handleSave(true)}
                                 disabled={isSaving}
-                                className="bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-6 py-3 rounded-xl font-bold transition-all hover:bg-stone-200 dark:hover:bg-stone-700 text-[10px] uppercase tracking-widest disabled:opacity-30 flex items-center gap-2 active:scale-95"
+                                className="border border-black dark:border-white px-6 py-3 font-mono text-xs uppercase hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50 transition-colors"
                             >
-                                Save Draft
+                                SAVE_DRAFT
                             </button>
                             <button
                                 onClick={() => handleSave(false)}
                                 disabled={isSaving}
-                                className="bg-charcoal dark:bg-white text-white dark:text-charcoal px-8 py-3 rounded-xl font-bold transition-all hover:bg-charcoal/90 dark:hover:bg-stone-100 text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 group active:scale-95 disabled:opacity-30"
+                                className="bg-black dark:bg-white text-white dark:text-black px-8 py-3 font-mono text-xs uppercase hover:bg-[#C5A059] dark:hover:bg-[#C5A059] hover:text-black transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
-                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                {isSaving ? "Preserving..." : "Publish Record"}
+                                {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                {isSaving ? "PUBLISHING..." : "PUBLISH"}
                             </button>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end border-t border-stone-50 dark:border-stone-800/50 pt-8">
-                        <div>
-                            <label className="text-[9px] uppercase tracking-[0.3em] text-stone-400 font-bold mb-3 block">Perspective</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-black dark:border-white">
+                        <div className="border-r border-black dark:border-white p-6 -ml-6 md:ml-0 md:-my-6 pt-6">
+                            <label className="font-mono text-xs uppercase tracking-widest opacity-50 mb-4 block">VISUAL_ANCHOR</label>
                             {coverImageUrl ? (
-                                <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm group">
-                                    <img src={coverImageUrl} alt="Cover" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                <div className="relative aspect-video w-full overflow-hidden border border-black dark:border-white group">
+                                    <img src={coverImageUrl} alt="Cover" className="h-full w-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
                                     <button
                                         onClick={handleRemoveCoverImage}
-                                        className="absolute top-3 right-3 bg-white/90 dark:bg-stone-950/90 p-2 rounded-full text-stone-500 hover:text-red-500 shadow-lg backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute top-2 right-2 bg-black text-white p-2 hover:bg-red-600 transition-colors"
                                         type="button"
                                     >
-                                        <X className="w-4 h-4" />
+                                        <X className="w-3 h-3" />
                                     </button>
                                 </div>
                             ) : (
-                                <label className="flex flex-col items-center justify-center aspect-video w-full rounded-2xl border-2 border-dashed border-stone-100 dark:border-stone-800 hover:border-[#C5A059]/40 hover:bg-[#C5A059]/5 transition-all cursor-pointer text-stone-400 group">
+                                <label className="flex flex-col items-center justify-center aspect-video w-full border border-dashed border-gray-400 hover:border-[#C5A059] hover:text-[#C5A059] transition-colors cursor-pointer group">
                                     <input type="file" accept="image/*" className="hidden" onChange={handleCoverImageUpload} />
-                                    <div className="w-10 h-10 rounded-full bg-stone-50 dark:bg-stone-800 flex items-center justify-center mb-2 group-hover:bg-[#C5A059]/10 group-hover:text-[#C5A059] transition-colors">
-                                        <Upload className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">Select Cover</span>
+                                    <Upload className="w-6 h-6 mb-2" />
+                                    <span className="font-mono text-xs uppercase">UPLOAD_COVER</span>
                                 </label>
                             )}
                         </div>
 
-                        <div className="space-y-3">
-                            <label className="text-[9px] uppercase tracking-[0.3em] text-stone-400 font-bold block">Temporal Anchor</label>
+                        <div className="border-r border-black dark:border-white p-6">
+                            <label className="font-mono text-xs uppercase tracking-widest opacity-50 mb-2 block">TEMPORAL_POINT</label>
                             <div className="relative group">
-                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-300 group-focus-within:text-[#C5A059] transition-colors" />
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
                                 <input
                                     type="date"
                                     value={eventDate}
                                     onChange={(e) => setEventDate(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 rounded-2xl text-charcoal dark:text-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]/10 focus:border-[#C5A059] transition-all font-sans"
+                                    className="w-full pl-10 pr-4 py-3 bg-transparent border border-black dark:border-white rounded-none font-mono text-sm focus:outline-none focus:bg-black focus:text-white dark:focus:bg-white dark:focus:text-black transition-colors"
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-3">
-                            <label className="text-[9px] uppercase tracking-[0.3em] text-stone-400 font-bold block">classification</label>
+                        <div className="p-6">
+                            <label className="font-mono text-xs uppercase tracking-widest opacity-50 mb-2 block">CATEGORY_TAG</label>
                             <div className="relative group">
                                 <select
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
-                                    className="w-full px-5 py-4 bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 rounded-2xl text-charcoal dark:text-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]/10 focus:border-[#C5A059] transition-all font-sans appearance-none cursor-pointer"
+                                    className="w-full pl-4 pr-10 py-3 bg-transparent border border-black dark:border-white rounded-none font-mono text-sm focus:outline-none focus:bg-black focus:text-white dark:focus:bg-white dark:focus:text-black transition-colors appearance-none cursor-pointer"
                                 >
-                                    <option value="General" className="bg-white dark:bg-stone-950">General Archive</option>
-                                    <option value="Academics" className="bg-white dark:bg-stone-950">Academic Pursuit</option>
-                                    <option value="Social" className="bg-white dark:bg-stone-950">Social Connection</option>
-                                    <option value="Milestone" className="bg-white dark:bg-stone-950">Life Milestone</option>
-                                    <option value="Travel" className="bg-white dark:bg-stone-950">Expedition</option>
+                                    <option value="General" className="bg-white text-black">GENERAL</option>
+                                    <option value="Academics" className="bg-white text-black">ACADEMICS</option>
+                                    <option value="Social" className="bg-white text-black">SOCIAL</option>
+                                    <option value="Milestone" className="bg-white text-black">MILESTONE</option>
+                                    <option value="Travel" className="bg-white text-black">EXPEDITION</option>
                                 </select>
-                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400 group-hover:text-[#C5A059] transition-colors">
-                                    <ChevronLeft className="w-4 h-4 rotate-[-90deg]" />
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                                    <ChevronLeft className="w-3 h-3 rotate-[-90deg]" />
                                 </div>
                             </div>
                         </div>
@@ -350,20 +352,20 @@ export const NarrativeEditor = () => {
 
                 <MenuBar editor={editor} />
 
-                <div className="flex-1 bg-white dark:bg-stone-950 cursor-text min-h-[600px]" onClick={() => editor?.chain().focus().run()}>
+                <div className="bg-white dark:bg-[#09090b] cursor-text min-h-[500px]" onClick={() => editor?.chain().focus().run()}>
                     <EditorContent editor={editor} />
                 </div>
 
-                <div className="p-6 border-t border-stone-100 dark:border-stone-800 bg-stone-50/30 dark:bg-stone-950/30 flex justify-between items-center text-[10px] uppercase tracking-widest text-stone-400 font-bold">
+                <div className="p-4 border-t border-black dark:border-white bg-gray-50 dark:bg-white/5 flex justify-between items-center font-mono text-[10px] uppercase text-gray-500">
                     <div className="flex items-center gap-4">
                         <span>
-                            {editor && editor.storage.characterCount ? `${editor.storage.characterCount.characters()} symbols` : ''}
+                            {editor && editor.storage.characterCount ? `${editor.storage.characterCount.characters()} CHARS` : '0 CHARS'}
                         </span>
                     </div>
                     <div className="flex gap-6">
                         <div className="flex items-center gap-2">
-                            <div className={cn("w-1.5 h-1.5 rounded-full", title ? "bg-emerald-500 animate-pulse" : "bg-stone-300")} />
-                            <span className={title ? "text-emerald-600 dark:text-emerald-400" : ""}>{title ? "Preservation Ready" : "Draft state"}</span>
+                            <div className={cn("w-2 h-2", title ? "bg-green-500" : "bg-gray-300")} />
+                            <span>{title ? "READY_TO_LOG" : "INCOMPLETE"}</span>
                         </div>
                     </div>
                 </div>

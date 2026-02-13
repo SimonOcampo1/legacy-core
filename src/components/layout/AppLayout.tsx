@@ -1,11 +1,10 @@
 import { LoginModal } from "../auth/LoginModal";
 import { type ReactNode, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ModeToggle } from "../mode-toggle";
-import { MagneticButton } from "../ui/MagneticButton";
-import { PpgLogo } from "../ui/PpgLogo";
 import { UserMenu } from "./UserMenu";
+import { PPGLogo } from "../ui/PPGLogo";
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -13,206 +12,106 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
     const location = useLocation();
-    const navigate = useNavigate();
     const { user } = useAuth();
-    const isNarrativeDetail = location.pathname.startsWith("/narratives/");
-    const isHome = location.pathname === "/";
-    const [isScrolled, setIsScrolled] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
     useEffect(() => {
-        const handleScroll = () => {
-            const threshold = isNarrativeDetail ? 400 : 50; // Use deeper threshold for Narrative Detail
-            setIsScrolled(window.scrollY > threshold);
-        };
-
         (window as any).openLoginModal = () => setIsLoginModalOpen(true);
-
-        window.addEventListener("scroll", handleScroll);
         return () => {
-            window.removeEventListener("scroll", handleScroll);
             delete (window as any).openLoginModal;
         };
-    }, [isNarrativeDetail, isHome]);
+    }, []);
 
-    const isActive = (path: string) => location.pathname === path;
-
-    const handleLogoClick = () => {
-        if (location.pathname === "/") {
-            const lenis = (window as any).lenis;
-            if (lenis) {
-                // Use Lenis for smooth scroll if available
-                lenis.scrollTo(0);
-            } else {
-                // Fallback
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            }
-        } else {
-            navigate("/");
-        }
+    const isActive = (path: string) => {
+        if (path === "/" && location.pathname === "/") return true;
+        if (path !== "/" && location.pathname.startsWith(path)) return true;
+        return false;
     };
-
-    // Logic to determine "Back" destination for active member
-    // Simplified to always go to /narratives for now to avoid fetching all members
-    const activeMemberProfileLink = "/narratives";
-
-    // Determine header background/border based on state
-    const getHeaderClasses = () => {
-        if (isNarrativeDetail) {
-            return isScrolled
-                ? "top-0 border-b bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-stone-200 dark:border-stone-800 py-0"
-                : "top-4 border-transparent py-0";
-        }
-        if (isHome) {
-            return isScrolled
-                ? "top-0 border-b bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-stone-200 dark:border-stone-800 py-0"
-                : "top-0 bg-transparent border-transparent py-6"; // Increased padding for airy look
-        }
-        // Default (Directory, Gallery, etc.)
-        return isScrolled
-            ? "top-0 border-b bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-stone-200 dark:border-stone-800 py-0"
-            : "top-0 bg-transparent border-transparent py-4";
-    };
-
-
-
-    const isStandalone = location.pathname.startsWith("/admin");
-
-    if (isStandalone) {
-        return (
-            <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark transition-colors duration-300">
-                <main className="flex-grow">
-                    {children}
-                </main>
-            </div>
-        );
-    }
 
     return (
-        <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark transition-colors duration-300">
+        <div className="min-h-screen flex flex-col bg-white dark:bg-[#09090b] text-black dark:text-gray-100 transition-colors duration-300 font-sans selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+            {/* Top Navigation Bar - Technical/Solid */}
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-[#09090b] border-b-2 border-black dark:border-white/20 h-16 flex items-center justify-between px-4 md:px-8">
+                {/* Logo Area */}
+                <div className="flex items-center gap-4">
+                    <Link
+                        to="/"
+                        className="group flex items-center gap-2"
+                        onClick={(e) => {
+                            if (location.pathname === "/") {
+                                e.preventDefault();
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                            }
+                        }}
+                    >
+                        <PPGLogo className="h-16 w-auto text-black dark:text-white group-hover:text-[#C5A059] transition-colors duration-300" />
+                    </Link>
+                </div>
 
-            <header
-                className={`fixed left-0 right-0 z-50 transition-all duration-700 ease-out flex justify-center ${getHeaderClasses()}`}
-            >
-                <div className={`transition-all duration-500 ease-out items-center ${isNarrativeDetail && !isScrolled
-                    ? "flex justify-between w-auto gap-8 px-8 py-3 rounded-full bg-white/90 dark:bg-black/40 backdrop-blur-md border border-stone-200 dark:border-white/10 shadow-2xl"
-                    : "grid grid-cols-3 w-full max-w-[1800px] px-6 h-20 rounded-none bg-transparent border-none"
-                    }`}>
-                    {isNarrativeDetail ? (
-                        <>
-                            {/* Narrative Detail Header Variant */}
-                            <div className="justify-self-start">
-                                <MagneticButton strength={20} className="fit-content">
-                                    <Link to={activeMemberProfileLink} className="group flex items-center gap-3 text-xs uppercase tracking-[0.2em] font-medium transition-colors duration-300 text-charcoal dark:text-white hover:text-[#C5A059]">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 transition-transform group-hover:-translate-x-1"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
-                                        <span>Back to Narratives</span>
-                                    </Link>
-                                </MagneticButton>
-                            </div>
+                {/* Desktop Navigation */}
+                <nav className="hidden md:flex items-center gap-1 font-mono text-xs">
+                    {[
+                        { name: "HOME", path: "/" },
+                        { name: "TIMELINE", path: "/timeline" },
+                        { name: "GALLERY", path: "/gallery" },
+                        { name: "DIRECTORY", path: "/directory" },
+                        { name: "ARCHIVES", path: "/narratives" }
+                    ].map((item) => (
+                        <Link
+                            key={item.name}
+                            to={item.path}
+                            className={`px-4 py-2 border border-transparent hover:border-[#C5A059] hover:text-[#C5A059] transition-all duration-200 ${isActive(item.path)
+                                ? "bg-black text-white dark:bg-white dark:text-black border-black dark:border-white"
+                                : "text-gray-600 dark:text-gray-400"
+                                }`}
+                        >
+                            [{item.name}]
+                        </Link>
+                    ))}
+                </nav>
 
-                            <div className="justify-self-center hidden md:block">
-                                {/* Optional Center element for Narrative Detail if needed */}
-                            </div>
-
-                            <div className="justify-self-end flex items-center gap-6 border-l border-stone-200 dark:border-white/20 pl-6">
-                                <div className="hidden md:flex items-center gap-4">
-                                    {user ? (
-                                        <UserMenu />
-                                    ) : (
-                                        <button
-                                            onClick={() => setIsLoginModalOpen(true)}
-                                            className="font-serif text-lg italic leading-none transition-colors duration-300 text-charcoal dark:text-white hover:text-[#C5A059]"
-                                        >
-                                            Login
-                                        </button>
-                                    )}
-                                </div>
-                                <div>
-                                    <MagneticButton strength={15}>
-                                        <ModeToggle />
-                                    </MagneticButton>
-                                </div>
-                            </div>
-                        </>
+                {/* Right Actions */}
+                <div className="flex items-center gap-4">
+                    <div className="h-4 w-px bg-black/20 dark:bg-white/20 hidden sm:block" />
+                    <ModeToggle />
+                    {user ? (
+                        <div className="pl-2">
+                            <UserMenu />
+                        </div>
                     ) : (
-                        <>
-                            {/* Standard Global Header */}
-                            <div className="justify-self-start">
-                                <MagneticButton strength={25} className="fit-content">
-                                    <div
-                                        role="button"
-                                        onClick={handleLogoClick}
-                                        className="block group cursor-pointer"
-                                    >
-                                        <PpgLogo className={`h-16 w-auto transition-colors duration-300 group-hover:text-[#C5A059] ${isHome && !isScrolled ? "text-charcoal dark:text-white" : "text-primary dark:text-white"
-                                            }`} />
-                                    </div>
-                                </MagneticButton>
-                            </div>
-
-                            {/* Desktop Navigation - Perfectly Centered */}
-                            <nav className="hidden md:flex items-center justify-center gap-12 justify-self-center">
-                                {["Timeline", "Gallery", "Directory", "Narratives"].map((item) => (
-                                    <Link
-                                        key={item}
-                                        to={`/${item.toLowerCase()}`}
-                                        className={`text-xs uppercase tracking-[0.2em] font-medium transition-colors ${isActive(`/${item.toLowerCase()}`)
-                                            ? "text-primary dark:text-white"
-                                            : isHome && !isScrolled
-                                                ? "text-charcoal/80 dark:text-white/80 hover:text-charcoal dark:hover:text-white"
-                                                : "text-stone-400 hover:text-primary dark:text-stone-500 dark:hover:text-white"
-                                            }`}
-                                    >
-                                        {item}
-                                    </Link>
-                                ))}
-                            </nav>
-
-                            {/* Right Actions */}
-                            <div className="justify-self-end flex items-center gap-6">
-                                <div className="flex items-center gap-4 border-r border-stone-200 dark:border-stone-800 pr-6 mr-2">
-                                    <div className="text-right hidden sm:block">
-                                        {user ? (
-                                            <UserMenu isHome={isHome} isScrolled={isScrolled} />
-                                        ) : (
-                                            <button
-                                                onClick={() => setIsLoginModalOpen(true)}
-                                                className={`font-serif text-lg italic leading-none hover:text-[#C5A059] transition-colors ${isHome && !isScrolled ? "text-charcoal dark:text-white" : ""}`}
-                                            >
-                                                Login
-                                            </button>
-                                        )}
-                                    </div>
-                                    <MagneticButton strength={15}>
-                                        <ModeToggle />
-                                    </MagneticButton>
-                                </div>
-                            </div>
-                        </>
+                        <button
+                            onClick={() => setIsLoginModalOpen(true)}
+                            className="font-mono text-xs hover:text-[#C5A059] underline decoration-1 underline-offset-4 transition-colors"
+                        >
+                            LOGIN_
+                        </button>
                     )}
                 </div>
             </header>
 
+            {/* Mobile Navigation Bar (Bottom) - if needed, or simple menu for now keeping it clean */}
+            {/* For now relying on standard responsive hiding/stacking if complex, but here a simple scrollable nav or just keeping it simple */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#09090b] border-t-2 border-black dark:border-white/20 h-16 flex items-center justify-around px-2 font-mono text-[10px]">
+                <Link
+                    to="/"
+                    className={isActive('/') ? "text-[#C5A059]" : ""}
+                    onClick={(e) => {
+                        if (location.pathname === "/") {
+                            e.preventDefault();
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
+                    }}
+                >
+                    [HOME]
+                </Link>
+                <Link to="/narratives" className={isActive('/narratives') ? "text-[#C5A059]" : ""}>[ARCHIVE]</Link>
+                <Link to="/timeline" className={isActive('/timeline') ? "text-[#C5A059]" : ""}>[TIME]</Link>
+            </div>
 
-            <main className={`flex-grow ${(isNarrativeDetail || isHome) ? 'pt-0' : 'pt-28'}`}>
+            {/* Main Content Area */}
+            <main className="flex-grow pt-16 md:pb-0 pb-16">
                 {children}
             </main>
-
-
-            <footer className="bg-background-light dark:bg-background-dark py-24 border-t border-stone-100 dark:border-stone-900 transition-all duration-500">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="opacity-20 pointer-events-none select-none filter grayscale brightness-125 dark:brightness-200">
-                        <PpgLogo className="h-10 w-auto text-charcoal dark:text-slate-400" />
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2">
-                        <p className="text-[10px] tracking-[0.2em] font-sans font-medium text-stone-400 dark:text-stone-500 uppercase">
-                            © 2026 PPG BRAND • SINCE 2022
-                        </p>
-                    </div>
-                </div>
-            </footer>
-
 
             <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
         </div>

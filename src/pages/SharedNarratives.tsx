@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { databases, DATABASE_ID, NARRATIVES_COLLECTION_ID } from "../lib/appwrite";
 import { Query } from "appwrite";
 import type { Narrative } from "../types";
-import { NarrativeCard } from "../components/narratives/NarrativeCard";
-import { Loader2, BookOpen } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
+import { ArrowRight } from "lucide-react";
 
 export const MOCK_NARRATIVES: Narrative[] = [
     {
@@ -17,6 +16,7 @@ export const MOCK_NARRATIVES: Narrative[] = [
         $permissions: [],
         title: "The Midnight Library Session",
         content: "It was a stormy night in the university library. We were all studying for finals, but the power went out. Instead of panicking, we lit candles and told stories until dawn...",
+        description: "A recounting of the infamous blackout during finals week.",
         author: "Eleanor Rigby",
         author_id: "eleanor-rigby",
         status: "published",
@@ -33,6 +33,7 @@ export const MOCK_NARRATIVES: Narrative[] = [
         $permissions: [],
         title: "The Great Cafeteria Heist",
         content: "We never thought we'd pull it off. The plan was simple: get the last slice of pizza before the football team arrived. It required precision, timing, and a lot of luck...",
+        description: "Operation Extra Cheese: The strategic acquisition of resources.",
         author: "Marcus Chen",
         author_id: "marcus-chen",
         status: "published",
@@ -45,6 +46,7 @@ export const MOCK_NARRATIVES: Narrative[] = [
 export function SharedNarratives() {
     const [narratives, setNarratives] = useState<Narrative[]>([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchNarratives = async () => {
@@ -76,46 +78,82 @@ export function SharedNarratives() {
 
     return (
         <PageTransition>
-            <div className="min-h-screen bg-warm-white dark:bg-background-dark pt-32 pb-24">
-                <div className="container mx-auto px-6 max-w-5xl">
-                    <header className="mb-24 text-center">
-                        <div className="flex items-center justify-center gap-3 mb-6 text-[#C5A059]">
-                            <BookOpen size={24} />
-                            <span className="font-sans text-xs font-bold uppercase tracking-[0.3em]">The Archive</span>
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-serif text-charcoal dark:text-stone-100 mb-8">
-                            Shared Narratives
+            <div className="min-h-screen bg-white dark:bg-[#09090b] pt-12">
+                {/* Header */}
+                <div className="border-b-2 border-black dark:border-white/20 px-4 md:px-8 pb-8 pt-12 flex flex-col md:flex-row justify-between items-end gap-8">
+                    <div>
+                        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-2">
+                            Archive<span className="text-[#C5A059]">_Logs</span>
                         </h1>
-                        <p className="font-serif italic text-lg text-stone-500 dark:text-stone-400 max-w-2xl mx-auto leading-relaxed">
-                            A curated collection of memories, experiences, and moments that defined our journey together.
+                        <p className="font-mono text-xs md:text-sm text-gray-500">
+                            /// SHARED_MEMORY_BANK<br />
+                            ACCESSING COLLECTIVE RECORDS...
                         </p>
-                    </header>
-
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                            <Loader2 className="w-8 h-8 text-[#C5A059] animate-spin" />
-                            <p className="font-sans text-xs font-bold uppercase tracking-widest text-stone-400">Loading memories...</p>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-12">
-                            {narratives.map((narrative) => (
-                                <NarrativeCard key={narrative.$id} narrative={narrative} />
-                            ))}
-
-                            {narratives.length === 0 && (
-                                <div className="text-center py-32 border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl">
-                                    <p className="font-serif italic text-xl text-stone-400">The archive is waiting for its first story.</p>
-                                    <Link
-                                        to="/timeline"
-                                        className="mt-6 inline-block text-[#C5A059] hover:underline font-sans text-xs font-bold uppercase tracking-widest"
-                                    >
-                                        Explore the Timeline
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    </div>
+                    {/* Index Stats */}
+                    <div className="font-mono text-xs text-right hidden md:block text-gray-500">
+                        TOTAL_ENTRIES: {narratives.length.toString().padStart(3, '0')}<br />
+                        LAST_UPDATE: {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
+                    </div>
                 </div>
+
+                {loading ? (
+                    <div className="w-full h-64 flex items-center justify-center font-mono text-sm animate-pulse">
+                        [ DECRYPTING_ARCHIVES ]
+                    </div>
+                ) : (
+                    <div className="divide-y divide-black dark:divide-white/20 border-b border-black dark:border-white/20">
+                        {narratives.map((narrative, index) => (
+                            <Link
+                                to={`/narratives/${narrative.$id}`}
+                                key={narrative.$id}
+                                className="group block relative hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors duration-0"
+                            >
+                                <div className="grid grid-cols-1 md:grid-cols-12 min-h-[200px]">
+                                    {/* Index Column */}
+                                    <div className="md:col-span-1 p-6 md:p-8 border-r border-black dark:border-white/20 font-mono text-xs text-gray-400 group-hover:text-[#C5A059]">
+                                        {(index + 1).toString().padStart(3, '0')}
+                                    </div>
+
+                                    {/* Main Content */}
+                                    <div className="md:col-span-8 p-6 md:p-8 flex flex-col justify-between">
+                                        <div>
+                                            <div className="flex items-baseline gap-4 mb-2">
+                                                <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter leading-none group-hover:text-[#C5A059]">
+                                                    {narrative.title}
+                                                </h2>
+                                            </div>
+                                            <p className="font-mono text-sm opacity-60 max-w-2xl line-clamp-2 mt-4">
+                                                {narrative.description || narrative.content.substring(0, 150)}...
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-8 font-mono text-xs opacity-40 uppercase">
+                                            <span>AUTH: {narrative.author || "UNKNOWN"}</span>
+                                            <span>//</span>
+                                            <span>DATE: {new Date(narrative.date_event || narrative.$createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Column */}
+                                    <div className="md:col-span-3 p-6 md:p-8 border-l border-black dark:border-white/20 flex flex-col justify-between items-end bg-gray-50 dark:bg-white/5 group-hover:bg-transparent transition-colors">
+                                        <div className="w-full text-right">
+                                            <span className="font-mono text-[10px] border border-black dark:border-white/20 px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                READ_ENTRY
+                                            </span>
+                                        </div>
+                                        <ArrowRight className="w-12 h-12 transform -rotate-45 group-hover:rotate-0 transition-transform duration-300 group-hover:text-[#C5A059]" strokeWidth={1} />
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+
+                        {narratives.length === 0 && (
+                            <div className="p-24 text-center font-mono text-sm text-gray-400">
+                                [ SYSTEM_EMPTY: NO_RECORDS_FOUND ]
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </PageTransition>
     );

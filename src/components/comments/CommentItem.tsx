@@ -3,7 +3,7 @@ import type { Comment } from '../../types';
 import { AudioPlayer } from './AudioPlayer';
 import { AudioRecorder } from './AudioRecorder';
 import { cn } from '../../lib/utils';
-import { Heart, Reply, Trash2, CornerDownRight } from 'lucide-react';
+import { Heart, CornerDownRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -46,159 +46,128 @@ export function CommentItem({ comment, onReply, onLike, onDelete, currentUserId,
     const formattedDate = comment.$createdAt ? formatDistanceToNow(new Date(comment.$createdAt), { addSuffix: true }) : '';
     const isAuthor = currentUserId === comment.author_id;
 
-    // Premium variant for entry
-    const entryVariants = {
-        hidden: { opacity: 0, y: 10 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.5 }
-        }
-    };
-
     return (
-        <motion.div
-            variants={entryVariants}
-            initial="hidden"
-            animate="visible"
-            className={cn(
-                "group relative bg-transparent",
-                depth > 0 && "mt-6 ml-8 md:ml-12"
-            )}
-        >
-            {/* Thread Line Extension */}
+        <div className={cn("relative", depth > 0 && "ml-8 mt-4")}>
+            {/* Thread Connector */}
             {depth > 0 && (
-                <div className="absolute -left-6 md:-left-8 top-0 bottom-0 w-px bg-stone-100 dark:bg-stone-900" />
+                <div className="absolute -left-4 top-0 w-4 h-4 border-l border-b border-black dark:border-white opacity-20" />
             )}
 
-            <div className="flex gap-4">
-                {/* Author Avatar */}
-                <div className="flex-shrink-0 pt-1">
-                    <div className="h-10 w-10 rounded-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-sm font-serif font-bold text-charcoal dark:text-white shadow-sm ring-4 ring-white dark:ring-charcoal transition-all group-hover:border-[#C5A059]/30">
-                        {comment.author_id?.charAt(0).toUpperCase() || 'U'}
+            <div className="pl-4 py-6 group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-l-2 border-transparent hover:border-[#C5A059]">
+                <div className="flex gap-4 items-start">
+                    {/* Square Avatar */}
+                    <div className="w-8 h-8 border border-black dark:border-white flex items-center justify-center bg-gray-100 dark:bg-zinc-900 font-bold uppercase text-xs shrink-0">
+                        {comment.author_id?.charAt(0) || '?'}
                     </div>
-                </div>
 
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold uppercase tracking-wider text-charcoal dark:text-stone-300">
+                    <div className="flex-1 space-y-2">
+                        {/* Meta Header */}
+                        <div className="flex flex-wrap items-baseline gap-3">
+                            <span className="font-bold text-sm uppercase">
                                 {comment.author_id}
                             </span>
-                            <span className="text-[10px] uppercase tracking-widest text-stone-400 dark:text-stone-600 font-bold">
-                                {formattedDate}
+                            <span className="font-mono text-[10px] text-gray-500 uppercase">
+                                [{formattedDate}]
                             </span>
+                            {isAuthor && (
+                                <button
+                                    onClick={() => onDelete?.(comment.$id)}
+                                    className="ml-auto opacity-0 group-hover:opacity-100 font-mono text-[10px] uppercase text-red-500 hover:underline"
+                                >
+                                    [DELETE]
+                                </button>
+                            )}
                         </div>
 
-                        {isAuthor && onDelete && (
+                        {/* Content */}
+                        <div className="font-mono text-sm leading-relaxed text-gray-800 dark:text-gray-300">
+                            {comment.content}
+                        </div>
+
+                        {/* Audio attachment */}
+                        {comment.audio_url && (
+                            <div className="mt-2 border border-black dark:border-white p-2 w-full md:max-w-xs bg-white dark:bg-black">
+                                <AudioPlayer src={comment.audio_url} />
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-6 pt-2">
                             <button
-                                onClick={() => onDelete(comment.$id)}
-                                className="opacity-0 group-hover:opacity-100 p-1 text-stone-300 hover:text-red-500 transition-all active:scale-90"
-                                title="Remove conversation"
+                                onClick={() => setIsReplying(!isReplying)}
+                                className="flex items-center gap-2 font-mono text-[10px] uppercase hover:text-[#C5A059] transition-colors"
                             >
-                                <Trash2 size={12} />
+                                <CornerDownRight className="w-3 h-3" />
+                                {isReplying ? 'CANCEL_REPLY' : 'REPLY'}
                             </button>
-                        )}
-                    </div>
 
-                    <div className="font-serif italic text-lg text-charcoal/90 dark:text-stone-300/90 leading-relaxed mb-4">
-                        {comment.content && (
-                            <div className="prose-stone dark:prose-invert" dangerouslySetInnerHTML={{ __html: comment.content }} />
-                        )}
-                    </div>
-
-                    {comment.audio_url && (
-                        <div className="mb-6">
-                            <AudioPlayer src={comment.audio_url} />
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-6">
-                        <button
-                            onClick={() => setIsReplying(!isReplying)}
-                            className={cn(
-                                "flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] transition-all active:scale-95",
-                                isReplying ? "text-[#C5A059]" : "text-stone-400 dark:text-stone-600 hover:text-[#C5A059]"
-                            )}
-                        >
-                            <Reply size={12} className={cn("transition-transform", isReplying && "-rotate-180")} />
-                            {isReplying ? 'Cancel' : 'Reply'}
-                        </button>
-
-                        <button
-                            onClick={handleLike}
-                            className={cn(
-                                "flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] transition-all active:scale-95",
-                                isLiked ? "text-[#C5A059]" : "text-stone-400 dark:text-stone-600 hover:text-[#C5A059]"
-                            )}
-                        >
-                            <Heart size={12} fill={isLiked ? "currentColor" : "none"} className={cn("transition-transform", isLiked && "scale-110")} />
-                            {likeCount > 0 && likeCount} {likeCount === 1 ? 'Legacy' : 'Legacies'}
-                        </button>
-                    </div>
-
-                    {/* Reply Input Area */}
-                    <AnimatePresence>
-                        {isReplying && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                                animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
-                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                                className="overflow-hidden"
+                            <button
+                                onClick={handleLike}
+                                className={cn(
+                                    "flex items-center gap-2 font-mono text-[10px] uppercase hover:text-[#C5A059] transition-colors",
+                                    isLiked && "text-[#C5A059] font-bold"
+                                )}
                             >
-                                <div className="pl-4 border-l-2 border-[#C5A059]/20 flex flex-col space-y-4">
-                                    <div className="flex items-start gap-4">
-                                        <CornerDownRight size={14} className="mt-2 text-[#C5A059]/40" />
-                                        <div className="flex-1">
-                                            <textarea
-                                                value={replyText}
-                                                onChange={(e) => setReplyText(e.target.value)}
-                                                placeholder="Continuing the thread..."
-                                                className="w-full bg-transparent border-none focus:ring-0 p-0 text-base font-serif italic text-charcoal dark:text-stone-300 placeholder:text-stone-300 dark:placeholder:text-stone-700 resize-none min-h-[60px]"
-                                                rows={1}
-                                                autoFocus
+                                <Heart className={cn("w-3 h-3", isLiked && "fill-current")} />
+                                <span>ACK_{likeCount}</span>
+                            </button>
+                        </div>
+
+                        {/* Reply Input */}
+                        <AnimatePresence>
+                            {isReplying && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="overflow-hidden pt-4"
+                                >
+                                    <div className="border border-black dark:border-white p-4 bg-gray-100 dark:bg-zinc-900">
+                                        <textarea
+                                            value={replyText}
+                                            onChange={(e) => setReplyText(e.target.value)}
+                                            placeholder="APPEND_DATA..."
+                                            className="w-full bg-transparent border-b border-black/20 dark:border-white/20 focus:border-[#C5A059] focus:outline-none p-2 font-mono text-xs min-h-[60px] mb-4"
+                                            autoFocus
+                                        />
+                                        <div className="flex justify-between items-center">
+                                            <AudioRecorder
+                                                onRecordingComplete={setReplyAudio}
+                                                onDelete={() => setReplyAudio(null)}
+                                                isUploading={isSubmitting}
                                             />
-                                            <div className="flex items-center justify-between pt-4 border-t border-stone-100 dark:border-stone-900/50">
-                                                <div className="flex items-center gap-2">
-                                                    <AudioRecorder
-                                                        onRecordingComplete={setReplyAudio}
-                                                        onDelete={() => setReplyAudio(null)}
-                                                        isUploading={isSubmitting}
-                                                    />
-                                                </div>
-                                                <button
-                                                    onClick={handleSubmitReply}
-                                                    disabled={isSubmitting || (!replyText.trim() && !replyAudio)}
-                                                    className="h-9 px-6 bg-charcoal dark:bg-white text-white dark:text-charcoal text-[10px] font-bold uppercase tracking-widest rounded-full hover:opacity-90 transition-all disabled:opacity-30 shadow-lg"
-                                                >
-                                                    {isSubmitting ? 'Posting...' : 'Post Reply'}
-                                                </button>
-                                            </div>
+                                            <button
+                                                onClick={handleSubmitReply}
+                                                disabled={isSubmitting || (!replyText.trim() && !replyAudio)}
+                                                className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 font-mono text-[10px] uppercase hover:bg-[#C5A059] hover:text-black transition-colors disabled:opacity-50"
+                                            >
+                                                {isSubmitting ? 'PROCESSING...' : 'TRANSMIT'}
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                    {/* Nested Replies */}
-                    {comment.replies && comment.replies.length > 0 && (
-                        <div className="space-y-2">
-                            {comment.replies.map((reply: Comment) => (
-                                <CommentItem
-                                    key={reply.$id}
-                                    comment={reply}
-                                    depth={depth + 1}
-                                    onReply={onReply}
-                                    onDelete={onDelete}
-                                    onLike={onLike}
-                                    currentUserId={currentUserId}
-                                />
-                            ))}
-                        </div>
-                    )}
+                        {/* Replies Container */}
+                        {comment.replies && comment.replies.length > 0 && (
+                            <div className="mt-4 border-l border-black/10 dark:border-white/10">
+                                {comment.replies.map((reply: Comment) => (
+                                    <CommentItem
+                                        key={reply.$id}
+                                        comment={reply}
+                                        depth={depth + 1}
+                                        onReply={onReply}
+                                        onDelete={onDelete}
+                                        onLike={onLike}
+                                        currentUserId={currentUserId}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }

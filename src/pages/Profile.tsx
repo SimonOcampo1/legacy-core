@@ -2,7 +2,6 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Mail, Share, Bookmark, ArrowRight, Shield } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
-// import { cn } from "../lib/utils";
 import { useState, useEffect } from "react";
 import { databases, storage, DATABASE_ID, PROFILES_COLLECTION_ID, NARRATIVES_COLLECTION_ID } from "../lib/appwrite";
 import { Query } from "appwrite";
@@ -14,9 +13,7 @@ interface ProfileNarrative {
     title: string;
     excerpt: string;
     date: string;
-    // Optional fields if needed for UI but not present in current mapping
-    role?: string;
-    category?: string;
+    description: string;
 }
 
 export function Profile() {
@@ -54,7 +51,6 @@ export function Profile() {
                     }
                 }
 
-                // Parse honors if it's a string disguised as array or just use raw
                 const honors = memberDoc.honors || [];
 
                 if (!memberDoc.is_authorized && memberDoc.$id !== currentUser?.$id) {
@@ -86,7 +82,7 @@ export function Profile() {
                     DATABASE_ID,
                     NARRATIVES_COLLECTION_ID,
                     [
-                        Query.equal("author_id", [id || ""]), // Matching by ID (slug)
+                        Query.equal("author_id", [id || ""]),
                         Query.orderDesc("date_event")
                     ]
                 );
@@ -95,7 +91,8 @@ export function Profile() {
                     id: doc.$id,
                     title: doc.title,
                     excerpt: doc.content || "",
-                    date: doc.date_event ? new Date(doc.date_event).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "N/A",
+                    description: doc.description || "",
+                    date: doc.date_event ? new Date(doc.date_event).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "N/A",
                 }));
 
                 setNarratives(mappedNarratives);
@@ -112,22 +109,18 @@ export function Profile() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
-                <div className="animate-pulse flex flex-col items-center">
-                    <div className="h-48 w-48 bg-stone-200 dark:bg-stone-800 rounded-full mb-8"></div>
-                    <div className="h-8 w-64 bg-stone-200 dark:bg-stone-800 rounded mb-4"></div>
-                    <div className="h-4 w-96 bg-stone-100 dark:bg-stone-900 rounded"></div>
-                </div>
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#09090b]">
+                <div className="font-mono text-sm animate-pulse">[ ACCESSING_RECORD ]</div>
             </div>
         );
     }
 
     if (!member) {
         return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center bg-background-light dark:bg-background-dark text-charcoal dark:text-white">
-                <h2 className="font-serif text-4xl mb-4">Member Not Found</h2>
-                <Link to="/directory" className="text-sm uppercase tracking-widest border-b border-current pb-1 hover:opacity-60 transition-opacity">
-                    Back to Directory
+            <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#09090b] font-mono">
+                <h2 className="text-xl mb-4 uppercase">[ ERROR: RECORD_NOT_FOUND ]</h2>
+                <Link to="/directory" className="text-xs uppercase border-b border-black dark:border-white hover:text-[#C5A059] hover:border-[#C5A059]">
+                    Return to Index
                 </Link>
             </div>
         );
@@ -137,16 +130,15 @@ export function Profile() {
 
     if (isPending) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-background-light dark:bg-background-dark text-charcoal dark:text-white px-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-8">
-                    <Shield className="w-8 h-8 text-amber-500 animate-pulse" />
-                </div>
-                <h2 className="font-serif text-4xl italic mb-4">Membership Pending Approval</h2>
-                <p className="max-w-md text-stone-500 dark:text-stone-400 font-light leading-relaxed mb-8">
-                    Your profile has been created successfully, {member.name}. An administrator will review your application soon. Once approved, you'll be visible in the community directory.
+            <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#09090b] px-6 text-center font-mono">
+                <Shield className="w-12 h-12 mb-6 text-[#C5A059]" />
+                <h2 className="text-2xl uppercase tracking-tighter mb-4">Status: Pending Approval</h2>
+                <p className="max-w-md text-gray-500 text-xs mb-8">
+                    // ID: {member.id.substring(0, 8)}<br />
+                    AWAITING ADMINISTRATOR REVIEW...
                 </p>
-                <Link to="/" className="text-sm uppercase tracking-widest border-b border-current pb-1 hover:opacity-60 transition-opacity">
-                    Return to Home
+                <Link to="/" className="text-xs uppercase border-b border-black dark:border-white hover:text-[#C5A059] hover:border-[#C5A059]">
+                    [ LOGOUT ]
                 </Link>
             </div>
         );
@@ -154,133 +146,124 @@ export function Profile() {
 
     return (
         <PageTransition>
-            <div className="font-display bg-background-light dark:bg-background-dark min-h-screen">
-                <div className="max-w-4xl mx-auto px-6 py-12 lg:py-20 flex flex-col items-center">
-                    {/* Header: Profile Info */}
-                    <div className="flex flex-col items-center text-center mb-16 px-4">
-                        {/* 1. Portrait */}
-                        <div className="relative size-48 md:size-64 rounded-full overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 ease-out shadow-xl mb-8 bg-stone-100 dark:bg-stone-900 flex items-center justify-center">
-                            {member.imageUrl ? (
-                                <img
-                                    alt={`Portrait of ${member.name}`}
-                                    className="w-full h-full object-cover"
-                                    src={member.imageUrl}
-                                />
-                            ) : (
-                                <span className="text-6xl font-display text-gold opacity-40 select-none">
-                                    {member.name.charAt(0)}
-                                </span>
-                            )}
+            <div className="bg-white dark:bg-[#09090b] min-h-screen pt-12 font-sans">
+                {/* Header Section with Split Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 border-b-2 border-black dark:border-white/20 min-h-[60vh]">
+
+                    {/* Left: Image & Identity */}
+                    <div className="lg:col-span-5 relative min-h-[60vh] lg:min-h-0 bg-gray-100 dark:bg-stone-900 border-r border-black dark:border-white/20">
+                        <img
+                            src={member.imageUrl}
+                            alt={member.name}
+                            className="w-full h-full object-cover absolute inset-0 grayscale hover:grayscale-0 transition-all duration-700 ease-in-out"
+                        />
+
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60 pointer-events-none" />
+
+                        {/* Status Marker Overlay */}
+                        <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10 mix-blend-difference text-white">
+                            <div className="font-mono text-[10px] uppercase tracking-widest backdrop-blur-sm bg-black/20 px-2 py-1">
+                                ID: {member.id.substring(0, 8).toUpperCase()}
+                            </div>
+                            <div className="flex items-center gap-2 backdrop-blur-sm bg-black/20 px-2 py-1">
+                                <span className="font-mono text-[10px] uppercase tracking-widest">ACTIVE</span>
+                                <div className="w-1.5 h-1.5 bg-[#00ff41] animate-pulse rounded-full" />
+                            </div>
                         </div>
 
-                        {/* 2. Name */}
-                        <h1 className="text-text-main dark:text-white text-5xl md:text-6xl font-medium leading-[0.9] tracking-tighter mb-4 italic font-newsreader">
-                            {member.name}
-                        </h1>
-
-                        {/* 3. Honors/Role */}
-                        <div className="flex flex-wrap justify-center items-center gap-3 text-text-muted dark:text-gray-400 text-xs font-sans font-medium uppercase tracking-[0.2em] mb-8">
-                            {honors.map((honor, index) => (
-                                <span key={index} className="flex items-center gap-3">
-                                    {honor}
-                                    {index < honors.length - 1 && (
-                                        <span className="w-1 h-1 bg-current rounded-full opacity-40"></span>
-                                    )}
-                                </span>
+                        {/* Quick Actions Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 grid grid-cols-3 divide-x divide-white/20 border-t border-white/20 bg-black/40 backdrop-blur-md text-white z-10">
+                            {[Mail, Share, Bookmark].map((Icon, idx) => (
+                                <button key={idx} className="py-4 flex justify-center items-center hover:bg-white hover:text-black transition-colors group">
+                                    <Icon className="w-5 h-5" strokeWidth={1.5} />
+                                </button>
                             ))}
-                        </div>
-
-                        {/* 4. Bio/Description */}
-                        <div className="max-w-2xl prose prose-sm dark:prose-invert mb-8 text-center">
-                            {member.bioIntro && (
-                                <p className="text-lg text-slate-900 dark:text-slate-200 font-newsreader font-normal leading-tight mb-4">
-                                    {member.bioIntro}
-                                </p>
-                            )}
-                            <p className="text-base text-slate-600 dark:text-slate-400 font-newsreader leading-relaxed">
-                                {member.bio || member.quote}
-                            </p>
-                        </div>
-
-                        {/* Social Actions */}
-                        <div className="flex gap-6">
-                            <button aria-label="Email" className="text-slate-400 hover:text-[#C5A059] transition-colors duration-300">
-                                <Mail className="w-5 h-5" strokeWidth={1.5} />
-                            </button>
-                            <button aria-label="Share" className="text-slate-400 hover:text-[#C5A059] transition-colors duration-300">
-                                <Share className="w-5 h-5" strokeWidth={1.5} />
-                            </button>
-                            <button aria-label="Bookmark" className="text-slate-400 hover:text-[#C5A059] transition-colors duration-300">
-                                <Bookmark className="w-5 h-5" strokeWidth={1.5} />
-                            </button>
                         </div>
                     </div>
 
-                    {/* Content: Narratives or Empty State */}
-                    <div className="w-full">
+                    {/* Right: Data & Bio */}
+                    <div className="lg:col-span-7 flex flex-col">
+                        <div className="p-8 lg:p-16 border-b border-black dark:border-white/20 flex-grow">
+                            <h1 className="text-5xl lg:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6">
+                                {member.name.split(' ').map((word, i) => (
+                                    <span key={i} className="block">{word}</span>
+                                ))}
+                            </h1>
+
+                            <div className="flex flex-wrap gap-4 mb-12">
+                                {honors.map((honor, index) => (
+                                    <span key={index} className="font-mono text-xs border border-black dark:border-white/20 px-3 py-1 uppercase tracking-wider">
+                                        {honor}
+                                    </span>
+                                ))}
+                            </div>
+
+                            <div className="space-y-6 max-w-2xl">
+                                {member.bioIntro && (
+                                    <p className="text-xl font-bold uppercase leading-tight">
+                                        {member.bioIntro}
+                                    </p>
+                                )}
+                                <p className="font-mono text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                                    {member.bio || member.quote}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Recent Activity / Stats Placeholder */}
+                        <div className="grid grid-cols-3 divide-x divide-black dark:divide-white/20 h-24 font-mono text-xs">
+                            <div className="p-6 flex flex-col justify-between">
+                                <span className="text-gray-500">ENTRIES</span>
+                                <span className="text-xl font-bold">{narratives.length.toString().padStart(2, '0')}</span>
+                            </div>
+                            <div className="p-6 flex flex-col justify-between">
+                                <span className="text-gray-500">JOINED</span>
+                                <span className="text-xl font-bold">2014</span>
+                            </div>
+                            <div className="p-6 flex flex-col justify-between hover:bg-black hover:text-[#C5A059] dark:hover:bg-white dark:hover:text-black transition-colors cursor-pointer group">
+                                <span className="group-hover:text-[#C5A059]">CONTACT</span>
+                                <span className="text-xl font-bold text-gray-500 group-hover:text-[#C5A059]">EMAIL ↗</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Narratives Section */}
+                <div className="max-w-[1920px] mx-auto">
+                    <div className="border-b border-black dark:border-white/20 px-4 md:px-8 py-4 flex justify-between items-center bg-gray-50 dark:bg-white/5">
+                        <h3 className="font-bold uppercase tracking-tight">Personnel Logs [{narratives.length}]</h3>
+                        <span className="font-mono text-xs text-gray-500">/// ARCHIVED_DATA</span>
+                    </div>
+
+                    <div className="divide-y divide-black dark:divide-white/20">
                         {narratives.length > 0 ? (
-                            <section className="w-full">
-                                <div className="flex items-baseline justify-between mb-12 border-b border-black text-black pb-4 dark:border-white dark:text-white">
-                                    <h3 className="text-3xl md:text-4xl font-newsreader font-light italic">Narratives</h3>
-                                    <span className="text-xs font-sans uppercase tracking-widest">Index of Stories</span>
+                            narratives.map((story, index) => (
+                                <div
+                                    key={story.id}
+                                    className="group grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 p-4 md:p-8 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors duration-0 cursor-pointer"
+                                    onClick={() => navigate(`/narratives/${story.id}`)}
+                                >
+                                    <div className="md:col-span-2 font-mono text-xs text-gray-500 group-hover:text-[#C5A059] flex flex-row md:flex-col justify-between md:justify-start gap-2">
+                                        <span>{story.date}</span>
+                                        <span>LOG_{index.toString().padStart(3, '0')}</span>
+                                    </div>
+                                    <div className="md:col-span-8">
+                                        <h4 className="text-2xl md:text-3xl font-bold uppercase tracking-tight mb-2 group-hover:text-[#C5A059] transition-colors">{story.title}</h4>
+                                        <p className="font-mono text-sm opacity-70 line-clamp-2 max-w-3xl">{story.description || story.excerpt.replace(/<[^>]*>?/gm, '')}</p>
+                                    </div>
+                                    <div className="md:col-span-2 flex items-center justify-end">
+                                        <ArrowRight className="w-6 h-6 transform -rotate-45 group-hover:rotate-0 transition-transform duration-300 group-hover:text-[#C5A059]" />
+                                    </div>
                                 </div>
-                                <div className="flex flex-col gap-0">
-                                    {narratives.map((story, index) => (
-                                        <article
-                                            key={story.id}
-                                            onClick={() => navigate(`/narratives/${story.id}`)}
-                                            className="group relative grid grid-cols-1 md:grid-cols-12 gap-6 py-8 border-b border-slate-200 dark:border-slate-800 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors duration-500 cursor-pointer"
-                                        >
-                                            <div className="md:col-span-2 flex flex-col justify-start pt-1">
-                                                <span className="text-3xl font-newsreader font-light text-slate-300 group-hover:text-[#C5A059]/60 transition-colors duration-300 ml-2">
-                                                    {(index + 1).toString().padStart(2, '0')}
-                                                </span>
-                                                <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-slate-500 mt-2">
-                                                    {story.date}
-                                                </span>
-                                            </div>
-                                            <div className="md:col-span-10 flex flex-col gap-3">
-                                                <h4 className="text-2xl md:text-3xl font-newsreader font-medium text-slate-900 dark:text-white leading-tight group-hover:underline decoration-1 underline-offset-4 decoration-slate-300">
-                                                    {story.title}
-                                                </h4>
-                                                <div
-                                                    className="text-base text-slate-500 dark:text-slate-400 font-newsreader leading-relaxed line-clamp-2 max-w-2xl"
-                                                    dangerouslySetInnerHTML={{ __html: story.excerpt }}
-                                                />
-                                                <Link
-                                                    to={`/narratives/${story.id}`}
-                                                    className="mt-2 flex items-center gap-2 text-[10px] font-sans font-bold uppercase tracking-wider text-slate-900 dark:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 group-hover:text-[#C5A059]"
-                                                >
-                                                    Read Story <ArrowRight className="w-3 h-3" />
-                                                </Link>
-                                            </div>
-                                        </article>
-                                    ))}
-                                </div>
-                                <div className="mt-16 text-center">
-                                    <Link
-                                        to="/timeline"
-                                        className="inline-block border-b border-black dark:border-white pb-1 text-sm font-sans font-bold uppercase tracking-[0.15em] hover:text-[#C5A059] hover:border-[#C5A059] transition-all duration-300"
-                                    >
-                                        View Full Archive
-                                    </Link>
-                                </div>
-                            </section>
+                            ))
                         ) : (
-                            <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center px-4">
-                                <div className="w-24 h-px bg-stone-200 dark:bg-stone-800 mb-8"></div>
-                                <p className="font-newsreader text-2xl italic text-stone-400 dark:text-stone-500 mb-4">
-                                    This chapter of the legacy is yet to be written.
-                                </p>
-                                <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400 opacity-60 max-w-xs leading-relaxed">
-                                    No narratives have been published by this member at this time.
-                                </p>
-                                <div className="w-12 h-px bg-stone-100 dark:bg-stone-900 mt-8"></div>
+                            <div className="p-12 text-center font-mono text-sm text-gray-400">
+                                [ NO_LOGS_AVAILABLE_FOR_USERS ]
                             </div>
                         )}
                     </div>
                 </div>
-            </div >
-        </PageTransition >
+            </div>
+        </PageTransition>
     );
 }

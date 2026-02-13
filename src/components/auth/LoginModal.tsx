@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { PpgLogo } from "../ui/PpgLogo";
+import { PPGLogo } from "../ui/PPGLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { X, Loader2 } from "lucide-react";
@@ -93,7 +93,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 {/* Header */}
                                 <div className="flex flex-col items-center text-center space-y-4">
                                     <div className="mb-2">
-                                        <PpgLogo className="h-16 w-auto text-[#C5A059]" />
+                                        <PPGLogo className="h-16 w-auto text-[#C5A059]" />
                                     </div>
                                     <h2 className="text-3xl font-serif font-medium text-stone-900 dark:text-white">
                                         {activeTab === 'login' ? "Welcome Back" : "Join the Legacy"}

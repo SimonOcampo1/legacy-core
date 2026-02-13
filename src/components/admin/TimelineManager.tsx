@@ -181,6 +181,7 @@ export const TimelineManager = () => {
             <AnimatePresence mode="wait">
                 {isAddingMode ? (
                     <motion.div
+                        key="entry-form"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
@@ -276,6 +277,7 @@ export const TimelineManager = () => {
                     </motion.div>
                 ) : (
                     <motion.div
+                        key="records-list"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="space-y-6"
@@ -308,11 +310,11 @@ export const TimelineManager = () => {
                                 </button>
                             </div>
                         ) : (
-                            <div className="border border-black dark:border-white overflow-hidden">
+                            <div className="relative border border-black dark:border-white overflow-hidden">
                                 {filteredEvents.map((event, index) => (
                                     <motion.div
                                         key={event.$id}
-                                        layout
+                                        layout="position"
                                         className={`group flex flex-col md:flex-row items-stretch border-b border-black/10 dark:border-white/10 last:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${index % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]'}`}
                                     >
                                         {/* Date Column */}

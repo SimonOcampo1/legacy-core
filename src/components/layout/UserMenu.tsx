@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
+import { LogOut, LayoutDashboard, ChevronDown, User } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 interface UserMenuProps {
@@ -36,57 +36,58 @@ export function UserMenu({ isHome, isScrolled, className }: UserMenuProps) {
     if (!user) return null;
 
     const textColorClass = isHome && !isScrolled
-        ? "text-charcoal dark:text-white"
-        : "text-slate-900 dark:text-white";
+        ? "text-black dark:text-white"
+        : "text-black dark:text-white";
 
     return (
-        <div className={cn("relative", className)} ref={menuRef}>
+        <div className={cn("relative font-mono text-xs uppercase", className)} ref={menuRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "flex items-center gap-2 font-serif text-lg italic leading-none transition-all duration-300 hover:text-[#C5A059] group",
-                    textColorClass
+                    "flex items-center gap-2 px-3 py-1 border border-transparent hover:border-[#C5A059] transition-all duration-200 group bg-transparent",
+                    textColorClass,
+                    isOpen && "border-black dark:border-white bg-black text-white dark:bg-white dark:text-black"
                 )}
             >
-                <span>{user.name?.split(' ')[0] || 'User'}</span>
+                <span className="tracking-widest font-bold">[{user.name?.split(' ')[0].toUpperCase() || 'USER'}]</span>
                 <ChevronDown className={cn(
-                    "w-4 h-4 transition-transform duration-300",
-                    isOpen ? "rotate-180" : "rotate-0"
-                )} strokeWidth={1.5} />
+                    "w-3 h-3 transition-transform duration-300",
+                    isOpen ? "rotate-180 text-white dark:text-black" : "text-[#C5A059]"
+                )} />
             </button>
 
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute right-0 mt-4 w-64 origin-top-right overflow-hidden rounded-[1.5rem] bg-white dark:bg-stone-950 shadow-2xl shadow-stone-200/50 dark:shadow-none border border-stone-100 dark:border-stone-800 backdrop-blur-xl z-[100]"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 5 }}
+                        transition={{ duration: 0.1 }}
+                        className="absolute right-0 mt-2 w-64 border-2 border-black dark:border-white bg-white dark:bg-black p-0 shadow-none z-[100]"
                     >
-                        <div className="p-3 space-y-1">
-                            <div className="px-4 py-3 border-b border-stone-50 dark:border-stone-800/50 mb-2">
-                                <p className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold mb-1">Authenticated as</p>
-                                <p className="text-sm font-serif italic truncate text-charcoal dark:text-stone-200">{user.email}</p>
-                            </div>
+                        <div className="border-b border-black dark:border-white p-3 bg-gray-100 dark:bg-white/10">
+                            <p className="text-[10px] text-gray-500 mb-1">CURRENT_SESSION:</p>
+                            <p className="font-bold truncate">{user.email}</p>
+                        </div>
 
+                        <div className="p-0 flex flex-col">
                             {isAuthorized && (
                                 <Link
                                     to="/admin"
                                     onClick={() => setIsOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800/50 hover:text-charcoal dark:hover:text-white rounded-xl transition-all group"
+                                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#C5A059] hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
                                 >
-                                    <LayoutDashboard className="w-4 h-4 transition-transform group-hover:scale-110" />
-                                    <span>Admin Console</span>
+                                    <LayoutDashboard className="w-4 h-4" />
+                                    <span>ADMIN_CONSOLE</span>
                                 </Link>
                             )}
 
                             <button
                                 onClick={handleLogout}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600/80 dark:text-red-400/80 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all group"
+                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-600 hover:text-white transition-colors text-left"
                             >
-                                <LogOut className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                                <span>Sign Out</span>
+                                <LogOut className="w-4 h-4" />
+                                <span>TERMINATE_SESSION</span>
                             </button>
                         </div>
                     </motion.div>

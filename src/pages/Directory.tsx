@@ -1,25 +1,9 @@
 import { useEffect, useState } from "react";
 import { databases, storage, DATABASE_ID, PROFILES_COLLECTION_ID } from "../lib/appwrite";
 import { Query } from "appwrite";
-import { MemberCard } from "../components/MemberCard";
 import { PageTransition } from "../components/PageTransition";
-import { motion, type Variants } from "framer-motion";
 import type { Member } from "../types";
-
-const container: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1
-        }
-    }
-};
-
-const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-};
+import { Link } from "react-router-dom";
 
 export function Directory() {
     const [members, setMembers] = useState<Member[]>([]);
@@ -35,13 +19,11 @@ export function Directory() {
                     [
                         Query.limit(100),
                         Query.equal("is_authorized", true)
-                        // Query.orderAsc("name") // Optional: sort by name
                     ]
                 );
 
                 const mappedMembers = response.documents.map((doc: any) => {
-                    // Map Appwrite document to Member interface
-                    let imageUrl = "https://placehold.co/400x400/png?text=Profile"; // Fallback
+                    let imageUrl = "https://placehold.co/400x400/png?text=Profile";
                     if (doc.avatar_id) {
                         if (doc.avatar_id.startsWith("http")) {
                             imageUrl = doc.avatar_id;
@@ -54,16 +36,14 @@ export function Directory() {
                         }
                     }
 
-                    // Map social flags to object structure if needed, or pass as is if MemberCard handles logic differently
-                    // The Member interface expects: socials?: { email?: boolean; ... }
                     const socials = {
                         email: doc.has_email,
                         linkedin: doc.has_linkedin,
-                        twitter: false // Not in DB currently
+                        twitter: false
                     };
 
                     return {
-                        id: doc.$id, // Use document ID (user_id might be different)
+                        id: doc.$id,
                         name: doc.name,
                         role: doc.role,
                         quote: doc.quote,
@@ -72,7 +52,6 @@ export function Directory() {
                         bioIntro: doc.bioIntro,
                         honors: doc.honors || [],
                         socials: socials,
-                        // narratives: [] // Populate if we have a relationship later
                     } as Member;
                 });
 
@@ -89,74 +68,68 @@ export function Directory() {
 
     return (
         <PageTransition>
-            <div className="max-w-[1400px] mx-auto px-6 py-12">
-                <div className="mb-24 grid grid-cols-1 md:grid-cols-12 gap-12 items-end border-b border-slate-200 dark:border-slate-800 pb-16">
-                    <div className="md:col-span-8 lg:col-span-7">
-                        <span className="block text-xs font-bold uppercase tracking-[0.3em] text-slate-400 mb-6 pl-1">
-                            Class of 2014
-                        </span>
-                        <h1 className="font-serif text-6xl md:text-7xl lg:text-8xl text-slate-900 dark:text-white leading-[0.9] tracking-tight">
-                            The<br />
-                            <span className="text-[#C5A059] italic">Members.</span>
-                        </h1>
-                    </div>
-                    <div className="md:col-span-4 lg:col-span-5 md:pb-4">
-                        <p className="font-editorial text-2xl md:text-3xl italic text-slate-600 dark:text-slate-400 leading-relaxed font-light">
-                            "Rekindle old friendships and walk down memory lane. Our shared history, preserved in digital amber."
-                        </p>
-                        <div className="mt-8 flex gap-8 text-sm">
-                            <button className="uppercase tracking-widest text-xs font-semibold border-b border-slate-300 pb-1 hover:border-[#C5A059] hover:text-[#C5A059] transition-colors cursor-pointer">
-                                Filter by Major
-                            </button>
-                            <button className="uppercase tracking-widest text-xs font-semibold border-b border-slate-300 pb-1 hover:border-[#C5A059] hover:text-[#C5A059] transition-colors cursor-pointer">
-                                Sort A-Z
-                            </button>
-                        </div>
-                    </div>
+            <div className="min-h-screen bg-white dark:bg-[#09090b] pt-12">
+                {/* Header */}
+                <div className="border-b-2 border-black dark:border-white/20 px-4 md:px-8 pb-8 pt-12">
+                    <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-2">
+                        Member<span className="text-[#C5A059]">_Directory</span>
+                    </h1>
+                    <p className="font-mono text-xs md:text-sm text-gray-500 max-w-xl">
+                        /// CLASSIFIED PERSONNEL INDEX<br />
+                        ACCESSING SECURE RECORDS...
+                    </p>
                 </div>
 
                 {loading ? (
-                    <div className="flex bg-background-light dark:bg-background-dark py-32 justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-charcoal dark:border-stone-800 dark:border-t-stone-200"></div>
+                    <div className="w-full h-64 flex items-center justify-center font-mono text-sm animate-pulse">
+                        [ LOADING_DATABASE ]
                     </div>
                 ) : (
-                    <motion.div
-                        variants={container}
-                        initial="hidden"
-                        whileInView="show"
-                        viewport={{ once: true }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24"
-                    >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 border-l border-black dark:border-white/20">
                         {members.length === 0 ? (
-                            <div className="col-span-full text-center text-slate-400 italic">
-                                No members found in directory.
+                            <div className="col-span-full p-8 font-mono text-sm text-gray-400">
+                                [ NO_RECORDS_FOUND ]
                             </div>
                         ) : (
                             members.map((member) => (
-                                <motion.div key={member.id} variants={item}>
-                                    <MemberCard member={member} />
-                                </motion.div>
+                                <Link
+                                    to={`/directory/${member.id}`}
+                                    key={member.id}
+                                    className="group relative border-r border-b border-black dark:border-white/20 bg-white dark:bg-[#09090b] aspect-[3/4] overflow-hidden hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors duration-0"
+                                >
+                                    {/* Image */}
+                                    <div className="w-full h-[70%] bg-gray-200 dark:bg-gray-800 relative grayscale group-hover:grayscale-0 transition-all duration-300">
+                                        <img
+                                            src={member.imageUrl}
+                                            alt={member.name}
+                                            className="w-full h-full object-cover"
+                                            loading="lazy"
+                                        />
+                                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent" />
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="p-4 flex flex-col justify-between h-[30%] border-t border-black dark:border-white/20">
+                                        <div>
+                                            <h3 className="font-bold text-lg leading-tight uppercase tracking-tight group-hover:text-[#C5A059] transition-colors">
+                                                {member.name}
+                                            </h3>
+                                            <p className="font-mono text-[10px] opacity-60 mt-1 uppercase">
+                                                {member.role || "MEMBER"}
+                                            </p>
+                                        </div>
+                                        <div className="flex justify-between items-end">
+                                            <span className="font-mono text-[10px]">ID: {member.id.substring(0, 4)}</span>
+                                            <div className="w-2 h-2 bg-black dark:bg-white group-hover:bg-[#C5A059]" />
+                                        </div>
+                                    </div>
+                                </Link>
                             ))
                         )}
-                    </motion.div>
+                    </div>
                 )}
-
-                <div className="mt-32 flex justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-8">
-                    <a
-                        href="#"
-                        className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-400 hover:text-[#C5A059] transition-colors"
-                    >
-                        Previous
-                    </a>
-                    <div className="font-serif italic text-slate-500">Page 1 of 1</div>
-                    <a
-                        href="#"
-                        className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-900 dark:text-white hover:text-[#C5A059] transition-colors"
-                    >
-                        Next
-                    </a>
-                </div>
             </div>
-        </PageTransition >
+        </PageTransition>
     );
 }
+

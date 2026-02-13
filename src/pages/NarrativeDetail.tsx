@@ -1,29 +1,19 @@
 import { useParams, Link } from "react-router-dom";
 import { PageTransition } from "../components/PageTransition";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { TextReveal } from "../components/ui/TextReveal";
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { databases, storage, DATABASE_ID, NARRATIVES_COLLECTION_ID, PROFILES_COLLECTION_ID } from "../lib/appwrite";
 import type { Narrative, Member } from "../types";
-import { ArrowRight } from "lucide-react";
-
+import { ArrowLeft, Share2 } from "lucide-react";
 import { MOCK_NARRATIVES } from "./SharedNarratives";
 import { CommentsSection } from "../components/comments/CommentsSection";
 
 export function NarrativeDetail() {
     const { id } = useParams<{ id: string }>();
-    const containerRef = useRef(null);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start start", "end start"],
-    });
-
-    const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-
     const [narrative, setNarrative] = useState<Narrative | null>(null);
     const [author, setAuthor] = useState<Member | null>(null);
     const [loading, setLoading] = useState(true);
     const [headerImage, setHeaderImage] = useState<string>("");
+    const contentRef = useRef<HTMLDivElement>(null);
 
     const BUCKET_ID = "legacy_core_assets";
 
@@ -53,8 +43,12 @@ export function NarrativeDetail() {
                     if (doc.cover_image_id.startsWith("http")) {
                         setHeaderImage(doc.cover_image_id);
                     } else if (!doc.cover_image_id.startsWith("mock")) {
-                        const img = storage.getFileView(BUCKET_ID, doc.cover_image_id);
-                        setHeaderImage(img.toString());
+                        try {
+                            const img = storage.getFileView(BUCKET_ID, doc.cover_image_id);
+                            setHeaderImage(img.toString());
+                        } catch (e) {
+                            console.error(e);
+                        }
                     } else {
                         setHeaderImage("https://images.unsplash.com/photo-1497018686234-eb1aba3c6e94?q=80&w=1200&auto=format&fit=crop");
                     }
@@ -76,7 +70,11 @@ export function NarrativeDetail() {
                             if (memberDoc.avatar_id.startsWith("http")) {
                                 avatarUrl = memberDoc.avatar_id;
                             } else {
-                                avatarUrl = storage.getFileView(BUCKET_ID, memberDoc.avatar_id).toString();
+                                try {
+                                    avatarUrl = storage.getFileView(BUCKET_ID, memberDoc.avatar_id).toString();
+                                } catch (e) {
+                                    console.error(e);
+                                }
                             }
                         }
 
@@ -104,127 +102,190 @@ export function NarrativeDetail() {
         fetchNarrative();
     }, [id]);
 
+    const [readingProgress, setReadingProgress] = useState(0);
+
+    useEffect(() => {
+        const updateProgress = () => {
+            if (contentRef.current) {
+                const element = contentRef.current;
+                // If content is shorter than viewport, we are done immediately (or logic needs adjustment)
+                // Better logic for general reading is mapping the element's position relative to viewport.
+                // We want 0% when the top of the content enters (or is at top of screen)
+                // And 100% when the bottom of the content enters the view (user has seen it all)
+
+                // Calculate distance from top of document
+                const elementTop = element.offsetTop;
+                const scrollTop = window.scrollY;
+
+                // Adjust start: Start increasing when the top of the element is near the top of viewport?
+                // Actually, standard reading progress usually is "percentage of content scrolled".
+                // Let's stick to "how much of the content height has passed the bottom of the viewport" or "top of viewport".
+                // User said "finishes once i finish the narrative". That implies when the last line is visible.
+
+                // Calculation:
+                // Start Point: When content starts (elementTop)
+                // End Point: When content ends - windowHeight (so bottom is just visible)
+                const startPoint = elementTop;
+                const endPoint = elementTop + element.clientHeight - window.innerHeight;
+
+                if (endPoint <= startPoint) {
+                    // Content is shorter than screen
+                    setReadingProgress(100);
+                    return;
+                }
+
+                const progress = Math.min(100, Math.max(0, ((scrollTop - startPoint) / (endPoint - startPoint)) * 100));
+                setReadingProgress(progress);
+            }
+        };
+
+        // Use requestAnimationFrame for smoother updates if state updates are bottleneck (though React batching usually handles scroll okay)
+        // For now, attaching directly to scroll.
+        window.addEventListener('scroll', updateProgress);
+        window.addEventListener('resize', updateProgress); // Recalculate on resize
+        updateProgress(); // Initial check
+
+        return () => {
+            window.removeEventListener('scroll', updateProgress);
+            window.removeEventListener('resize', updateProgress);
+        };
+    }, [narrative]); // Re-bind when narrative loads/changes to ensure ref is valid
+
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-charcoal dark:border-stone-800 dark:border-t-stone-200"></div>
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#09090b]">
+                <div className="font-mono text-sm animate-pulse">[ DECRYPTING_LOG_FILE ]</div>
             </div>
         );
     }
 
     if (!narrative) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark text-charcoal dark:text-white">
-                <div className="text-center">
-                    <h2 className="text-3xl font-serif mb-4">Story not found</h2>
-                    <Link to="/narratives" className="text-xs uppercase tracking-widest border-b border-current pb-1 hover:text-[#C5A059] transition-colors">Return to Archive</Link>
-                </div>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#09090b] font-mono">
+                <h2 className="text-xl mb-4 uppercase">[ ERROR: FILE_CORRUPTED_OR_MISSING ]</h2>
+                <Link to="/narratives" className="text-xs uppercase border-b border-black dark:border-white hover:text-[#C5A059] hover:border-[#C5A059]">
+                    Return to Archives
+                </Link>
             </div>
         );
     }
 
     const date = new Date(narrative.date_event || narrative.$createdAt).toLocaleDateString("en-US", {
         year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        month: '2-digit',
+        day: '2-digit'
     });
 
     return (
         <PageTransition>
-            <div ref={containerRef} className="bg-background-light dark:bg-background-dark min-h-screen text-charcoal dark:text-slate-100 flex flex-col antialiased">
+            <div className="bg-white dark:bg-[#09090b] min-h-screen font-sans">
+                {/* Progress Bar Top */}
+                <div className="fixed top-0 left-0 w-full h-1 bg-black/10 dark:bg-white/10 z-50">
+                    <div
+                        className="h-full bg-[#C5A059] origin-left will-change-transform"
+                        style={{ transform: `scaleX(${readingProgress / 100})` }}
+                    />
+                </div>
 
-                {/* Hero Header */}
-                <header className="relative w-full h-[70vh] min-h-[500px] mb-24 md:mb-32 overflow-hidden">
-                    <motion.div style={{ y: imageY }} className="absolute inset-0 bg-charcoal mask-image-hero">
-                        <div
-                            className="w-full h-full bg-cover bg-center opacity-90 nostalgic-filter scale-110"
-                            style={{ backgroundImage: `url("${headerImage}")` }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background-light via-transparent to-black/30 dark:from-background-dark"></div>
-                    </motion.div>
-
-                    <div className="absolute -bottom-24 left-0 w-full pb-0 pt-32 bg-gradient-to-t from-background-light via-background-light/90 to-transparent dark:from-background-dark dark:via-background-dark/90">
-                        <div className="max-w-3xl mx-auto px-6 text-center">
-                            <div className="font-sans text-xs font-semibold tracking-[0.25em] text-stone-500 dark:text-stone-400 uppercase mb-6 flex justify-center">
-                                <TextReveal>
-                                    {`Memories • ${date}`}
-                                </TextReveal>
-                            </div>
-                            <div className="mb-8 relative z-10 flex justify-center">
-                                <TextReveal className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium leading-[1.15] tracking-tight text-charcoal dark:text-white italic text-center pb-8">
-                                    {narrative.title}
-                                </TextReveal>
-                            </div>
-                            <div className="flex items-center justify-center gap-2 text-sm font-sans text-stone-500 dark:text-stone-400 relative z-10">
-                                <span>By <Link to={`/directory/${narrative.author_id}`} className="hover:text-[#C5A059] transition-colors">{narrative.author || narrative.author_id}</Link></span>
-                                <span className="w-1 h-1 rounded-full bg-current opacity-40"></span>
-                                <span>5 min read</span>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <main className="flex-grow flex flex-col items-center pb-24 px-6 relative z-10 pt-12">
-                    <article className="w-full max-w-2xl flex flex-col">
-                        <div
-                            className="font-serif text-xl md:text-2xl text-charcoal/90 dark:text-slate-200/90 leading-loose text-justify [&>p]:mb-12 first-letter:text-7xl first-letter:float-left first-letter:mr-4 first-letter:mt-1 first-letter:font-serif first-letter:italic first-letter:text-charcoal dark:first-letter:text-white whitespace-pre-wrap"
-                            dangerouslySetInnerHTML={{ __html: narrative.content }}
-                        />
-
-
-                        {/* Author Footer */}
-                        <div className="mt-16 pt-12 border-t border-stone-200 dark:border-stone-800">
-                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                                <Link to={`/directory/${narrative.author_id}`} className="h-24 w-24 shrink-0 rounded-full bg-stone-200 overflow-hidden ring-4 ring-white dark:ring-stone-800 shadow-md hover:scale-105 transition-transform nostalgic-filter">
-                                    {author?.imageUrl ? (
-                                        <img src={author.imageUrl} alt={author.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full bg-stone-300 flex items-center justify-center text-2xl font-serif text-stone-500">
-                                            {(author?.name || narrative.author || narrative.author_id).charAt(0)}
-                                        </div>
-                                    )}
-                                </Link>
-                                <div className="text-center sm:text-left flex-1">
-                                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3 mb-2">
-                                        <h3 className="text-xl font-serif text-charcoal dark:text-white">
-                                            {author?.name || narrative.author || narrative.author_id}
-                                        </h3>
-                                        <span className="text-xs font-sans text-stone-400 uppercase tracking-widest">
-                                            {author?.role || "Contributor"}
-                                        </span>
-                                    </div>
-                                    <p className="text-stone-500 dark:text-stone-400 font-sans leading-relaxed italic mb-4">
-                                        "{(author?.quote || author?.bioIntro || "Sharing memories that shaped our journey.")}"
-                                    </p>
-                                    <Link to={`/directory/${narrative.author_id}`} className="text-[#C5A059] text-xs font-bold uppercase tracking-widest hover:underline flex items-center justify-center sm:justify-start gap-2">
-                                        View Profile
-                                        <ArrowRight size={14} />
-                                    </Link>
+                <article className="max-w-[1920px] mx-auto">
+                    {/* Header Region */}
+                    <header className="grid grid-cols-1 lg:grid-cols-12 min-h-[50vh] border-b-2 border-black dark:border-white/20">
+                        {/* Meta Data Sidebar */}
+                        <div className="lg:col-span-3 border-r border-black dark:border-white/20 bg-gray-100 dark:bg-white/5 p-8 flex flex-col justify-between">
+                            <div className="font-mono text-xs space-y-4 text-gray-500">
+                                <div>
+                                    <span className="block opacity-50">LOG_ID</span>
+                                    <span className="text-black dark:text-white uppercase">{narrative.$id.substring(0, 8)}</span>
+                                </div>
+                                <div>
+                                    <span className="block opacity-50">DATE_RECORDED</span>
+                                    <span className="text-black dark:text-white">{date}</span>
+                                </div>
+                                <div>
+                                    <span className="block opacity-50">AUTHORIZATION</span>
+                                    <span className="text-black dark:text-white uppercase">{author?.name || "REDACTED"}</span>
                                 </div>
                             </div>
+
+                            <div className="mt-8 pt-8 border-t border-black/10 dark:border-white/10 hidden lg:block">
+                                <Link to="/narratives" className="flex items-center gap-2 font-mono text-xs uppercase hover:text-[#C5A059] transition-colors group">
+                                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                                    [ RETURN_TO_INDEX ]
+                                </Link>
+                            </div>
+
+                            <div className="mt-12 lg:mt-0">
+                                <Link to={`/directory/${narrative.author_id}`} className="group flex items-center gap-4">
+                                    <div className="w-12 h-12 border border-black dark:border-white grayscale group-hover:grayscale-0 transition-all">
+                                        {author?.imageUrl ? (
+                                            <img src={author.imageUrl} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-gray-300" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-bold text-sm uppercase leading-none group-hover:text-[#C5A059] transition-colors">
+                                            {author?.name || narrative.author}
+                                        </p>
+                                        <p className="font-mono text-[10px] text-gray-500">VIEW_PROFILE ↗</p>
+                                    </div>
+                                </Link>
+                            </div>
                         </div>
-                    </article>
 
-                    <div className="w-full max-w-2xl mt-12">
-                        <CommentsSection narrativeId={narrative.$id} />
+                        {/* Title & Hero */}
+                        <div className="lg:col-span-9 relative">
+                            <div className="absolute inset-0 z-0">
+                                <img
+                                    src={headerImage}
+                                    alt="Header"
+                                    className="w-full h-full object-cover opacity-20 dark:opacity-30 grayscale contrast-125"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#09090b] to-transparent" />
+                            </div>
+
+                            <div className="relative z-10 p-8 lg:p-16 h-full flex flex-col justify-end">
+                                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
+                                    {narrative.title}
+                                </h1>
+                                <p className="text-xl md:text-2xl font-medium max-w-3xl leading-tight border-l-4 border-[#C5A059] pl-6 py-2">
+                                    {narrative.description}
+                                </p>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Content Body */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12">
+                        {/* Main Text */}
+                        <div className="lg:col-span-8 lg:col-start-4 p-8 lg:p-16 border-l border-black dark:border-white/20">
+                            <div
+                                ref={contentRef}
+                                className="prose prose-xl dark:prose-invert max-w-none font-serif leading-relaxed first-letter:text-7xl first-letter:font-black first-letter:uppercase first-letter:float-left first-letter:mr-4 first-letter:mt-[-10px] text-justify"
+                                dangerouslySetInnerHTML={{ __html: narrative.content }}
+                            />
+
+                            {/* Footer Actions */}
+                            <div className="mt-20 pt-8 border-t border-black dark:border-white/20 flex justify-between items-center">
+                                <div className="flex gap-4">
+                                    <button className="flex items-center gap-2 font-mono text-xs uppercase hover:text-[#C5A059] transition-colors border border-black dark:border-white/20 px-4 py-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black">
+                                        <Share2 className="w-4 h-4" />
+                                        Share_Log
+                                    </button>
+                                </div>
+                                <span className="font-mono text-xs text-gray-500">END_OF_RECORD</span>
+                            </div>
+                        </div>
                     </div>
-                </main>
 
-                {/* Stylistic Utilities */}
-                <style>{`
-                    .nostalgic-filter {
-                        filter: grayscale(100%) contrast(105%) sepia(5%);
-                        transition: filter 0.8s cubic-bezier(0.2, 0, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0, 0.2, 1);
-                    }
-                    .nostalgic-filter:hover {
-                         filter: grayscale(0%) contrast(100%) sepia(0%);
-                    }
-                    .mask-image-hero {
-                         mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-                         -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-                    }
-                 `}</style>
+                    {/* Comments Section */}
+                    <section className="border-t-2 border-black dark:border-white/20 bg-gray-50 dark:bg-white/5 p-8 lg:p-16">
+                        <div className="max-w-4xl mx-auto">
+                            <CommentsSection narrativeId={narrative.$id} />
+                        </div>
+                    </section>
+                </article>
             </div>
-        </PageTransition >
+        </PageTransition>
     );
 }

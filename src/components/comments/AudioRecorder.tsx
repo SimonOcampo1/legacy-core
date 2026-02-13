@@ -124,29 +124,29 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
             <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 p-1.5 bg-stone-100 dark:bg-stone-800 rounded-full border border-stone-200 dark:border-stone-700 w-fit"
+                className="flex items-center gap-2 p-2 bg-white dark:bg-black border border-black dark:border-white w-fit"
             >
                 <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} className="hidden" />
 
                 <button
                     onClick={togglePlayback}
-                    className="h-7 w-7 flex items-center justify-center rounded-full bg-charcoal dark:bg-white text-white dark:text-charcoal hover:opacity-85 transition-opacity"
+                    className="h-6 w-6 flex items-center justify-center border border-black dark:border-white hover:bg-[#C5A059] hover:text-black hover:border-[#C5A059] transition-colors"
                     type="button"
                 >
-                    {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" className="ml-0.5" />}
+                    {isPlaying ? <Pause size={10} fill="currentColor" /> : <Play size={10} fill="currentColor" className="ml-0.5" />}
                 </button>
 
-                <div className="flex flex-col px-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal dark:text-stone-300">Voice Note</span>
-                    <span className="text-[9px] text-stone-500 font-mono">{formatTime(recordingTime)}</span>
+                <div className="flex flex-col px-2 min-w-[80px]">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-black dark:text-white">VOICE_LOG</span>
+                    <span className="text-[9px] text-gray-500 font-mono">{formatTime(recordingTime)}</span>
                 </div>
 
-                <div className="h-5 w-[1px] bg-stone-300 dark:bg-stone-700 mx-0.5"></div>
+                <div className="h-6 w-px bg-black/20 dark:bg-white/20 mx-1"></div>
 
                 <button
                     onClick={deleteRecording}
                     disabled={isUploading}
-                    className="p-1 text-stone-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                    className="p-1 text-black dark:text-white hover:text-red-500 transition-colors disabled:opacity-50"
                     type="button"
                 >
                     <Trash2 size={14} />
@@ -164,22 +164,22 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="flex items-center gap-3"
+                        className="flex items-center gap-2"
                     >
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-full border border-red-100 dark:border-red-900/50">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white">
                             <div className="relative h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full bg-red-500 opacity-75 rounded-none"></span>
+                                <span className="relative inline-flex h-2 w-2 bg-red-500"></span>
                             </div>
-                            <span className="font-mono text-xs font-bold w-10 text-center">{formatTime(recordingTime)}</span>
+                            <span className="font-mono text-[10px] font-bold min-w-[40px] text-center tracking-widest">{formatTime(recordingTime)}</span>
                         </div>
 
                         <button
                             onClick={stopRecording}
-                            className="h-8 w-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm"
+                            className="h-8 w-8 flex items-center justify-center bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
                             type="button"
                         >
-                            <Square size={12} fill="currentColor" />
+                            <Square size={10} fill="currentColor" />
                         </button>
                     </motion.div>
                 ) : (
@@ -190,14 +190,13 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
                         onClick={startRecording}
                         disabled={isUploading}
                         className={cn(
-                            "flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all",
-                            "text-stone-500 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700",
+                            "flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] uppercase transition-all bg-transparent border border-black dark:border-white/50 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black group",
                             isUploading && "opacity-50 cursor-not-allowed"
                         )}
                         type="button"
                     >
-                        <Mic size={14} className="text-[#C5A059]" />
-                        <span>Record Audio</span>
+                        <Mic size={14} className="text-black dark:text-white group-hover:text-[#C5A059] transition-colors" />
+                        <span>RECORD_AUDIO</span>
                     </motion.button>
                 )}
             </AnimatePresence>

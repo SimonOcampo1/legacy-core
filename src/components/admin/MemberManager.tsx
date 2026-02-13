@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { databases, DATABASE_ID, MEMBERS_COLLECTION_ID } from "../../lib/appwrite";
 import { ID, Query } from "appwrite";
-import { UserPlus, Trash2, Mail, Shield, AlertCircle, Loader2 } from "lucide-react";
+import { UserPlus, Trash2, Mail, Shield, AlertCircle, Loader2, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
@@ -133,162 +133,166 @@ export function MemberManager() {
     };
 
     return (
-        <div className="space-y-16">
-            {/* 1. Pending Approvals Section */}
-            {pendingMembers.length > 0 && (
-                <section>
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="relative">
-                            <Shield className="w-5 h-5 text-amber-500" />
-                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full animate-ping" />
-                        </div>
-                        <h2 className="text-2xl font-serif italic text-charcoal dark:text-white">Pending Approval</h2>
-                    </div>
-
-                    <div className="bg-amber-50/50 dark:bg-amber-950/10 rounded-[2rem] border border-amber-100 dark:border-amber-900/30 overflow-hidden">
-                        <table className="w-full text-left">
-                            <tbody className="divide-y divide-amber-100 dark:divide-amber-900/20">
-                                {pendingMembers.map((member) => (
-                                    <tr key={member.$id} className="group transition-colors">
-                                        <td className="px-8 py-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-semibold text-charcoal dark:text-stone-200">{member.name}</span>
-                                                <span className="text-xs text-stone-500">{member.email}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-4 text-xs text-stone-400">
-                                            Registered {new Date(member.addedAt).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-8 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    disabled={!!isProcessing}
-                                                    onClick={() => handleApproval(member.$id, true)}
-                                                    className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-[10px] font-bold uppercase tracking-widest text-[#C5A059] hover:bg-[#C5A059] hover:text-white transition-all disabled:opacity-50"
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button
-                                                    disabled={!!isProcessing}
-                                                    onClick={() => handleApproval(member.$id, false)}
-                                                    className="px-4 py-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg text-[10px] font-bold uppercase tracking-widest text-red-500 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
-                                                >
-                                                    Deny
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            )}
-
-            {/* 2. Add New Member (Pre-authorization) */}
-            <section>
-                <div className="flex items-center gap-3 mb-4">
-                    <UserPlus className="w-5 h-5 text-[#C5A059]" />
-                    <h2 className="text-2xl font-serif italic text-charcoal dark:text-white">Pre-authorize Email</h2>
+        <div className="max-w-7xl mx-auto p-0 animate-in fade-in duration-700">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12 border-b-2 border-black dark:border-white pb-6">
+                <div className="space-y-2">
+                    <h2 className="text-4xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter">
+                        PERSONNEL_DB
+                    </h2>
+                    <p className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                        // MEMBER_ACCESS_CONTROL
+                    </p>
                 </div>
-                <p className="text-stone-500 dark:text-stone-400 font-light max-w-lg mb-8 text-sm leading-relaxed">
-                    Authorize a trusted collaborator before they create their account. They will gain access immediately upon their first login.
-                </p>
+            </div>
 
-                <form onSubmit={handleAddMember} className="flex flex-col sm:flex-row gap-4 max-w-2xl">
-                    <div className="relative flex-1 group">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-[#C5A059] transition-colors" />
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div className="border border-black dark:border-white p-6 bg-white dark:bg-black">
+                    <div className="font-mono text-xs uppercase opacity-50 mb-2">TOTAL_RECORDS</div>
+                    <div className="text-4xl font-black">{members.length + pendingMembers.length}</div>
+                </div>
+                <div className="border border-black dark:border-white p-6 bg-white dark:bg-black">
+                    <div className="font-mono text-xs uppercase opacity-50 mb-2">PENDING_AUTH</div>
+                    <div className="text-4xl font-black text-[#C5A059]">
+                        {pendingMembers.length}
+                    </div>
+                </div>
+                <div className="border border-black dark:border-white p-6 bg-white dark:bg-black">
+                    <div className="font-mono text-xs uppercase opacity-50 mb-2">ACTIVE_UNITS</div>
+                    <div className="text-4xl font-black">
+                        {members.length}
+                    </div>
+                </div>
+            </div>
+
+            {/* Add New Member "Terminal" */}
+            <div className="mb-12 border border-black dark:border-white p-6 bg-gray-50 dark:bg-white/5">
+                <h3 className="font-mono text-xs uppercase mb-4 font-bold flex items-center gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    INITIATE_NEW_AUTHORIZATION
+                </h3>
+                <form onSubmit={handleAddMember} className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
                         <input
                             type="email"
                             value={newEmail}
                             onChange={(e) => setNewEmail(e.target.value)}
-                            placeholder="Email Address"
-                            className="w-full bg-white dark:bg-stone-950 border border-stone-100 dark:border-stone-800 rounded-2xl py-4 pl-12 pr-6 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] transition-all"
+                            placeholder="ENTER_EMAIL_ADDRESS..."
+                            className="w-full p-3 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black transition-colors"
                             required
                         />
                     </div>
-                    <div className="relative flex-1 group">
+                    <div className="flex-1">
                         <input
                             type="text"
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            placeholder="Name (Optional)"
-                            className="w-full bg-white dark:bg-stone-950 border border-stone-100 dark:border-stone-800 rounded-2xl py-4 px-6 text-sm focus:outline-none focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] transition-all"
+                            placeholder="DESIGNATION_NAME (OPTIONAL)..."
+                            className="w-full p-3 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black transition-colors"
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={isAdding || !newEmail}
-                        className="bg-charcoal dark:bg-white text-white dark:text-charcoal px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-charcoal/90 dark:hover:bg-stone-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-colors disabled:opacity-50"
                     >
-                        {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-                        <span>Authorize</span>
+                        {isAdding ? "PROCESSING..." : "AUTHORIZE"}
                     </button>
                 </form>
-            </section>
+            </div>
 
-            {/* 3. Authorized Members List */}
-            <section>
-                <div className="flex items-center gap-3 mb-6">
-                    <Shield className="w-5 h-5 text-stone-400" />
-                    <h2 className="text-2xl font-serif italic text-charcoal dark:text-white">Community Directory</h2>
-                </div>
-
-                <div className="bg-white dark:bg-stone-950 rounded-[2rem] border border-stone-100 dark:border-stone-800 overflow-hidden shadow-sm">
-                    {loading ? (
-                        <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-stone-200" /></div>
-                    ) : members.length === 0 ? (
-                        <div className="p-12 text-center text-stone-400">
-                            <AlertCircle className="w-8 h-8 mx-auto mb-4 opacity-10" />
-                            <p className="font-serif italic font-light">No authorized members in the directory.</p>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-stone-50 dark:border-stone-800/50">
-                                        <th className="px-8 py-5 text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold">Member</th>
-                                        <th className="px-8 py-5 text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold">Email</th>
-                                        <th className="px-8 py-5 text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold">Joined</th>
-                                        <th className="px-8 py-5 text-[9px] uppercase tracking-[0.2em] text-stone-400 font-bold text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-stone-50 dark:divide-stone-800/50">
-                                    {members.map((member) => (
-                                        <motion.tr key={member.$id} className="group hover:bg-stone-50/30 dark:hover:bg-stone-800/20 transition-colors">
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-[#C5A059] font-serif italic text-sm">
-                                                        {member.name.charAt(0)}
-                                                    </div>
-                                                    <span className="text-sm font-medium text-charcoal dark:text-stone-300">{member.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5 text-sm text-stone-500 italic font-newsreader">{member.email}</td>
-                                            <td className="px-8 py-5 text-xs text-stone-400">{new Date(member.addedAt).toLocaleDateString()}</td>
-                                            <td className="px-8 py-5 text-right">
+            {/* Combined Table */}
+            <div className="border border-black dark:border-white overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-black text-white dark:bg-white dark:text-black">
+                            <th className="px-6 py-4 font-mono text-xs uppercase tracking-widest border-b border-white/20 dark:border-black/20">IDENTITY</th>
+                            <th className="px-6 py-4 font-mono text-xs uppercase tracking-widest border-b border-white/20 dark:border-black/20">CONTACT</th>
+                            <th className="px-6 py-4 font-mono text-xs uppercase tracking-widest border-b border-white/20 dark:border-black/20">STATUS</th>
+                            <th className="px-6 py-4 font-mono text-xs uppercase tracking-widest border-b border-white/20 dark:border-black/20 text-right">CONTROLS</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black dark:divide-white">
+                        {[...pendingMembers, ...members].map((member) => (
+                            <motion.tr
+                                key={member.$id}
+                                className="group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                            >
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 border border-black dark:border-white flex items-center justify-center font-bold text-xs uppercase">
+                                            {member.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <div className="font-bold uppercase text-sm">{member.name}</div>
+                                            <div className="font-mono text-[10px] text-gray-500">ID: {member.$id.substring(0, 6)}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 font-mono text-sm">{member.email}</td>
+                                <td className="px-6 py-4">
+                                    {member.is_authorized ? (
+                                        <span className="bg-black dark:bg-white text-white dark:text-black px-2 py-1 font-mono text-[10px] uppercase">
+                                            AUTHORIZED
+                                        </span>
+                                    ) : (
+                                        <span className="border border-black dark:border-white px-2 py-1 font-mono text-[10px] uppercase text-gray-500 animate-pulse">
+                                            PENDING
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {!member.is_authorized ? (
+                                            <>
                                                 <button
-                                                    onClick={() => handleDeleteMember(member)}
-                                                    className="p-2 text-stone-200 hover:text-red-400 transition-colors"
+                                                    onClick={() => handleApproval(member.$id, true)}
+                                                    disabled={isProcessing === member.$id}
+                                                    className="p-2 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                                                    title="Approve"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <ShieldCheck className="w-4 h-4" />
                                                 </button>
-                                            </td>
-                                        </motion.tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-            </section>
+                                                <button
+                                                    onClick={() => handleApproval(member.$id, false)}
+                                                    disabled={isProcessing === member.$id}
+                                                    className="p-2 border border-black dark:border-white hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
+                                                    title="Deny"
+                                                >
+                                                    <ShieldAlert className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleDeleteMember(member)}
+                                                className="p-2 border border-black dark:border-white hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
+                                                title="Revoke"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </td>
+                            </motion.tr>
+                        ))}
+                    </tbody>
+                </table>
+                {[...pendingMembers, ...members].length === 0 && (
+                    <div className="p-12 text-center font-mono text-sm uppercase text-gray-500">
+                        NO_PERSONNEL_RECORDS_FOUND
+                    </div>
+                )}
+            </div>
 
             <ConfirmationModal
                 isOpen={!!deletingMember}
                 onClose={() => setDeletingMember(null)}
                 onConfirm={confirmDelete}
-                title="Remove Authorization"
-                message={`Are you sure you want to remove ${deletingMember?.name} from the authorized group? This will revoke their access to the Administrative Core.`}
+                title="REVOKE ACCESS"
+                message={`PERMANENTLY REVOKE ACCESS FOR [${deletingMember?.name}]?`}
+                confirmText="CONFIRM_REVOCATION"
+                variant="danger"
             />
         </div>
     );
