@@ -4,48 +4,41 @@ import { databases, DATABASE_ID, NARRATIVES_COLLECTION_ID } from "../lib/appwrit
 import { Query } from "appwrite";
 import type { Narrative } from "../types";
 import { PageTransition } from "../components/PageTransition";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useScrollLock } from "../hooks/useScrollLock";
+import { AnimatePresence, motion } from "framer-motion";
+import { NarrativeEditor } from "../components/admin/NarrativeEditor";
 
 export const MOCK_NARRATIVES: Narrative[] = [
     {
-        $id: "mock1",
-        $collectionId: "narratives",
-        $databaseId: "legacy_core",
+        $id: "1",
+        title: "The Genesis of Core",
+        content: "Initial system architecture documentation...",
+        author: "SYSTEM",
         $createdAt: new Date().toISOString(),
         $updatedAt: new Date().toISOString(),
-        $permissions: [],
-        title: "The Midnight Library Session",
-        content: "It was a stormy night in the university library. We were all studying for finals, but the power went out. Instead of panicking, we lit candles and told stories until dawn...",
-        description: "A recounting of the infamous blackout during finals week.",
-        author: "Eleanor Rigby",
-        author_id: "eleanor-rigby",
         status: "published",
-        $sequence: 0,
-        date_event: "2023-11-15T20:00:00.000Z",
-        cover_image_id: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=1200&auto=format&fit=crop"
+        likes: 0
     },
     {
-        $id: "mock2",
-        $collectionId: "narratives",
-        $databaseId: "legacy_core",
+        $id: "2",
+        title: "Protocol Alpha",
+        content: "First successful data transmission...",
+        author: "ADMIN",
         $createdAt: new Date().toISOString(),
         $updatedAt: new Date().toISOString(),
-        $permissions: [],
-        title: "The Great Cafeteria Heist",
-        content: "We never thought we'd pull it off. The plan was simple: get the last slice of pizza before the football team arrived. It required precision, timing, and a lot of luck...",
-        description: "Operation Extra Cheese: The strategic acquisition of resources.",
-        author: "Marcus Chen",
-        author_id: "marcus-chen",
         status: "published",
-        $sequence: 0,
-        date_event: "2022-05-10T12:30:00.000Z",
-        cover_image_id: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200&auto=format&fit=crop"
+        likes: 0
     }
 ];
 
 export function SharedNarratives() {
     const [narratives, setNarratives] = useState<Narrative[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    useScrollLock(isModalOpen);
+    const { isAdmin, isAuthorized, user } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -55,18 +48,29 @@ export function SharedNarratives() {
                     DATABASE_ID,
                     NARRATIVES_COLLECTION_ID,
                     [
-                        Query.equal('status', 'published'),
-                        Query.orderDesc('date_event')
+                        Query.equal("status", "published"),
+                        Query.orderDesc("$createdAt")
                     ]
                 );
 
-                if (response.documents.length > 0) {
-                    setNarratives(response.documents as unknown as Narrative[]);
-                } else {
-                    setNarratives(MOCK_NARRATIVES);
-                }
+                const dbNarratives = response.documents.map((doc: any) => ({
+                    $id: doc.$id,
+                    title: doc.title,
+                    content: doc.content,
+                    author: doc.author_id || "UNKNOWN",
+                    $createdAt: doc.$createdAt,
+                    $updatedAt: doc.$updatedAt,
+                    status: doc.status,
+                    likes: doc.likes,
+                    coverImage: doc.cover_image_id,
+                    date_event: doc.date_event,
+                    category: doc.category,
+                    description: doc.description
+                })) as Narrative[];
+
+                setNarratives([...dbNarratives, ...MOCK_NARRATIVES]);
             } catch (error) {
-                console.error("Error fetching narratives:", error);
+                console.error("Failed to fetch narratives:", error);
                 setNarratives(MOCK_NARRATIVES);
             } finally {
                 setLoading(false);
@@ -76,25 +80,41 @@ export function SharedNarratives() {
         fetchNarratives();
     }, []);
 
+    const handleAppend = () => {
+        setIsModalOpen(true);
+    };
+
     return (
         <PageTransition>
             <div className="min-h-screen bg-white dark:bg-[#09090b] pt-12">
                 {/* Header */}
                 <div className="border-b-2 border-black dark:border-white/20 px-4 md:px-8 pb-8 pt-12 flex flex-col md:flex-row justify-between items-end gap-8">
                     <div>
-                        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-2">
-                            Archive<span className="text-[#C5A059]">_Logs</span>
+                        <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-2">
+                            Shared<span className="text-[#C5A059]">_Narratives</span>
                         </h1>
                         <p className="font-mono text-xs md:text-sm text-gray-500">
-                            /// SHARED_MEMORY_BANK<br />
+                            /// COLLECTIVE MEMORY BANK<br />
                             ACCESSING COLLECTIVE RECORDS...
                         </p>
                     </div>
-                    {/* Index Stats */}
-                    <div className="font-mono text-xs text-right hidden md:block text-gray-500">
-                        TOTAL_ENTRIES: {narratives.length.toString().padStart(3, '0')}<br />
-                        LAST_UPDATE: {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
-                    </div>
+
+                    {/* Append Button */}
+                    {isAuthorized && (
+                        <div className="flex flex-col items-end gap-2">
+                            <button
+                                onClick={handleAppend}
+                                className="bg-black text-white dark:bg-white dark:text-black font-mono text-xs px-6 py-3 hover:bg-[#C5A059] hover:text-black transition-colors uppercase font-bold"
+                            >
+                                [ + APPEND_ENTRY ]
+                            </button>
+                            {/* Index Stats */}
+                            <div className="font-mono text-xs text-right hidden md:block text-gray-500">
+                                TOTAL_ENTRIES: {narratives.length.toString().padStart(3, '0')}<br />
+                                LAST_UPDATE: {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {loading ? (
@@ -102,24 +122,29 @@ export function SharedNarratives() {
                         [ DECRYPTING_ARCHIVES ]
                     </div>
                 ) : (
-                    <div className="divide-y divide-black dark:divide-white/20 border-b border-black dark:border-white/20">
+                    <div className="divide-y divide-black/10 dark:divide-white/10">
                         {narratives.map((narrative, index) => (
                             <Link
                                 to={`/narratives/${narrative.$id}`}
                                 key={narrative.$id}
-                                className="group block relative hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors duration-0"
+                                className="group block hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                             >
                                 <div className="grid grid-cols-1 md:grid-cols-12 min-h-[200px]">
                                     {/* Index Column */}
-                                    <div className="md:col-span-1 p-6 md:p-8 border-r border-black dark:border-white/20 font-mono text-xs text-gray-400 group-hover:text-[#C5A059]">
-                                        {(index + 1).toString().padStart(3, '0')}
+                                    <div className="md:col-span-1 p-6 md:p-8 border-l border-black dark:border-white/20 font-mono text-xs opacity-40">
+                                        {(index + 1).toString().padStart(2, '0')}
                                     </div>
 
-                                    {/* Main Content */}
-                                    <div className="md:col-span-8 p-6 md:p-8 flex flex-col justify-between">
+                                    {/* Content Column */}
+                                    <div className="md:col-span-8 p-6 md:p-8 border-l border-black dark:border-white/20 flex flex-col justify-between">
                                         <div>
-                                            <div className="flex items-baseline gap-4 mb-2">
-                                                <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter leading-none group-hover:text-[#C5A059]">
+                                            {narrative.category && (
+                                                <span className="inline-block border border-black dark:border-white px-2 py-1 font-mono text-[10px] uppercase mb-4">
+                                                    {narrative.category}
+                                                </span>
+                                            )}
+                                            <div className="flex items-baseline gap-4">
+                                                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter group-hover:text-[#C5A059] transition-colors line-clamp-2">
                                                     {narrative.title}
                                                 </h2>
                                             </div>
@@ -154,6 +179,39 @@ export function SharedNarratives() {
                         )}
                     </div>
                 )}
+
+                {/* Modal for Member Logs */}
+                <AnimatePresence>
+                    {isModalOpen && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsModalOpen(false)}
+                                className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none"
+                            >
+                                <div data-lenis-prevent className="bg-white dark:bg-[#09090b] w-full max-w-4xl max-h-[90vh] overflow-y-auto border-2 border-black dark:border-white shadow-2xl pointer-events-auto">
+                                    <div className="p-4 border-b border-black dark:border-white flex justify-between items-center bg-gray-50 dark:bg-white/5">
+                                        <h2 className="font-black text-xl uppercase tracking-tighter">NEW_LOG_ENTRY</h2>
+                                        <button onClick={() => setIsModalOpen(false)}>
+                                            <X className="w-6 h-6" />
+                                        </button>
+                                    </div>
+                                    <div className="p-6">
+                                        <NarrativeEditor memberId={user?.$id} onSuccess={() => setIsModalOpen(false)} />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
             </div>
         </PageTransition>
     );

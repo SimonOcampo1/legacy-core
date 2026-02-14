@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { databases, DATABASE_ID, TIMELINE_COLLECTION_ID } from '../../lib/appwrite';
+import { databases, storage, DATABASE_ID, TIMELINE_COLLECTION_ID, PROFILES_COLLECTION_ID, BUCKET_ID, getImageUrl } from '../../lib/appwrite';
 import { ID, Query } from 'appwrite';
 import {
     Plus,
@@ -10,13 +10,11 @@ import {
     Loader2,
     X,
     Check,
-    ChevronRight,
-    History
+    Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { DeleteConfirmationModal } from '../ui/DeleteConfirmationModal';
-import { useNavigate } from 'react-router-dom';
 
 interface TimelineEvent {
     $id: string;
@@ -26,9 +24,18 @@ interface TimelineEvent {
     category: string;
     status: string;
     createdAt: string;
+    participant_ids?: string[];
+    image_id?: string;
 }
 
-export const TimelineManager = () => {
+interface ProfileOption {
+    id: string;
+    name: string;
+    slug: string;
+    avatar_id?: string;
+}
+
+export const TimelineManager = ({ memberId }: { memberId?: string }) => {
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,21 +43,30 @@ export const TimelineManager = () => {
     const [isAddingMode, setIsAddingMode] = useState(false);
     const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
-    const navigate = useNavigate();
+
 
     // Form state
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [dateEvent, setDateEvent] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState('General');
+    const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+    const [availableMembers, setAvailableMembers] = useState<ProfileOption[]>([]);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>('');
 
     const fetchEvents = async () => {
         setIsLoading(true);
         try {
+            const queries = [Query.orderDesc('date_event')];
+            if (memberId) {
+                queries.push(Query.equal('author_id', memberId));
+            }
+
             const response = await databases.listDocuments(
                 DATABASE_ID,
                 TIMELINE_COLLECTION_ID,
-                [Query.orderDesc('date_event')]
+                queries
             );
             setEvents(response.documents as any);
         } catch (error) {
@@ -63,6 +79,16 @@ export const TimelineManager = () => {
 
     useEffect(() => {
         fetchEvents();
+        // Fetch all member profiles for the participant picker
+        const fetchMembers = async () => {
+            try {
+                const res = await databases.listDocuments(DATABASE_ID, PROFILES_COLLECTION_ID, [Query.limit(100)]);
+                setAvailableMembers(res.documents.map((d: any) => ({ id: d.$id, name: d.name, slug: d.slug, avatar_id: d.avatar_id })));
+            } catch (err) {
+                console.error('Failed to fetch members for picker:', err);
+            }
+        };
+        fetchMembers();
     }, []);
 
     const resetForm = () => {
@@ -70,6 +96,9 @@ export const TimelineManager = () => {
         setDescription('');
         setDateEvent(new Date().toISOString().split('T')[0]);
         setCategory('General');
+        setSelectedParticipants([]);
+        setImageFile(null);
+        setImagePreview('');
         setIsAddingMode(false);
         setEditingEvent(null);
     };
@@ -83,13 +112,28 @@ export const TimelineManager = () => {
 
         setIsSubmitting(true);
         try {
-            const data = {
+            // Upload image if a file was selected
+            let uploadedImageId = editingEvent?.image_id || '';
+            if (imageFile) {
+                try {
+                    const uploaded = await storage.createFile(BUCKET_ID, ID.unique(), imageFile);
+                    uploadedImageId = uploaded.$id;
+                } catch (uploadError) {
+                    console.error('Image upload failed:', uploadError);
+                    toast.error('Image upload failed, saving event without image.');
+                }
+            }
+
+            const data: Record<string, any> = {
                 title,
                 description,
                 date_event: new Date(dateEvent).toISOString(),
                 category,
                 status: 'published',
-                createdAt: editingEvent?.createdAt || new Date().toISOString()
+                createdAt: editingEvent?.createdAt || new Date().toISOString(),
+                author_id: memberId || 'admin',
+                participant_ids: selectedParticipants,
+                image_id: uploadedImageId
             };
 
             if (editingEvent) {
@@ -146,7 +190,24 @@ export const TimelineManager = () => {
         setDescription(event.description);
         setDateEvent(new Date(event.date_event).toISOString().split('T')[0]);
         setCategory(event.category || 'General');
+        setSelectedParticipants(event.participant_ids || []);
+        setImageFile(null);
+        setImagePreview(event.image_id ? getImageUrl(event.image_id) : '');
         setIsAddingMode(true);
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const toggleParticipant = (id: string) => {
+        setSelectedParticipants(prev =>
+            prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+        );
     };
 
     const filteredEvents = events.filter(e =>
@@ -224,6 +285,36 @@ export const TimelineManager = () => {
                                 </div>
                             </div>
 
+                            {/* Image Upload */}
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="font-mono text-[10px] uppercase text-gray-500">EVENT_IMAGE_UPLOAD</label>
+                                <div className="border border-black dark:border-white p-4">
+                                    {imagePreview ? (
+                                        <div className="relative">
+                                            <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover grayscale" />
+                                            <button
+                                                type="button"
+                                                onClick={() => { setImageFile(null); setImagePreview(''); }}
+                                                className="absolute top-2 right-2 bg-black dark:bg-white text-white dark:text-black p-1 hover:bg-red-600 dark:hover:bg-red-600 dark:hover:text-white transition-colors"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-[#C5A059] transition-colors">
+                                            <Upload className="w-6 h-6 text-gray-400 mb-2" />
+                                            <span className="font-mono text-[10px] uppercase text-gray-400">CLICK_TO_UPLOAD_IMAGE</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="font-mono text-[10px] uppercase text-gray-500">TEMPORAL_COORDINATES</label>
                                 <div className="relative">
@@ -250,6 +341,51 @@ export const TimelineManager = () => {
                                     <option value="Travel">Expedition</option>
                                     <option value="Personal">Personal Milestone</option>
                                 </select>
+                            </div>
+
+                            {/* Participant Picker */}
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="font-mono text-[10px] uppercase text-gray-500">LINKED_PARTICIPANTS</label>
+                                <div className="border border-black dark:border-white p-4 space-y-3">
+                                    {selectedParticipants.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-3">
+                                            {selectedParticipants.map(pid => {
+                                                const m = availableMembers.find(m => m.id === pid);
+                                                if (!m) return null;
+                                                return (
+                                                    <button
+                                                        key={pid}
+                                                        type="button"
+                                                        onClick={() => toggleParticipant(pid)}
+                                                        className="flex items-center gap-2 px-3 py-1.5 bg-black dark:bg-white text-white dark:text-black font-mono text-[10px] uppercase group hover:bg-red-600 dark:hover:bg-red-600 dark:hover:text-white transition-colors"
+                                                    >
+                                                        <img src={getImageUrl(m.avatar_id)} alt={m.name} className="w-5 h-5 object-cover border border-white dark:border-black" />
+                                                        {m.name}
+                                                        <X className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    <div className="flex flex-wrap gap-2">
+                                        {availableMembers
+                                            .filter(m => !selectedParticipants.includes(m.id))
+                                            .map(m => (
+                                                <button
+                                                    key={m.id}
+                                                    type="button"
+                                                    onClick={() => toggleParticipant(m.id)}
+                                                    className="flex items-center gap-2 px-3 py-1.5 border border-black/20 dark:border-white/20 font-mono text-[10px] uppercase hover:border-[#C5A059] hover:text-[#C5A059] transition-colors"
+                                                >
+                                                    <img src={getImageUrl(m.avatar_id)} alt={m.name} className="w-5 h-5 object-cover border border-black/30 dark:border-white/30" />
+                                                    + {m.name}
+                                                </button>
+                                            ))}
+                                    </div>
+                                    {availableMembers.length === 0 && (
+                                        <p className="font-mono text-[10px] text-gray-400 uppercase">NO_MEMBERS_AVAILABLE</p>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="md:col-span-2 pt-6 border-t border-black/10 dark:border-white/10 flex justify-end gap-4">

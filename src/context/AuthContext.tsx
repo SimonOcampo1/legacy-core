@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         checkUserStatus();
     }, []);
 
-    const checkAuthorizaton = async (email: string) => {
+    const checkAuthorizaton = async (email: string, userId: string, name: string) => {
         // Hardcoded admin is always authorized
         if (email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim()) {
             setIsAuthorized(true);
@@ -46,9 +46,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 [Query.equal('email', email.toLowerCase().trim())]
             );
 
-            // Access based on the 'is_authorized' field (or 'isAuthorized' whichever we decide)
-            // Let's go with 'is_authorized' to match common snake_case in DBs, 
-            // but the user's request implied naming it isAuthorized. Let's use is_authorized for consistency with avatar_id etc.
+            if (response.documents.length === 0) {
+                console.log("No profile found for logged in user. Creating new profile...");
+                try {
+                    // Create Profile Document if it doesn't exist (Lazy Reg for Google Auth)
+                    await databases.createDocument(
+                        DATABASE_ID,
+                        MEMBERS_COLLECTION_ID,
+                        userId,
+                        {
+                            name: name || "New Member",
+                            email: email.toLowerCase().trim(),
+                            is_authorized: false,
+                            role: "Member",
+                            avatar_id: "",
+                            bio: "New member joined via Google.",
+                            created_at: new Date().toISOString(),
+                            slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'member'
+                        }
+                    );
+
+                    // Set default permissions for the new profile so the user can edit it
+                    // referencing the same logic we just fixed manually
+                    await databases.updateDocument(
+                        DATABASE_ID,
+                        MEMBERS_COLLECTION_ID,
+                        userId,
+                        {},
+                        ["read(\"any\")", `update("user:${userId}")`, `delete("user:${userId}")`]
+                    );
+
+                    console.log("Profile created for:", email);
+                    // Re-fetch to confirm and set state
+                    return checkAuthorizaton(email, userId, name);
+                } catch (createError) {
+                    console.error("Error creating profile for OAuth user:", createError);
+                }
+                return;
+            }
+
             const memberDoc = response.documents[0];
             const isAuthorizedMember = memberDoc ? !!memberDoc.is_authorized : false;
             const isAdminMember = memberDoc ? memberDoc.role === "Admin" : false;
@@ -68,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const accountDetails = await account.get();
             console.log("Session found for:", accountDetails.email);
             setUser(accountDetails);
-            await checkAuthorizaton(accountDetails.email);
+            await checkAuthorizaton(accountDetails.email, accountDetails.$id, accountDetails.name);
         } catch (error) {
             console.log("No active Appwrite session or error fetching details:", error);
             setUser(null);
@@ -87,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const accountDetails = await account.get();
             console.log("Login successful. User email:", accountDetails.email);
             setUser(accountDetails);
-            await checkAuthorizaton(accountDetails.email);
+            await checkAuthorizaton(accountDetails.email, accountDetails.$id, accountDetails.name);
         } catch (error) {
             console.error("Login failed:", error);
             throw error;

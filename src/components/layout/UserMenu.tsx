@@ -72,14 +72,24 @@ export function UserMenu({ isHome, isScrolled, className }: UserMenuProps) {
 
                         <div className="p-0 flex flex-col">
                             {isAuthorized && (
-                                <Link
-                                    to="/admin"
-                                    onClick={() => setIsOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#C5A059] hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
-                                >
-                                    <LayoutDashboard className="w-4 h-4" />
-                                    <span>ADMIN_CONSOLE</span>
-                                </Link>
+                                <>
+                                    <Link
+                                        to="/admin"
+                                        onClick={() => setIsOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-3 hover:bg-[#C5A059] hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
+                                    >
+                                        <LayoutDashboard className="w-4 h-4" />
+                                        <span>ADMIN_CONSOLE</span>
+                                    </Link>
+                                    <Link
+                                        to={`/directory/${user.$id}`}
+                                        onClick={() => setIsOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-3 hover:bg-[#C5A059] hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
+                                    >
+                                        <User className="w-4 h-4" />
+                                        <span>MY_PROFILE</span>
+                                    </Link>
+                                </>
                             )}
 
                             <button

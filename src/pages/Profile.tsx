@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { Mail, Share, Bookmark, ArrowRight, Shield } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
 import { useState, useEffect } from "react";
-import { databases, storage, DATABASE_ID, PROFILES_COLLECTION_ID, NARRATIVES_COLLECTION_ID } from "../lib/appwrite";
+import { databases, DATABASE_ID, PROFILES_COLLECTION_ID, NARRATIVES_COLLECTION_ID, getImageUrl } from "../lib/appwrite";
 import { Query } from "appwrite";
 import type { Member, Narrative } from "../types";
 
@@ -16,6 +16,14 @@ interface ProfileNarrative {
     description: string;
 }
 
+type TabType = 'narratives' | 'timeline' | 'gallery';
+
+import { TimelineManager } from "../components/admin/TimelineManager";
+import { GalleryManager } from "../components/admin/GalleryManager";
+import { NarrativeEditor } from "../components/admin/NarrativeEditor";
+import { ProfileEditModal } from "../components/profile/ProfileEditModal";
+import { Settings, Edit3, Plus, ArrowLeft } from "lucide-react";
+
 export function Profile() {
     const navigate = useNavigate();
     const { user: currentUser } = useAuth();
@@ -24,88 +32,96 @@ export function Profile() {
     const [narratives, setNarratives] = useState<ProfileNarrative[]>([]);
     const [loading, setLoading] = useState(true);
     const [isPending, setIsPending] = useState(false);
-    const BUCKET_ID = "legacy_core_assets";
+
+    // Edit Mode State
+    const [activeTab, setActiveTab] = useState<TabType>('narratives');
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [editingNarrative, setEditingNarrative] = useState<any>(null);
+    const [showNarrativeEditor, setShowNarrativeEditor] = useState(false);
+
+
+
+    const isOwner = currentUser && member && currentUser.$id === member.id;
+
+    const fetchProfile = async () => {
+        if (!id) return;
+        setLoading(true);
+        try {
+            // Fetch Member
+            const memberDoc = await databases.getDocument(
+                DATABASE_ID,
+                PROFILES_COLLECTION_ID,
+                id
+            );
+
+            const imageUrl = getImageUrl(memberDoc.avatar_id);
+
+            const honors = memberDoc.honors || [];
+
+            if (!memberDoc.is_authorized && memberDoc.$id !== currentUser?.$id) {
+                throw new Error("This profile is currently private or pending approval.");
+            }
+
+            if (!memberDoc.is_authorized) {
+                setIsPending(true);
+            }
+
+            const mappedMember: Member = {
+                id: memberDoc.$id,
+                name: memberDoc.name,
+                role: memberDoc.role,
+                imageUrl: imageUrl,
+                bio: memberDoc.bio,
+                bioIntro: memberDoc.bioIntro,
+                quote: memberDoc.quote,
+                honors: honors,
+                social: {
+                    email: memberDoc.has_email ? "mailto:email@example.com" : undefined,
+                    linkedin: memberDoc.has_linkedin ? "#" : undefined
+                }
+            };
+            setMember(mappedMember);
+
+            // Fetch Narratives for this member
+            const narrativesResponse = await databases.listDocuments(
+                DATABASE_ID,
+                NARRATIVES_COLLECTION_ID,
+                [
+                    Query.equal("author_id", [id || ""]),
+                    Query.orderDesc("date_event")
+                ]
+            );
+
+            const mappedNarratives: ProfileNarrative[] = (narrativesResponse.documents as unknown as Narrative[]).map((doc) => ({
+                id: doc.$id,
+                title: doc.title,
+                excerpt: doc.content || "",
+                description: doc.description || "",
+                date: doc.date_event ? new Date(doc.date_event).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "N/A",
+                // Store raw doc for editing
+                raw: doc
+            }));
+
+            // @ts-ignore
+            setNarratives(mappedNarratives);
+
+        } catch (error) {
+            console.error("Failed to fetch profile:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            if (!id) return;
-            setLoading(true);
-            try {
-                // Fetch Member
-                const memberDoc = await databases.getDocument(
-                    DATABASE_ID,
-                    PROFILES_COLLECTION_ID,
-                    id
-                );
-
-                let imageUrl = "https://placehold.co/400x400/png?text=Profile";
-                if (memberDoc.avatar_id) {
-                    if (memberDoc.avatar_id.startsWith("http")) {
-                        imageUrl = memberDoc.avatar_id;
-                    } else {
-                        try {
-                            imageUrl = storage.getFileView(BUCKET_ID, memberDoc.avatar_id).toString();
-                        } catch (e) {
-                            console.error("Error getting image view:", e);
-                        }
-                    }
-                }
-
-                const honors = memberDoc.honors || [];
-
-                if (!memberDoc.is_authorized && memberDoc.$id !== currentUser?.$id) {
-                    throw new Error("This profile is currently private or pending approval.");
-                }
-
-                if (!memberDoc.is_authorized) {
-                    setIsPending(true);
-                }
-
-                const mappedMember: Member = {
-                    id: memberDoc.$id,
-                    name: memberDoc.name,
-                    role: memberDoc.role,
-                    imageUrl: imageUrl,
-                    bio: memberDoc.bio,
-                    bioIntro: memberDoc.bioIntro,
-                    quote: memberDoc.quote,
-                    honors: honors,
-                    social: {
-                        email: memberDoc.has_email ? "mailto:email@example.com" : undefined,
-                        linkedin: memberDoc.has_linkedin ? "#" : undefined
-                    }
-                };
-                setMember(mappedMember);
-
-                // Fetch Narratives for this member
-                const narrativesResponse = await databases.listDocuments(
-                    DATABASE_ID,
-                    NARRATIVES_COLLECTION_ID,
-                    [
-                        Query.equal("author_id", [id || ""]),
-                        Query.orderDesc("date_event")
-                    ]
-                );
-
-                const mappedNarratives: ProfileNarrative[] = (narrativesResponse.documents as unknown as Narrative[]).map((doc) => ({
-                    id: doc.$id,
-                    title: doc.title,
-                    excerpt: doc.content || "",
-                    description: doc.description || "",
-                    date: doc.date_event ? new Date(doc.date_event).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "N/A",
-                }));
-
-                setNarratives(mappedNarratives);
-
-            } catch (error) {
-                console.error("Failed to fetch profile:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchProfile();
-    }, [id]);
+    }, [id, currentUser?.$id]);
+
+    // Scroll to top when editor opens
+    useEffect(() => {
+        if (showNarrativeEditor) {
+            window.scrollTo(0, 0);
+        }
+    }, [showNarrativeEditor]);
 
     if (loading) {
         return (
@@ -144,6 +160,42 @@ export function Profile() {
         );
     }
 
+    // Handlers
+    const handleNarrativeSuccess = () => {
+        setShowNarrativeEditor(false);
+        setEditingNarrative(null);
+        fetchProfile();
+    };
+
+    const handleEditNarrative = (narrative: any) => {
+        setEditingNarrative(narrative);
+        setShowNarrativeEditor(true);
+    };
+
+    if (showNarrativeEditor && isOwner) {
+        return (
+            <div className="bg-white dark:bg-[#09090b] min-h-screen pt-24 pb-12 px-6">
+                <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+                    <button
+                        onClick={() => {
+                            setShowNarrativeEditor(false);
+                            setEditingNarrative(null);
+                        }}
+                        className="flex items-center gap-2 font-mono text-xs uppercase hover:text-[#C5A059] transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        RETURN_TO_PROFILE
+                    </button>
+                    <NarrativeEditor
+                        memberId={member.id}
+                        initialData={editingNarrative}
+                        onSuccess={handleNarrativeSuccess}
+                    />
+                </div>
+            </div>
+        );
+    }
+
     return (
         <PageTransition>
             <div className="bg-white dark:bg-[#09090b] min-h-screen pt-12 font-sans">
@@ -151,7 +203,7 @@ export function Profile() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 border-b-2 border-black dark:border-white/20 min-h-[60vh]">
 
                     {/* Left: Image & Identity */}
-                    <div className="lg:col-span-5 relative min-h-[60vh] lg:min-h-0 bg-gray-100 dark:bg-stone-900 border-r border-black dark:border-white/20">
+                    <div className="lg:col-span-5 relative min-h-[60vh] lg:min-h-0 bg-gray-100 dark:bg-stone-900 border-r border-black dark:border-white/20 group">
                         <img
                             src={member.imageUrl}
                             alt={member.name}
@@ -171,6 +223,17 @@ export function Profile() {
                             </div>
                         </div>
 
+                        {/* Edit Profile Button (Owner Only) - Always visible/accessible for owner */}
+                        {isOwner && (
+                            <button
+                                onClick={() => setIsProfileModalOpen(true)}
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 bg-black text-white px-6 py-3 font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black flex items-center gap-2"
+                            >
+                                <Edit3 className="w-4 h-4" />
+                                EDIT_IDENTITY
+                            </button>
+                        )}
+
                         {/* Quick Actions Overlay */}
                         <div className="absolute bottom-0 left-0 right-0 grid grid-cols-3 divide-x divide-white/20 border-t border-white/20 bg-black/40 backdrop-blur-md text-white z-10">
                             {[Mail, Share, Bookmark].map((Icon, idx) => (
@@ -183,7 +246,11 @@ export function Profile() {
 
                     {/* Right: Data & Bio */}
                     <div className="lg:col-span-7 flex flex-col">
-                        <div className="p-8 lg:p-16 border-b border-black dark:border-white/20 flex-grow">
+                        <div className="p-8 lg:p-16 border-b border-black dark:border-white/20 flex-grow relative">
+                            <div className="absolute top-8 right-8">
+                                <Settings className="w-4 h-4 animate-spin-slow opacity-20" />
+                            </div>
+
                             <h1 className="text-5xl lg:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6">
                                 {member.name.split(' ').map((word, i) => (
                                     <span key={i} className="block">{word}</span>
@@ -228,41 +295,122 @@ export function Profile() {
                     </div>
                 </div>
 
-                {/* Narratives Section */}
-                <div className="max-w-[1920px] mx-auto">
-                    <div className="border-b border-black dark:border-white/20 px-4 md:px-8 py-4 flex justify-between items-center bg-gray-50 dark:bg-white/5">
-                        <h3 className="font-bold uppercase tracking-tight">Personnel Logs [{narratives.length}]</h3>
-                        <span className="font-mono text-xs text-gray-500">/// ARCHIVED_DATA</span>
+                {/* Content Section - Unified View */}
+                <div className="max-w-[1920px] mx-auto min-h-[50vh]">
+                    {/* Tabs */}
+                    <div className="flex border-b border-black dark:border-white/20 sticky top-0 bg-white dark:bg-[#09090b] z-20 overflow-x-auto">
+                        {[
+                            { id: 'narratives', label: 'NARRATIVE_LOGS' },
+                            { id: 'timeline', label: 'TIMELINE_DATA' },
+                            { id: 'gallery', label: 'VISUAL_ARCHIVE' }
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as TabType)}
+                                className={`px-8 py-6 font-mono text-sm uppercase tracking-wider transition-colors whitespace-nowrap ${activeTab === tab.id
+                                    ? 'bg-black text-white dark:bg-white dark:text-black'
+                                    : 'hover:bg-gray-100 dark:hover:bg-white/10'
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
 
-                    <div className="divide-y divide-black dark:divide-white/20">
-                        {narratives.length > 0 ? (
-                            narratives.map((story, index) => (
-                                <div
-                                    key={story.id}
-                                    className="group grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 p-4 md:p-8 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors duration-0 cursor-pointer"
-                                    onClick={() => navigate(`/narratives/${story.id}`)}
-                                >
-                                    <div className="md:col-span-2 font-mono text-xs text-gray-500 group-hover:text-[#C5A059] flex flex-row md:flex-col justify-between md:justify-start gap-2">
-                                        <span>{story.date}</span>
-                                        <span>LOG_{index.toString().padStart(3, '0')}</span>
-                                    </div>
-                                    <div className="md:col-span-8">
-                                        <h4 className="text-2xl md:text-3xl font-bold uppercase tracking-tight mb-2 group-hover:text-[#C5A059] transition-colors">{story.title}</h4>
-                                        <p className="font-mono text-sm opacity-70 line-clamp-2 max-w-3xl">{story.description || story.excerpt.replace(/<[^>]*>?/gm, '')}</p>
-                                    </div>
-                                    <div className="md:col-span-2 flex items-center justify-end">
-                                        <ArrowRight className="w-6 h-6 transform -rotate-45 group-hover:rotate-0 transition-transform duration-300 group-hover:text-[#C5A059]" />
-                                    </div>
+                    {/* Tab Content */}
+                    <div className="p-8 bg-gray-50 dark:bg-black/20">
+                        {activeTab === 'timeline' && (
+                            // Timeline Manager handles its own view/edit logic based on memberId internally if designed correctly
+                            // But here we might want to wrap it or ensure it shows list + add button
+                            // Current TimelineManager seems to cover crud. 
+                            // Let's ensure it has memberId prop passed which we did.
+                            <TimelineManager memberId={member.id} />
+                        )}
+
+                        {activeTab === 'gallery' && (
+                            <GalleryManager memberId={member.id} />
+                        )}
+
+                        {activeTab === 'narratives' && (
+                            <div className="max-w-7xl mx-auto space-y-6">
+                                <div className="flex justify-between items-center mb-8">
+                                    <h3 className="font-bold uppercase tracking-tight text-2xl">LOG ENTRIES</h3>
+                                    {isOwner && (
+                                        <button
+                                            onClick={() => setShowNarrativeEditor(true)}
+                                            className="flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-all"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            NEW_ENTRY
+                                        </button>
+                                    )}
                                 </div>
-                            ))
-                        ) : (
-                            <div className="p-12 text-center font-mono text-sm text-gray-400">
-                                [ NO_LOGS_AVAILABLE_FOR_USERS ]
+
+                                <div className="grid gap-4">
+                                    {narratives.map((story: any) => (
+                                        <div
+                                            key={story.id}
+                                            className="group border border-black dark:border-white p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-[#09090b] hover:shadow-lg transition-all cursor-pointer"
+                                            onClick={() => navigate(`/narratives/${story.id}`)}
+                                        >
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="font-mono text-xs text-[#C5A059]">{story.date}</span>
+                                                    {isOwner && (
+                                                        <span className={`font-mono text-[10px] px-2 py-0.5 border ${story.raw?.status === 'published'
+                                                            ? 'border-green-500 text-green-600'
+                                                            : 'border-gray-400 text-gray-500'
+                                                            }`}>
+                                                            {(story.raw?.status || 'published').toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <h4 className="font-bold uppercase text-xl group-hover:text-[#C5A059] transition-colors">{story.title}</h4>
+                                                <p className="font-mono text-sm leading-relaxed opacity-60 mt-2 line-clamp-2">
+                                                    {story.description || story.excerpt.replace(/<[^>]*>?/gm, '')}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex items-center gap-4">
+                                                {isOwner ? (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEditNarrative(story.raw);
+                                                        }}
+                                                        className="px-4 py-2 border border-black dark:border-white font-mono text-xs uppercase hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                                                    >
+                                                        EDIT_CONTENT
+                                                    </button>
+                                                ) : (
+                                                    <ArrowRight className="w-6 h-6 transform -rotate-45 group-hover:rotate-0 transition-transform duration-300 group-hover:text-[#C5A059]" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {narratives.length === 0 && (
+                                        <div className="text-center py-12 border border-dashed border-gray-300 dark:border-gray-700">
+                                            <p className="font-mono text-sm text-gray-400 uppercase">
+                                                {isOwner ? "NO_LOGS_YET. START_YOUR_FIRST_ENTRY." : "NO_LOGS_AVAILABLE_FOR_USER"}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
+
+                {/* Profile Edit Modal */}
+                {member && (
+                    <ProfileEditModal
+                        isOpen={isProfileModalOpen}
+                        onClose={() => setIsProfileModalOpen(false)}
+                        member={member}
+                        onSuccess={fetchProfile}
+                    />
+                )}
             </div>
         </PageTransition>
     );

@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
-import { databases, storage, DATABASE_ID, GALLERY_COLLECTION_ID } from "../lib/appwrite";
+import { databases, DATABASE_ID, GALLERY_COLLECTION_ID, getImageUrl } from "../lib/appwrite";
 import { Query } from "appwrite";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { useScrollLock } from "../hooks/useScrollLock";
+import { GalleryManager } from "../components/admin/GalleryManager";
 
 interface GalleryDisplayItem {
     id: string;
@@ -15,7 +20,11 @@ export function Gallery() {
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [galleryItems, setGalleryItems] = useState<GalleryDisplayItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const BUCKET_ID = "legacy_core_assets";
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    useScrollLock(isModalOpen);
+    const { isAdmin, isAuthorized, user } = useAuth();
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchGallery = async () => {
@@ -29,25 +38,12 @@ export function Gallery() {
                     ]
                 );
 
-                const mappedItems = response.documents.map((doc: any) => {
-                    let imageUrl = "";
-                    if (doc.image_id.startsWith("http")) {
-                        imageUrl = doc.image_id;
-                    } else {
-                        try {
-                            imageUrl = storage.getFileView(BUCKET_ID, doc.image_id).toString();
-                        } catch (e) {
-                            console.error("Error generating image URL", e);
-                        }
-                    }
-
-                    return {
-                        id: doc.$id,
-                        title: doc.title,
-                        date: doc.display_date,
-                        image: imageUrl
-                    };
-                });
+                const mappedItems = response.documents.map((doc: any) => ({
+                    id: doc.$id,
+                    title: doc.title,
+                    date: doc.display_date,
+                    image: getImageUrl(doc.image_id)
+                }));
 
                 setGalleryItems(mappedItems);
             } catch (error) {
@@ -59,6 +55,10 @@ export function Gallery() {
 
         fetchGallery();
     }, []);
+
+    const handleAppend = () => {
+        setIsModalOpen(true);
+    };
 
     const openLightbox = (index: number) => setSelectedImageIndex(index);
     const closeLightbox = () => setSelectedImageIndex(null);
@@ -92,7 +92,19 @@ export function Gallery() {
                             INDEXED VISUAL RECORDS...
                         </p>
                     </div>
-                    {/* Filter Tabs - Brutalist */}
+                    {/* Add Logic for Append Button */}
+                    {isAuthorized && (
+                        <button
+                            onClick={handleAppend}
+                            className="bg-black text-white dark:bg-white dark:text-black font-mono text-xs px-6 py-3 hover:bg-[#C5A059] hover:text-black transition-colors uppercase font-bold"
+                        >
+                            [ + APPEND_ENTRY ]
+                        </button>
+                    )}
+                </div>
+
+                {/* Filter Tabs - Brutalist */}
+                <div className="px-4 md:px-8 pb-8 flex justify-end">
                     <div className="flex gap-4 font-mono text-[10px] md:text-xs">
                         {['ALL', 'EDITORIAL', 'PARTIES', 'TRAVEL'].map((filter) => (
                             <button key={filter} className={`uppercase px-2 py-1 border border-transparent hover:border-[#C5A059] hover:text-[#C5A059] transition-all ${filter === 'ALL' ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-gray-500'}`}>
@@ -183,6 +195,38 @@ export function Gallery() {
                         </div>
                     )}
                 </div>
+                {/* Modal for Member Uploads */}
+                <AnimatePresence>
+                    {isModalOpen && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsModalOpen(false)}
+                                className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none"
+                            >
+                                <div data-lenis-prevent className="bg-white dark:bg-[#09090b] w-full max-w-4xl max-h-[90vh] overflow-y-auto border-2 border-black dark:border-white shadow-2xl pointer-events-auto">
+                                    <div className="p-4 border-b border-black dark:border-white flex justify-between items-center bg-gray-50 dark:bg-white/5">
+                                        <h2 className="font-black text-xl uppercase tracking-tighter">UPLOAD_VISUAL</h2>
+                                        <button onClick={() => setIsModalOpen(false)}>
+                                            <X className="w-6 h-6" />
+                                        </button>
+                                    </div>
+                                    <div className="p-6">
+                                        <GalleryManager memberId={user?.$id} />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
             </div>
         </PageTransition>
     );

@@ -1,16 +1,23 @@
 import { useEffect, useState } from "react";
-import { databases, storage, DATABASE_ID, TIMELINE_COLLECTION_ID } from "../lib/appwrite";
+import { databases, DATABASE_ID, TIMELINE_COLLECTION_ID, PROFILES_COLLECTION_ID, getImageUrl } from "../lib/appwrite";
 import { Query } from "appwrite";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { PageTransition } from "../components/PageTransition";
+import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
+import { TimelineManager } from "../components/admin/TimelineManager";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 export function Timeline() {
+    const { isAdmin, isAuthorized, user } = useAuth();
+    const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    useScrollLock(isModalOpen);
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
-    const { isAdmin } = useAuth();
-    const BUCKET_ID = "legacy_core_assets";
+    const [profiles, setProfiles] = useState<Record<string, any>>({});
+
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -24,34 +31,48 @@ export function Timeline() {
                     ]
                 );
 
-                const mappedEvents = response.documents.map((doc: any) => {
-                    let imageUrl = "";
-                    if (doc.image_id) {
-                        if (doc.image_id.startsWith("http")) {
-                            imageUrl = doc.image_id;
-                        } else {
-                            try {
-                                imageUrl = storage.getFileView(BUCKET_ID, doc.image_id).toString();
-                            } catch (e) {
-                                console.error("Error getting image view:", e);
-                            }
-                        }
-                    }
-
-                    return {
-                        id: doc.$id,
-                        date: new Date(doc.date_event).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
-                        year: doc.year || new Date(doc.date_event).getFullYear().toString(),
-                        location: doc.location,
-                        title: doc.title,
-                        description: doc.description,
-                        image: imageUrl,
-                        category: doc.category,
-                        attendees: doc.attendee_image_urls || []
-                    };
-                });
+                const mappedEvents = response.documents.map((doc: any) => ({
+                    id: doc.$id,
+                    date: new Date(doc.date_event).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+                    year: doc.year || new Date(doc.date_event).getFullYear().toString(),
+                    location: doc.location,
+                    title: doc.title,
+                    description: doc.description,
+                    image: doc.image_id ? getImageUrl(doc.image_id) : "",
+                    category: doc.category,
+                    participantIds: doc.participant_ids || []
+                }));
 
                 setEvents(mappedEvents);
+
+                // Collect all unique participant IDs and fetch their profiles
+                const allIds = new Set<string>();
+                mappedEvents.forEach((e: any) => e.participantIds.forEach((id: string) => allIds.add(id)));
+
+                if (allIds.size > 0) {
+                    try {
+                        const profileResponse = await databases.listDocuments(
+                            DATABASE_ID,
+                            PROFILES_COLLECTION_ID,
+                            [
+                                Query.equal("$id", Array.from(allIds)),
+                                Query.limit(100)
+                            ]
+                        );
+                        const profileMap: Record<string, any> = {};
+                        profileResponse.documents.forEach((p: any) => {
+                            profileMap[p.$id] = {
+                                id: p.$id,
+                                name: p.name,
+                                slug: p.slug,
+                                avatar_id: p.avatar_id
+                            };
+                        });
+                        setProfiles(profileMap);
+                    } catch (profileError) {
+                        console.error("Failed to fetch participant profiles:", profileError);
+                    }
+                }
             } catch (error) {
                 console.error("Failed to fetch timeline events:", error);
             } finally {
@@ -76,10 +97,10 @@ export function Timeline() {
                             TRACKING KEY MOMENTS...
                         </p>
                     </div>
-                    {/* Add Event Button (Admin Only) */}
-                    {isAdmin && (
+                    {/* Add Event Button (Admin & Members) */}
+                    {isAuthorized && (
                         <button
-                            onClick={() => navigate("/admin?tab=timeline")}
+                            onClick={() => setIsModalOpen(true)}
                             className="bg-black text-white dark:bg-white dark:text-black font-mono text-xs px-6 py-3 hover:bg-[#C5A059] hover:text-black transition-colors uppercase font-bold"
                         >
                             [ + APPEND_ENTRY ]
@@ -137,22 +158,36 @@ export function Timeline() {
                                                     </p>
                                                 </div>
 
-                                                {/* Attendees Footer */}
-                                                {event.attendees && event.attendees.length > 0 && (
+                                                {/* Participants Footer */}
+                                                {event.participantIds && event.participantIds.length > 0 && (
                                                     <div className="mt-12 pt-6 border-t border-black/10 dark:border-white/10">
                                                         <span className="font-mono text-[10px] opacity-50 block mb-2">PARTICIPANTS:</span>
                                                         <div className="flex -space-x-2">
-                                                            {event.attendees.map((url: string, i: number) => (
-                                                                <img
-                                                                    key={i}
-                                                                    src={url}
-                                                                    className="w-8 h-8 md:w-10 md:h-10 border-2 border-black dark:border-white grayscale hover:grayscale-0 transition-all z-10 hover:z-20 bg-gray-200"
-                                                                    alt="Attendee"
-                                                                />
-                                                            ))}
+                                                            {event.participantIds.map((pid: string) => {
+                                                                const profile = profiles[pid];
+                                                                if (!profile) return null;
+                                                                return (
+                                                                    <Link
+                                                                        key={pid}
+                                                                        to={`/profile/${profile.slug || profile.id}`}
+                                                                        className="relative group/avatar"
+                                                                        title={profile.name}
+                                                                    >
+                                                                        <img
+                                                                            src={getImageUrl(profile.avatar_id)}
+                                                                            className="w-8 h-8 md:w-10 md:h-10 border-2 border-black dark:border-white grayscale hover:grayscale-0 transition-all z-10 hover:z-20 bg-gray-200 object-cover"
+                                                                            alt={profile.name}
+                                                                        />
+                                                                        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] bg-black text-white dark:bg-white dark:text-black px-1 py-0.5 opacity-0 group-hover/avatar:opacity-100 transition-opacity z-30">
+                                                                            {profile.name}
+                                                                        </span>
+                                                                    </Link>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </div>
                                                 )}
+
                                             </div>
 
                                             {/* Media Side */}
@@ -174,6 +209,40 @@ export function Timeline() {
                         )}
                     </div>
                 )}
+
+                {/* Modal for Member Timeline Events */}
+                <AnimatePresence>
+                    {isModalOpen && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsModalOpen(false)}
+                                className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none"
+                            >
+                                <div data-lenis-prevent className="bg-white dark:bg-[#09090b] w-full max-w-4xl max-h-[90vh] overflow-y-auto border-2 border-black dark:border-white shadow-2xl pointer-events-auto">
+                                    <div className="p-4 border-b border-black dark:border-white flex justify-between items-center bg-gray-50 dark:bg-white/5">
+                                        <h2 className="font-black text-xl uppercase tracking-tighter">LOG_EVENT</h2>
+                                        <button onClick={() => setIsModalOpen(false)}>
+                                            <X className="w-6 h-6" />
+                                        </button>
+                                    </div>
+                                    <div className="p-6">
+                                        {/* TimelineManager expects memberId prop for filtering/saving to specific user */}
+                                        <TimelineManager memberId={user?.$id} />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
             </div>
         </PageTransition>
     );

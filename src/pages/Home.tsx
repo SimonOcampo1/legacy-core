@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, ArrowRight, Activity, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import { databases, storage, DATABASE_ID, NARRATIVES_COLLECTION_ID, GALLERY_COLLECTION_ID } from "../lib/appwrite";
+import { databases, DATABASE_ID, NARRATIVES_COLLECTION_ID, GALLERY_COLLECTION_ID, getImageUrl } from "../lib/appwrite";
 import { Query, type Models } from "appwrite";
 import { PPGLogo } from "../components/ui/PPGLogo";
 import { InteractiveGridBackground } from "../components/ui/InteractiveGridBackground";
@@ -34,7 +34,6 @@ export function Home() {
     const [narratives, setNarratives] = useState<HomeNarrative[]>([]);
     const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
     const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
-    const BUCKET_ID = "legacy_core_assets";
     const heroRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({
         target: heroRef,
@@ -56,19 +55,10 @@ export function Home() {
 
                 const mappedGalleryImages = galleryResponse.documents.map((doc: Models.Document) => {
                     const galleryDoc = doc as GalleryDocument;
-                    let imageUrl = "";
                     const imageId = galleryDoc.image_id;
+                    if (!imageId) return null;
 
-                    if (imageId && imageId.startsWith("http")) {
-                        imageUrl = imageId;
-                    } else {
-                        try {
-                            imageUrl = storage.getFilePreview(BUCKET_ID, imageId, 400, 600, undefined, 80).toString();
-                        } catch (e) {
-                            console.error("Error getting image preview:", e);
-                            return null;
-                        }
-                    }
+                    const imageUrl = imageId.startsWith("http") ? imageId : getImageUrl(imageId);
                     return { id: doc.$id, imageUrl };
                 }).filter(item => item !== null) as GalleryImage[];
 

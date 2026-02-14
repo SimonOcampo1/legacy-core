@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { storage, databases, DATABASE_ID, GALLERY_COLLECTION_ID } from '../../lib/appwrite';
-import { ID, Query, ImageGravity } from 'appwrite';
+import { storage, databases, DATABASE_ID, GALLERY_COLLECTION_ID, BUCKET_ID, getImageUrl } from '../../lib/appwrite';
+import { ID, Query } from 'appwrite';
 import { Trash2, Plus, Upload, X, Loader2, Image as ImageIcon, Check, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { DeleteConfirmationModal } from '../ui/DeleteConfirmationModal';
 
-const BUCKET_ID = "legacy_core_assets";
+
 
 interface GalleryItem {
     $id: string;
@@ -17,7 +17,7 @@ interface GalleryItem {
     imageUrl?: string;
 }
 
-export const GalleryManager = () => {
+export const GalleryManager = ({ memberId }: { memberId?: string }) => {
     const [images, setImages] = useState<GalleryItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
@@ -39,29 +39,21 @@ export const GalleryManager = () => {
     const fetchImages = async () => {
         setIsLoading(true);
         try {
+            const queries = [Query.orderDesc('sort_date')];
+            if (memberId) {
+                queries.push(Query.equal('author_id', memberId));
+            }
+
             const response = await databases.listDocuments(
                 DATABASE_ID,
                 GALLERY_COLLECTION_ID,
-                [Query.orderDesc('sort_date')]
+                queries
             );
 
-            const items = response.documents.map((doc: any) => {
-                let imageUrl = "";
-                if (doc.image_id.startsWith("http")) {
-                    imageUrl = doc.image_id;
-                } else {
-                    try {
-                        imageUrl = storage.getFilePreview(BUCKET_ID, doc.image_id, 800, 800, ImageGravity.Center, 85).toString();
-                    } catch (e) {
-                        console.error("Error generating preview URL", e);
-                    }
-                }
-
-                return {
-                    ...doc,
-                    imageUrl
-                };
-            });
+            const items = response.documents.map((doc: any) => ({
+                ...doc,
+                imageUrl: getImageUrl(doc.image_id)
+            }));
 
             setImages(items);
         } catch (error) {
@@ -103,6 +95,7 @@ export const GalleryManager = () => {
                     image_id: fileUpload.$id,
                     sort_date: new Date(newDate).toISOString(),
                     display_date: displayDate,
+                    author_id: memberId || 'admin'
                 }
             );
 

@@ -27,6 +27,7 @@ import type { Models } from "appwrite";
 export interface Narrative extends Models.Document {
     title: string;
     content: string;
+    description?: string;
     status: 'draft' | 'published' | 'archived';
     date_event?: string; // DateTime string
     tags?: string;

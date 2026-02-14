@@ -3,17 +3,30 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { cn } from '../../lib/utils';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
-    Bold, Italic, Heading1, Heading2, Quote, Image as ImageIcon,
+    Bold, Italic, Quote, Image as ImageIcon,
     Undo, Redo, Calendar, Upload, X, Check, Loader2, ChevronLeft
 } from 'lucide-react';
-import { storage, databases, DATABASE_ID, NARRATIVES_COLLECTION_ID } from '../../lib/appwrite';
-import { ID, ImageGravity } from 'appwrite';
+import { storage, databases, DATABASE_ID, NARRATIVES_COLLECTION_ID, BUCKET_ID, getImageUrl } from '../../lib/appwrite';
+import { ID } from 'appwrite';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
 
-const BUCKET_ID = "legacy_core_assets";
+
+
+interface NarrativeEditorProps {
+    memberId?: string;
+    initialData?: {
+        $id: string;
+        title: string;
+        content: string;
+        date_event?: string;
+        cover_image_id?: string;
+        category?: string;
+    };
+    onSuccess?: () => void;
+}
 
 const MenuBar = ({ editor }: { editor: any }) => {
     const [isUploading, setIsUploading] = useState(false);
@@ -39,14 +52,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                         file
                     );
 
-                    const url = storage.getFilePreview(
-                        BUCKET_ID,
-                        response.$id,
-                        2000,
-                        0,
-                        ImageGravity.Center,
-                        100
-                    ).toString();
+                    const url = getImageUrl(response.$id);
 
                     if (url) {
                         editor.chain().focus().setImage({ src: url }).run();
@@ -161,15 +167,26 @@ const MenuBar = ({ editor }: { editor: any }) => {
     );
 };
 
-export const NarrativeEditor = () => {
-    const [title, setTitle] = useState('');
+export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeEditorProps) => {
+    const [title, setTitle] = useState(initialData?.title || '');
     const [isSaving, setIsSaving] = useState(false);
-    const [coverImageId, setCoverImageId] = useState<string | null>(null);
+    const [coverImageId, setCoverImageId] = useState<string | null>(initialData?.cover_image_id || null);
     const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
-    const [category, setCategory] = useState('General');
-    const [eventDate, setEventDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [category, setCategory] = useState(initialData?.category || 'General');
+    const [eventDate, setEventDate] = useState<string>(
+        initialData?.date_event
+            ? new Date(initialData.date_event).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0]
+    );
 
     const { user } = useAuth();
+
+    // Effect to load cover image URL if initialData has an ID
+    useEffect(() => {
+        if (initialData?.cover_image_id) {
+            setCoverImageUrl(getImageUrl(initialData.cover_image_id));
+        }
+    }, [initialData?.cover_image_id]);
 
     const editor = useEditor({
         extensions: [
@@ -191,7 +208,7 @@ export const NarrativeEditor = () => {
                 emptyEditorClass: 'is-editor-empty before:content-[attr(data-placeholder)] before:text-gray-300 dark:before:text-gray-700 before:float-left before:pointer-events-none before:font-mono',
             }),
         ],
-        content: '',
+        content: initialData?.content || '',
         editorProps: {
             attributes: {
                 class: 'prose prose-neutral prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[600px] p-8 md:p-12 font-serif leading-relaxed text-black dark:text-white selection:bg-[#C5A059] selection:text-black',
@@ -205,8 +222,7 @@ export const NarrativeEditor = () => {
             try {
                 const response = await storage.createFile(BUCKET_ID, ID.unique(), file);
                 setCoverImageId(response.$id);
-                const url = storage.getFilePreview(BUCKET_ID, response.$id, 1600, 800, ImageGravity.Center, 90).toString();
-                setCoverImageUrl(url);
+                setCoverImageUrl(getImageUrl(response.$id));
             } catch (error) {
                 console.error("Cover image upload failed", error);
                 toast.error("Failed to upload cover image.");
@@ -227,28 +243,51 @@ export const NarrativeEditor = () => {
 
         setIsSaving(true);
         try {
-            await databases.createDocument(
-                DATABASE_ID,
-                NARRATIVES_COLLECTION_ID,
-                ID.unique(),
-                {
-                    title,
-                    content: editor.getHTML(),
-                    author_id: user?.$id || "admin",
-                    status: isDraft ? 'draft' : 'published',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    likes: 0,
-                    category,
-                    cover_image_id: coverImageId || '',
-                    date_event: new Date(eventDate).toISOString(),
-                }
-            );
-            toast.success(isDraft ? "Draft preserved." : "Legacy record preserved.");
-            setTitle('');
-            setCoverImageId(null);
-            setCoverImageUrl(null);
-            editor.commands.setContent('');
+            if (initialData?.$id) {
+                await databases.updateDocument(
+                    DATABASE_ID,
+                    NARRATIVES_COLLECTION_ID,
+                    initialData.$id,
+                    {
+                        title,
+                        content: editor.getHTML(),
+                        status: isDraft ? 'draft' : 'published',
+                        updatedAt: new Date().toISOString(),
+                        category,
+                        cover_image_id: coverImageId || '',
+                        date_event: new Date(eventDate).toISOString(),
+                    }
+                );
+                toast.success("Record updated.");
+            } else {
+                await databases.createDocument(
+                    DATABASE_ID,
+                    NARRATIVES_COLLECTION_ID,
+                    ID.unique(),
+                    {
+                        title,
+                        content: editor.getHTML(),
+                        author_id: memberId || user?.$id || "admin",
+                        status: isDraft ? 'draft' : 'published',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        likes: 0,
+                        category,
+                        cover_image_id: coverImageId || '',
+                        date_event: new Date(eventDate).toISOString(),
+                    }
+                );
+                toast.success(isDraft ? "Draft preserved." : "Legacy record preserved.");
+            }
+
+            if (onSuccess) {
+                onSuccess();
+            } else {
+                setTitle('');
+                setCoverImageId(null);
+                setCoverImageUrl(null);
+                editor.commands.setContent('');
+            }
         } catch (error) {
             console.error("Save failed", error);
             toast.error("Failed to preserve record.");
