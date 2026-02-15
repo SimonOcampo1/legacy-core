@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { motion } from 'framer-motion';
 
 interface AudioPlayerProps {
     src: string;
@@ -9,130 +8,114 @@ interface AudioPlayerProps {
 }
 
 export function AudioPlayer({ src, className }: AudioPlayerProps) {
+    const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [currentTime, setCurrentTime] = useState(0);
     const [isMuted, setIsMuted] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-    const progressRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
 
-        const setAudioData = () => {
-            setDuration(audio.duration);
-            setIsLoading(false);
-        };
+        const updateTime = () => setCurrentTime(audio.currentTime);
+        const updateDuration = () => setDuration(audio.duration);
+        const onEnded = () => setIsPlaying(false);
 
-        const setAudioTime = () => {
-            setCurrentTime(audio.currentTime);
-        };
-
-        const handleEnded = () => {
-            setIsPlaying(false);
-            setCurrentTime(0);
-        };
-
-        const handleCanPlay = () => {
-            setIsLoading(false);
-        };
-
-        audio.addEventListener('loadedmetadata', setAudioData);
-        audio.addEventListener('timeupdate', setAudioTime);
-        audio.addEventListener('ended', handleEnded);
-        audio.addEventListener('canplay', handleCanPlay);
+        audio.addEventListener('timeupdate', updateTime);
+        audio.addEventListener('loadedmetadata', updateDuration);
+        audio.addEventListener('ended', onEnded);
 
         return () => {
-            audio.removeEventListener('loadedmetadata', setAudioData);
-            audio.removeEventListener('timeupdate', setAudioTime);
-            audio.removeEventListener('ended', handleEnded);
-            audio.removeEventListener('canplay', handleCanPlay);
+            audio.removeEventListener('timeupdate', updateTime);
+            audio.removeEventListener('loadedmetadata', updateDuration);
+            audio.removeEventListener('ended', onEnded);
         };
     }, []);
 
     const togglePlay = () => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
+        if (!audioRef.current) return;
         if (isPlaying) {
-            audio.pause();
+            audioRef.current.pause();
         } else {
-            audio.play();
+            audioRef.current.play();
         }
         setIsPlaying(!isPlaying);
     };
 
     const toggleMute = () => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        audio.muted = !isMuted;
+        if (!audioRef.current) return;
+        audioRef.current.muted = !isMuted;
         setIsMuted(!isMuted);
     };
 
-    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const audio = audioRef.current;
-        const progress = progressRef.current;
-        if (!audio || !progress) return;
-
-        const rect = progress.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
-        audio.currentTime = percent * duration;
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const time = parseFloat(e.target.value);
+        if (audioRef.current) {
+            audioRef.current.currentTime = time;
+            setCurrentTime(time);
+        }
     };
 
     const formatTime = (time: number) => {
         if (isNaN(time)) return "0:00";
-        const mins = Math.floor(time / 60);
-        const secs = Math.floor(time % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
+    const progressPercentage = duration ? (currentTime / duration) * 100 : 0;
+
     return (
-        <div className={cn("flex items-center gap-3 p-1.5 pr-4 bg-stone-100/50 dark:bg-stone-900/30 rounded-full border border-stone-200/50 dark:border-stone-800/50 w-full max-w-[240px] group/player transition-all hover:bg-stone-100 dark:hover:bg-stone-900/50", className)}>
+        <div className={cn("flex items-center gap-3 w-full max-w-md", className)}>
             <audio ref={audioRef} src={src} preload="metadata" />
 
+            {/* Play/Pause Button - Boxy & High Contrast */}
             <button
                 onClick={togglePlay}
-                disabled={isLoading}
-                className="flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-full bg-charcoal dark:bg-white text-white dark:text-charcoal shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                className="w-8 h-8 flex items-center justify-center border border-black dark:border-white text-black dark:text-white hover:bg-gold hover:text-white dark:hover:text-black hover:border-gold transition-all shrink-0 bg-transparent"
                 type="button"
             >
-                {isLoading ? (
-                    <Loader2 size={12} className="animate-spin" />
-                ) : isPlaying ? (
-                    <Pause size={12} fill="currentColor" />
+                {isPlaying ? (
+                    <Pause className="w-3 h-3 fill-current" />
                 ) : (
-                    <Play size={12} fill="currentColor" className="ml-0.5" />
+                    <Play className="w-3 h-3 fill-current ml-0.5" />
                 )}
             </button>
 
+            {/* Progress & Time */}
             <div className="flex-1 flex flex-col gap-1 min-w-0">
-                <div
-                    ref={progressRef}
-                    className="h-1 bg-stone-200 dark:bg-stone-800 rounded-full cursor-pointer relative overflow-hidden"
-                    onClick={handleProgressClick}
-                >
-                    <motion.div
-                        className="absolute left-0 top-0 h-full bg-[#C5A059] rounded-full"
-                        animate={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
-                        transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-                    />
+                <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-wider text-black dark:text-white leading-none">
+                    <span className="opacity-50">VOICE_LOG</span>
+                    <span className="opacity-75">{formatTime(currentTime)} / {formatTime(duration)}</span>
                 </div>
-                <div className="flex justify-between text-[9px] font-bold tracking-widest text-stone-400 dark:text-stone-600 uppercase">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
+
+                <div className="relative h-1.5 w-full bg-gray-200 dark:bg-white/10 cursor-pointer group border border-transparent hover:border-black/5 dark:hover:border-white/5 transition-colors">
+                    <input
+                        type="range"
+                        min={0}
+                        max={duration || 100}
+                        value={currentTime}
+                        onChange={handleSeek}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div
+                        className="h-full bg-gold transition-all duration-100 ease-linear relative"
+                        style={{ width: `${progressPercentage}%` }}
+                    >
+                        {/* Optional cleanup: removed the dot handle for purely boxy look, or keep it square */}
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-black dark:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                 </div>
             </div>
 
+            {/* Mute Button */}
             <button
                 onClick={toggleMute}
-                className="flex-shrink-0 text-stone-300 dark:text-stone-700 hover:text-[#C5A059] transition-colors"
+                className="p-1.5 text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors"
                 type="button"
             >
-                {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
             </button>
         </div>
     );

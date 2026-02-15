@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, LayoutDashboard, ChevronDown, User } from "lucide-react";
+import { LogOut, LayoutDashboard, ChevronDown, User, TerminalSquare } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 interface UserMenuProps {
@@ -13,7 +13,7 @@ interface UserMenuProps {
 
 export function UserMenu({ isHome, isScrolled, className }: UserMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const { user, logout, isAuthorized } = useAuth();
+    const { user, logout, isAuthorized, isSuperAdmin } = useAuth();
     const menuRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
@@ -44,7 +44,7 @@ export function UserMenu({ isHome, isScrolled, className }: UserMenuProps) {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "flex items-center gap-2 px-3 py-1 border border-transparent hover:border-[#C5A059] transition-all duration-200 group bg-transparent",
+                    "flex items-center gap-2 px-3 py-1 border border-transparent hover:border-gold transition-all duration-200 group bg-transparent",
                     textColorClass,
                     isOpen && "border-black dark:border-white bg-black text-white dark:bg-white dark:text-black"
                 )}
@@ -52,7 +52,7 @@ export function UserMenu({ isHome, isScrolled, className }: UserMenuProps) {
                 <span className="tracking-widest font-bold">[{user.name?.split(' ')[0].toUpperCase() || 'USER'}]</span>
                 <ChevronDown className={cn(
                     "w-3 h-3 transition-transform duration-300",
-                    isOpen ? "rotate-180 text-white dark:text-black" : "text-[#C5A059]"
+                    isOpen ? "rotate-180 text-white dark:text-black" : "text-gold"
                 )} />
             </button>
 
@@ -76,15 +76,27 @@ export function UserMenu({ isHome, isScrolled, className }: UserMenuProps) {
                                     <Link
                                         to="/admin"
                                         onClick={() => setIsOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 hover:bg-[#C5A059] hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
+                                        className="flex items-center gap-3 px-4 py-3 hover:bg-gold hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
                                     >
                                         <LayoutDashboard className="w-4 h-4" />
                                         <span>ADMIN_CONSOLE</span>
                                     </Link>
+
+                                    {isSuperAdmin && (
+                                        <Link
+                                            to="/global"
+                                            onClick={() => setIsOpen(false)}
+                                            className="flex items-center gap-3 px-4 py-3 hover:bg-gold hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
+                                        >
+                                            <TerminalSquare className="w-4 h-4" />
+                                            <span>GLOBAL_CONSOLE</span>
+                                        </Link>
+                                    )}
+
                                     <Link
                                         to={`/directory/${user.$id}`}
                                         onClick={() => setIsOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 hover:bg-[#C5A059] hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
+                                        className="flex items-center gap-3 px-4 py-3 hover:bg-gold hover:text-black transition-colors border-b border-black/10 dark:border-white/10"
                                     >
                                         <User className="w-4 h-4" />
                                         <span>MY_PROFILE</span>

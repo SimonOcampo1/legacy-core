@@ -83,10 +83,10 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     >
                         <div data-lenis-prevent className="relative overflow-y-auto max-h-[90vh] bg-white dark:bg-black border-2 border-black dark:border-stone-800 p-8 shadow-[0_0_40px_rgba(0,0,0,0.1)] dark:shadow-[0_0_40px_rgba(0,0,0,0.5)]">
                             {/* Corner Accents */}
-                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#C5A059]" />
-                            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#C5A059]" />
-                            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#C5A059]" />
-                            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#C5A059]" />
+                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-gold" />
+                            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-gold" />
+                            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-gold" />
+                            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-gold" />
 
                             {/* Close Button */}
                             <button
@@ -100,13 +100,13 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 {/* Header */}
                                 <div className="flex flex-col items-center text-center space-y-4 pt-4">
                                     <div className="mb-2">
-                                        <PPGLogo className="h-12 w-auto text-[#C5A059]" />
+                                        <PPGLogo className="h-12 w-auto text-gold" />
                                     </div>
                                     <div className="space-y-1">
                                         <h2 className="text-2xl font-mono uppercase tracking-tighter text-black dark:text-white">
                                             {activeTab === 'login' ? "System Access" : "Initiate Protocol"}
                                         </h2>
-                                        <div className="h-px w-full bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent" />
+                                        <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--accent-color)]/50 to-transparent" />
                                         <p className="text-[10px] font-mono uppercase tracking-widest text-stone-500 pt-1">
                                             {activeTab === 'login'
                                                 ? "Enter Credentials"
@@ -120,7 +120,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     <button
                                         onClick={() => setActiveTab('login')}
                                         className={`flex-1 py-3 text-[10px] font-mono uppercase tracking-widest transition-all relative ${activeTab === 'login'
-                                            ? "text-[#C5A059]"
+                                            ? "text-gold"
                                             : "text-stone-400 hover:text-black dark:hover:text-stone-200"
                                             }`}
                                     >
@@ -128,14 +128,14 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                         {activeTab === 'login' && (
                                             <motion.div
                                                 layoutId="activeTab"
-                                                className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-[#C5A059]"
+                                                className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-gold"
                                             />
                                         )}
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('register')}
                                         className={`flex-1 py-3 text-[10px] font-mono uppercase tracking-widest transition-all relative ${activeTab === 'register'
-                                            ? "text-[#C5A059]"
+                                            ? "text-gold"
                                             : "text-stone-400 hover:text-black dark:hover:text-stone-200"
                                             }`}
                                     >
@@ -143,7 +143,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                         {activeTab === 'register' && (
                                             <motion.div
                                                 layoutId="activeTab"
-                                                className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-[#C5A059]"
+                                                className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-gold"
                                             />
                                         )}
                                     </button>
@@ -166,7 +166,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                                     onChange={(e) => setName(e.target.value)}
                                                     placeholder="FULL_NAME"
                                                     required
-                                                    className="w-full bg-transparent border-b border-stone-200 dark:border-stone-800 px-0 py-3 text-sm font-mono text-black dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-700 focus:border-[#C5A059] focus:ring-0 outline-none transition-all rounded-none"
+                                                    className="w-full bg-transparent border-b border-stone-200 dark:border-stone-800 px-0 py-3 text-sm font-mono text-black dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-700 focus:border-gold focus:ring-0 outline-none transition-all rounded-none"
                                                 />
                                             </div>
                                         )}
@@ -177,7 +177,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 placeholder="EMAIL_ADDRESS"
                                                 required
-                                                className="w-full bg-transparent border-b border-stone-200 dark:border-stone-800 px-0 py-3 text-sm font-mono text-black dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-700 focus:border-[#C5A059] focus:ring-0 outline-none transition-all rounded-none"
+                                                className="w-full bg-transparent border-b border-stone-200 dark:border-stone-800 px-0 py-3 text-sm font-mono text-black dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-700 focus:border-gold focus:ring-0 outline-none transition-all rounded-none"
                                             />
                                         </div>
                                         <div className="group relative">
@@ -187,7 +187,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                                 onChange={(e) => setPassword(e.target.value)}
                                                 placeholder="PASSWORD"
                                                 required
-                                                className="w-full bg-transparent border-b border-stone-200 dark:border-stone-800 px-0 py-3 text-sm font-mono text-black dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-700 focus:border-[#C5A059] focus:ring-0 outline-none transition-all rounded-none"
+                                                className="w-full bg-transparent border-b border-stone-200 dark:border-stone-800 px-0 py-3 text-sm font-mono text-black dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-700 focus:border-gold focus:ring-0 outline-none transition-all rounded-none"
                                             />
                                         </div>
                                     </div>
@@ -195,7 +195,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     <button
                                         type="submit"
                                         disabled={verifying}
-                                        className="w-full bg-[#C5A059] text-white dark:text-black py-4 text-xs font-mono font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 group"
+                                        className="w-full bg-gold text-white dark:text-black py-4 text-xs font-mono font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 group"
                                     >
                                         {verifying ? (
                                             <>
@@ -222,7 +222,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
                                     <button
                                         onClick={handleGoogleLogin}
-                                        className="w-full border border-stone-200 dark:border-stone-800 bg-transparent py-4 text-xs font-mono font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 hover:border-[#C5A059] hover:text-[#C5A059] transition-all flex items-center justify-center gap-3"
+                                        className="w-full border border-stone-200 dark:border-stone-800 bg-transparent py-4 text-xs font-mono font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 hover:border-gold hover:text-gold transition-all flex items-center justify-center gap-3"
                                     >
                                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12.48 10.92v3.28h7.88c-.3 1.66-1.17 3.08-2.43 4.14-1.28 1.09-3.04 1.73-5.44 1.73-4.34 0-7.85-3.51-7.85-7.85 0-4.34 3.51-7.85 7.85-7.85 2.14 0 4.02.77 5.51 2.18l2.63-2.63C18.17 1.57 15.35.53 12.48.53 6.01.53.77 5.77.77 12.24s5.24 11.71 11.71 11.71c3.55 0 6.64-1.32 8.94-3.69 2.56-2.63 2.56-6.83 2.06-8.34h-10.8z" />
@@ -236,7 +236,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                         onClick={async () => {
                                             await checkUserStatus();
                                         }}
-                                        className="text-[9px] font-mono text-stone-400 dark:text-stone-700 hover:text-[#C5A059] uppercase tracking-[0.2em] transition-colors"
+                                        className="text-[9px] font-mono text-stone-400 dark:text-stone-700 hover:text-gold uppercase tracking-[0.2em] transition-colors"
                                     >
                                         [ SYNC_SESSION_DIAGNOSTIC ]
                                     </button>

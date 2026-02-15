@@ -2,8 +2,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
+import CharacterCount from '@tiptap/extension-character-count';
 import { cn } from '../../lib/utils';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
     Bold, Italic, Quote, Image as ImageIcon,
     Undo, Redo, Calendar, Upload, X, Check, Loader2, ChevronLeft
@@ -17,6 +18,7 @@ import { toast } from 'sonner';
 
 interface NarrativeEditorProps {
     memberId?: string;
+    groupId?: string;
     initialData?: {
         $id: string;
         title: string;
@@ -167,7 +169,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
     );
 };
 
-export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeEditorProps) => {
+export const NarrativeEditor = ({ memberId, groupId, initialData, onSuccess }: NarrativeEditorProps) => {
     const [title, setTitle] = useState(initialData?.title || '');
     const [isSaving, setIsSaving] = useState(false);
     const [coverImageId, setCoverImageId] = useState<string | null>(initialData?.cover_image_id || null);
@@ -178,6 +180,16 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
             ? new Date(initialData.date_event).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0]
     );
+
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        }
+    }, [title]);
 
     const { user } = useAuth();
 
@@ -194,7 +206,7 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
                 heading: { levels: [1, 2] },
                 blockquote: {
                     HTMLAttributes: {
-                        class: 'border-l-4 border-[#C5A059] pl-6 py-2 my-8 italic text-xl font-serif bg-gray-50 dark:bg-white/5',
+                        class: 'border-l-4 border-gold pl-6 py-2 my-8 italic text-xl font-serif bg-gray-50 dark:bg-white/5',
                     },
                 },
             }),
@@ -207,11 +219,12 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
                 placeholder: 'BEGIN_RECORD...',
                 emptyEditorClass: 'is-editor-empty before:content-[attr(data-placeholder)] before:text-gray-300 dark:before:text-gray-700 before:float-left before:pointer-events-none before:font-mono',
             }),
+            CharacterCount,
         ],
         content: initialData?.content || '',
         editorProps: {
             attributes: {
-                class: 'prose prose-neutral prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[600px] p-8 md:p-12 font-serif leading-relaxed text-black dark:text-white selection:bg-[#C5A059] selection:text-black',
+                class: 'prose prose-neutral prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[600px] p-8 md:p-12 font-serif leading-relaxed text-black dark:text-white selection:bg-gold selection:text-black',
             },
         },
     });
@@ -256,6 +269,7 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
                         category,
                         cover_image_id: coverImageId || '',
                         date_event: new Date(eventDate).toISOString(),
+                        group_id: groupId,
                     }
                 );
                 toast.success("Record updated.");
@@ -275,6 +289,7 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
                         category,
                         cover_image_id: coverImageId || '',
                         date_event: new Date(eventDate).toISOString(),
+                        group_id: groupId,
                     }
                 );
                 toast.success(isDraft ? "Draft preserved." : "Legacy record preserved.");
@@ -288,9 +303,9 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
                 setCoverImageUrl(null);
                 editor.commands.setContent('');
             }
-        } catch (error) {
-            console.error("Save failed", error);
-            toast.error("Failed to preserve record.");
+        } catch (error: any) {
+            console.error("Save failed", error?.message || error);
+            toast.error(error?.message || "Failed to preserve record.");
         } finally {
             setIsSaving(false);
         }
@@ -304,12 +319,14 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
                     <div className="flex flex-col md:flex-row justify-between items-start gap-8">
                         <div className="flex-1 w-full space-y-2">
                             <label className="font-mono text-xs uppercase tracking-widest opacity-50 block">TITLE_RECORD</label>
-                            <input
-                                type="text"
+                            <textarea
+                                ref={textareaRef}
                                 placeholder="ENTER TITLE..."
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full text-4xl md:text-5xl font-black text-black dark:text-white placeholder-gray-300 dark:placeholder-gray-700 border-none focus:ring-0 focus:outline-none px-0 bg-transparent uppercase tracking-tighter"
+                                rows={1}
+                                className="w-full text-4xl md:text-5xl font-black text-black dark:text-white placeholder-gray-300 dark:placeholder-gray-700 border-none focus:ring-0 focus:outline-none px-0 bg-transparent uppercase tracking-tighter resize-none overflow-hidden"
+                                style={{ minHeight: '1.2em' }}
                             />
                         </div>
                         <div className="flex items-center gap-4">
@@ -323,7 +340,7 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
                             <button
                                 onClick={() => handleSave(false)}
                                 disabled={isSaving}
-                                className="bg-black dark:bg-white text-white dark:text-black px-8 py-3 font-mono text-xs uppercase hover:bg-[#C5A059] dark:hover:bg-[#C5A059] hover:text-black transition-colors disabled:opacity-50 flex items-center gap-2"
+                                className="bg-black dark:bg-white text-white dark:text-black px-8 py-3 font-mono text-xs uppercase hover:bg-gold dark:hover:bg-gold hover:text-black transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
                                 {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                                 {isSaving ? "PUBLISHING..." : "PUBLISH"}
@@ -346,7 +363,7 @@ export const NarrativeEditor = ({ memberId, initialData, onSuccess }: NarrativeE
                                     </button>
                                 </div>
                             ) : (
-                                <label className="flex flex-col items-center justify-center aspect-video w-full border border-dashed border-gray-400 hover:border-[#C5A059] hover:text-[#C5A059] transition-colors cursor-pointer group">
+                                <label className="flex flex-col items-center justify-center aspect-video w-full border border-dashed border-gray-400 hover:border-gold hover:text-gold transition-colors cursor-pointer group">
                                     <input type="file" accept="image/*" className="hidden" onChange={handleCoverImageUpload} />
                                     <Upload className="w-6 h-6 mb-2" />
                                     <span className="font-mono text-xs uppercase">UPLOAD_COVER</span>

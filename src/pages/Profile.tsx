@@ -135,7 +135,7 @@ export function Profile() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#09090b] font-mono">
                 <h2 className="text-xl mb-4 uppercase">[ ERROR: RECORD_NOT_FOUND ]</h2>
-                <Link to="/directory" className="text-xs uppercase border-b border-black dark:border-white hover:text-[#C5A059] hover:border-[#C5A059]">
+                <Link to="/directory" className="text-xs uppercase border-b border-black dark:border-white hover:text-gold hover:border-gold">
                     Return to Index
                 </Link>
             </div>
@@ -147,13 +147,13 @@ export function Profile() {
     if (isPending) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#09090b] px-6 text-center font-mono">
-                <Shield className="w-12 h-12 mb-6 text-[#C5A059]" />
+                <Shield className="w-12 h-12 mb-6 text-gold" />
                 <h2 className="text-2xl uppercase tracking-tighter mb-4">Status: Pending Approval</h2>
                 <p className="max-w-md text-gray-500 text-xs mb-8">
                     // ID: {member.id.substring(0, 8)}<br />
                     AWAITING ADMINISTRATOR REVIEW...
                 </p>
-                <Link to="/" className="text-xs uppercase border-b border-black dark:border-white hover:text-[#C5A059] hover:border-[#C5A059]">
+                <Link to="/" className="text-xs uppercase border-b border-black dark:border-white hover:text-gold hover:border-gold">
                     [ LOGOUT ]
                 </Link>
             </div>
@@ -181,7 +181,7 @@ export function Profile() {
                             setShowNarrativeEditor(false);
                             setEditingNarrative(null);
                         }}
-                        className="flex items-center gap-2 font-mono text-xs uppercase hover:text-[#C5A059] transition-colors"
+                        className="flex items-center gap-2 font-mono text-xs uppercase hover:text-gold transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         RETURN_TO_PROFILE
@@ -227,7 +227,7 @@ export function Profile() {
                         {isOwner && (
                             <button
                                 onClick={() => setIsProfileModalOpen(true)}
-                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 bg-black text-white px-6 py-3 font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black flex items-center gap-2"
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 bg-black text-white px-6 py-3 font-mono text-xs uppercase hover:bg-gold hover:text-black flex items-center gap-2"
                             >
                                 <Edit3 className="w-4 h-4" />
                                 EDIT_IDENTITY
@@ -287,9 +287,9 @@ export function Profile() {
                                 <span className="text-gray-500">JOINED</span>
                                 <span className="text-xl font-bold">2014</span>
                             </div>
-                            <div className="p-6 flex flex-col justify-between hover:bg-black hover:text-[#C5A059] dark:hover:bg-white dark:hover:text-black transition-colors cursor-pointer group">
-                                <span className="group-hover:text-[#C5A059]">CONTACT</span>
-                                <span className="text-xl font-bold text-gray-500 group-hover:text-[#C5A059]">EMAIL ↗</span>
+                            <div className="p-6 flex flex-col justify-between hover:bg-black hover:text-gold dark:hover:bg-white dark:hover:text-black transition-colors cursor-pointer group">
+                                <span className="group-hover:text-gold">CONTACT</span>
+                                <span className="text-xl font-bold text-gray-500 group-hover:text-gold">EMAIL ↗</span>
                             </div>
                         </div>
                     </div>
@@ -338,7 +338,7 @@ export function Profile() {
                                     {isOwner && (
                                         <button
                                             onClick={() => setShowNarrativeEditor(true)}
-                                            className="flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-all"
+                                            className="flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-all"
                                         >
                                             <Plus className="w-4 h-4" />
                                             NEW_ENTRY
@@ -355,7 +355,7 @@ export function Profile() {
                                         >
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 mb-2">
-                                                    <span className="font-mono text-xs text-[#C5A059]">{story.date}</span>
+                                                    <span className="font-mono text-xs text-gold">{story.date}</span>
                                                     {isOwner && (
                                                         <span className={`font-mono text-[10px] px-2 py-0.5 border ${story.raw?.status === 'published'
                                                             ? 'border-green-500 text-green-600'
@@ -365,7 +365,7 @@ export function Profile() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <h4 className="font-bold uppercase text-xl group-hover:text-[#C5A059] transition-colors">{story.title}</h4>
+                                                <h4 className="font-bold uppercase text-xl group-hover:text-gold transition-colors">{story.title}</h4>
                                                 <p className="font-mono text-sm leading-relaxed opacity-60 mt-2 line-clamp-2">
                                                     {story.description || story.excerpt.replace(/<[^>]*>?/gm, '')}
                                                 </p>
@@ -383,7 +383,7 @@ export function Profile() {
                                                         EDIT_CONTENT
                                                     </button>
                                                 ) : (
-                                                    <ArrowRight className="w-6 h-6 transform -rotate-45 group-hover:rotate-0 transition-transform duration-300 group-hover:text-[#C5A059]" />
+                                                    <ArrowRight className="w-6 h-6 transform -rotate-45 group-hover:rotate-0 transition-transform duration-300 group-hover:text-gold" />
                                                 )}
                                             </div>
                                         </div>

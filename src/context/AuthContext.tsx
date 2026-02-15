@@ -7,7 +7,9 @@ interface AuthContextType {
     user: Models.User<Models.Preferences> | null;
     loading: boolean;
     isAdmin: boolean;
-    isAuthorized: boolean;
+    isSuperAdmin: boolean;
+    isApproved: boolean;
+    isAuthorized: boolean; // Kept for legacy compatibility, maps to isApproved
     login: (email: string, password: string) => Promise<void>;
     register: (name: string, email: string, password: string) => Promise<void>;
     loginWithGoogle: () => void;
@@ -23,6 +25,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [verifying, setVerifying] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+    const [isApproved, setIsApproved] = useState(false);
     const [isAuthorized, setIsAuthorized] = useState(false);
 
     const ADMIN_EMAIL = "ocamposimon1@gmail.com";
@@ -32,12 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const checkAuthorizaton = async (email: string, userId: string, name: string) => {
-        // Hardcoded admin is always authorized
-        if (email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim()) {
-            setIsAuthorized(true);
-            setIsAdmin(true);
-            return;
-        }
+        // Hardcoded superadmin check
+        const isHardcodedAdmin = email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
 
         try {
             const response = await databases.listDocuments(
@@ -57,8 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         {
                             name: name || "New Member",
                             email: email.toLowerCase().trim(),
-                            is_authorized: false,
-                            role: "Member",
+                            is_authorized: isHardcodedAdmin, // Admins auto-authorized
+                            is_approved: isHardcodedAdmin,
+                            is_superadmin: isHardcodedAdmin,
+                            role: isHardcodedAdmin ? "Admin" : "Member",
                             avatar_id: "",
                             bio: "New member joined via Google.",
                             created_at: new Date().toISOString(),
@@ -67,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     );
 
                     // Set default permissions for the new profile so the user can edit it
-                    // referencing the same logic we just fixed manually
                     await databases.updateDocument(
                         DATABASE_ID,
                         MEMBERS_COLLECTION_ID,
@@ -86,15 +87,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
 
             const memberDoc = response.documents[0];
-            const isAuthorizedMember = memberDoc ? !!memberDoc.is_authorized : false;
-            const isAdminMember = memberDoc ? memberDoc.role === "Admin" : false;
 
-            setIsAuthorized(isAuthorizedMember);
-            setIsAdmin(isAdminMember);
+            // Logic: 
+            // isSuperAdmin: Hardcoded email OR db flag
+            // isAdmin: Role is 'Admin' OR isSuperAdmin
+            // isApproved: db flag 'is_approved' OR isSuperAdmin
+
+            const dbSuperAdmin = memberDoc.is_superadmin || false;
+            const effectiveSuperAdmin = isHardcodedAdmin || dbSuperAdmin;
+
+            const dbApproved = memberDoc.is_approved || memberDoc.is_authorized || false; // Fallback to is_authorized for backward compat
+            const effectiveApproved = effectiveSuperAdmin || dbApproved;
+
+            const dbAdmin = memberDoc.role === "Admin";
+            const effectiveAdmin = effectiveSuperAdmin || dbAdmin;
+
+            setIsSuperAdmin(effectiveSuperAdmin);
+            setIsApproved(effectiveApproved);
+            setIsAdmin(effectiveAdmin);
+            // Legacy mapping
+            setIsAuthorized(effectiveApproved);
+
         } catch (error) {
             console.error("Error checking authorized members:", error);
             setIsAuthorized(false);
             setIsAdmin(false);
+            setIsApproved(false);
+            setIsSuperAdmin(false);
         }
     };
 
@@ -110,6 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setIsAdmin(false);
             setIsAuthorized(false);
+            setIsApproved(false);
+            setIsSuperAdmin(false);
         } finally {
             setLoading(false);
         }
@@ -140,7 +161,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await account.create(userId || 'unique()', email, password, name);
 
             // 2. Create Profile Document (Pending Authorization)
-            // Using ID derived from email or unique() for the document
+            const isHardcodedAdmin = email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
+
             await databases.createDocument(
                 DATABASE_ID,
                 MEMBERS_COLLECTION_ID,
@@ -148,8 +170,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 {
                     name,
                     email: email.toLowerCase().trim(),
-                    is_authorized: false, // Default to false
-                    role: "Member",
+                    is_authorized: isHardcodedAdmin,
+                    is_approved: isHardcodedAdmin,
+                    is_superadmin: isHardcodedAdmin,
+                    role: isHardcodedAdmin ? "Admin" : "Member",
                     avatar_id: "",
                     bio: "New member awaiting authorization.",
                     created_at: new Date().toISOString()
@@ -180,6 +204,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setIsAdmin(false);
             setIsAuthorized(false);
+            setIsApproved(false);
+            setIsSuperAdmin(false);
         } catch (error) {
             console.error("Logout failed:", error);
         }
@@ -190,6 +216,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             user,
             loading,
             isAdmin,
+            isSuperAdmin,
+            isApproved,
             isAuthorized,
             login,
             register,

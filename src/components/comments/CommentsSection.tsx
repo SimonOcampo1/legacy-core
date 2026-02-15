@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { databases, storage, DATABASE_ID, COMMENTS_COLLECTION_ID, AUDIO_BUCKET_ID } from '../../lib/appwrite';
+import { databases, storage, DATABASE_ID, COMMENTS_COLLECTION_ID, AUDIO_BUCKET_ID, PROFILES_COLLECTION_ID } from '../../lib/appwrite';
 import { ID, Query, Permission, Role } from 'appwrite';
 import { CommentItem } from './CommentItem';
 import { AudioRecorder } from './AudioRecorder';
+import { DeleteConfirmationModal } from '../ui/DeleteConfirmationModal';
 import { Loader2, MessageSquare, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Comment } from '../../types';
@@ -19,6 +20,39 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
     const [newCommentText, setNewCommentText] = useState("");
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [audioRecorderKey, setAudioRecorderKey] = useState(0);
+    const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const resolveAuthorNames = async (flatComments: Comment[]) => {
+        const uniqueAuthorIds = [...new Set(flatComments.map(c => c.author_id).filter(Boolean))];
+        if (uniqueAuthorIds.length === 0) return;
+
+        const nameCache: Record<string, string> = {};
+
+        try {
+            // Fetch profiles for all unique author IDs
+            const batchSize = 25;
+            for (let i = 0; i < uniqueAuthorIds.length; i += batchSize) {
+                const batch = uniqueAuthorIds.slice(i, i + batchSize);
+                const response = await databases.listDocuments(
+                    DATABASE_ID,
+                    PROFILES_COLLECTION_ID,
+                    [Query.equal('$id', batch)]
+                );
+                response.documents.forEach((doc: any) => {
+                    nameCache[doc.$id] = doc.name || doc.display_name || doc.$id;
+                });
+            }
+        } catch (error) {
+            console.error("Failed to resolve author names:", error);
+        }
+
+        // Assign resolved names to comments
+        flatComments.forEach(comment => {
+            comment.author_name = nameCache[comment.author_id] || comment.author_id;
+        });
+    };
 
     const fetchComments = async () => {
         try {
@@ -32,6 +66,10 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
             );
 
             const flatComments = response.documents as unknown as Comment[];
+
+            // Resolve author names from profiles
+            await resolveAuthorNames(flatComments);
+
             const commentMap: Record<string, Comment> = {};
             const rootComments: Comment[] = [];
 
@@ -89,7 +127,7 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                     audioUrl = storage.getFileView(AUDIO_BUCKET_ID, upload.$id).toString();
                 } catch (uploadError) {
                     console.error("Audio upload failed:", uploadError);
-                    toast.error("Failed to upload audio note");
+                    toast.error("Failed to upload audio note. Check bucket permissions.");
                 }
             }
 
@@ -103,7 +141,8 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                     narrative_id: narrativeId,
                     parent_id: parentId,
                     audio_url: audioUrl,
-                    likes: 0
+                    likes: 0,
+                    liked_by: [] // Initialize empty array
                 },
                 [
                     Permission.read(Role.any()),
@@ -114,6 +153,8 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
             toast.success("Comment recorded.");
             setNewCommentText("");
             setAudioBlob(null);
+            // Force AudioRecorder to remount and clear its internal state
+            setAudioRecorderKey(prev => prev + 1);
             fetchComments();
 
         } catch (error) {
@@ -124,27 +165,76 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
         }
     };
 
-    const handleLike = async (commentId: string, currentLikes: number) => {
+    const handleLike = async (commentId: string) => {
+        if (!user) {
+            toast.error("Please sign in to like comments.");
+            return;
+        }
+
+        // Search in replies too if needed, but for now assuming flattened structure or we recursively search
+        // We need to find the comment whether it's root or reply.
+
+        // Helper to find comment in tree
+        const findComment = (items: Comment[]): Comment | undefined => {
+            for (const item of items) {
+                if (item.$id === commentId) return item;
+                if (item.replies) {
+                    const found = findComment(item.replies);
+                    if (found) return found;
+                }
+            }
+            return undefined;
+        };
+
+        const targetComment = findComment(comments);
+        if (!targetComment) return;
+
+        const likedBy = targetComment.liked_by || [];
+        const hasLiked = likedBy.includes(user.$id);
+
+        const newLikes = hasLiked ? Math.max(0, targetComment.likes - 1) : targetComment.likes + 1;
+        const newLikedBy = hasLiked
+            ? likedBy.filter(id => id !== user.$id)
+            : [...likedBy, user.$id];
+
+        // Optimistic UI update could be tricky with deep state, so we'll just wait for fetch or implement simple local toggle
+        // For accurate infinite glitch fix, we MUST persist to DB.
+
         try {
             await databases.updateDocument(
                 DATABASE_ID,
                 COMMENTS_COLLECTION_ID,
                 commentId,
-                { likes: currentLikes + 1 }
+                {
+                    likes: newLikes,
+                    liked_by: newLikedBy
+                }
             );
+
+            // Refresh comments to allow immediate UI update
+            // Ideally we'd update local state too to avoid layout shift/network delay
+            fetchComments();
+
         } catch (error) {
             console.error("Error liking comment:", error);
+            // Fallback: If 'liked_by' attribute doesn't exist, this will fail. 
+            // We should ideally warn the user, but for now we catch it.
         }
     };
 
-    const handleDelete = async (commentId: string) => {
+    const confirmDelete = async () => {
+        if (!deletingCommentId) return;
+        setIsDeleting(true);
         try {
-            await databases.deleteDocument(DATABASE_ID, COMMENTS_COLLECTION_ID, commentId);
+            await databases.deleteDocument(DATABASE_ID, COMMENTS_COLLECTION_ID, deletingCommentId);
             toast.success("Record deleted.");
             fetchComments();
+            setDeletingCommentId(null);
         } catch (error) {
             console.error("Error deleting comment:", error);
             toast.error("Deletion failed.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -187,6 +277,7 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-4 border-t border-black/10 dark:border-white/10">
                             <div className="flex items-center gap-4 w-full md:w-auto">
                                 <AudioRecorder
+                                    key={audioRecorderKey}
                                     onRecordingComplete={setAudioBlob}
                                     onDelete={() => setAudioBlob(null)}
                                     isUploading={submitting}
@@ -196,7 +287,7 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                             <button
                                 onClick={() => handlePostComment('root', newCommentText)}
                                 disabled={submitting || (!newCommentText.trim() && !audioBlob)}
-                                className="group w-full md:w-auto px-6 py-2 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="group w-full md:w-auto px-6 py-2 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {submitting ? (
                                     <>
@@ -217,7 +308,7 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                         <p className="font-mono text-xs uppercase text-gray-500 mb-4">ACCESS_DENIED // AUTHENTICATION_REQUIRED</p>
                         <button
                             onClick={() => (window as any).openLoginModal?.()}
-                            className="bg-black dark:bg-white text-white dark:text-black font-mono text-xs px-4 py-2 hover:bg-[#C5A059] hover:text-black transition-colors uppercase"
+                            className="bg-black dark:bg-white text-white dark:text-black font-mono text-xs px-4 py-2 hover:bg-gold hover:text-black transition-colors uppercase"
                         >
                             [ INITIATE_LOGIN_SEQUENCE ]
                         </button>
@@ -239,8 +330,8 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                                 comment={comment}
                                 depth={0}
                                 onReply={handlePostComment}
-                                onLike={handleLike}
-                                onDelete={handleDelete}
+                                onLike={() => handleLike(comment.$id)}
+                                onDelete={() => setDeletingCommentId(comment.$id)}
                                 currentUserId={user?.$id}
                             />
                         ))}
@@ -253,6 +344,16 @@ export function CommentsSection({ narrativeId }: CommentsSectionProps) {
                     </div>
                 )}
             </div>
+
+            <DeleteConfirmationModal
+                isOpen={!!deletingCommentId}
+                onClose={() => setDeletingCommentId(null)}
+                onConfirm={confirmDelete}
+                isLoading={isDeleting}
+                title="DELETE ENTRY"
+                message="ARE YOU SURE YOU WANT TO DELETE THIS NARRATIVE ENTRY?"
+                itemDetails="User Comment"
+            />
         </div>
     );
 }

@@ -132,10 +132,10 @@ export const ProfileEditModal = ({ isOpen, onClose, member, onSuccess }: Profile
                                             )}
                                         </div>
                                         <div className="flex-1">
-                                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-white/20 hover:border-[#C5A059] hover:bg-[#C5A059]/5 transition-all cursor-pointer group">
+                                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-white/20 hover:border-gold hover:bg-[var(--accent-color)]/5 transition-all cursor-pointer group">
                                                 <input type="file" onChange={handleFileSelect} accept="image/*" className="hidden" />
-                                                <Upload className="w-6 h-6 mb-2 text-gray-400 group-hover:text-[#C5A059]" />
-                                                <span className="font-mono text-[10px] uppercase text-gray-500 group-hover:text-[#C5A059]">UPLOAD_NEW_SOURCE</span>
+                                                <Upload className="w-6 h-6 mb-2 text-gray-400 group-hover:text-gold" />
+                                                <span className="font-mono text-[10px] uppercase text-gray-500 group-hover:text-gold">UPLOAD_NEW_SOURCE</span>
                                             </label>
                                         </div>
                                     </div>
@@ -220,7 +220,7 @@ export const ProfileEditModal = ({ isOpen, onClose, member, onSuccess }: Profile
                                 type="submit"
                                 form="profile-form"
                                 disabled={isSubmitting}
-                                className="px-10 py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-colors disabled:opacity-50 flex items-center gap-2"
+                                className="px-10 py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
                                 {isSubmitting ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />

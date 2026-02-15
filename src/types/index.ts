@@ -34,6 +34,8 @@ export interface Narrative extends Models.Document {
     author_id: string;
     author?: string; // Expanded field
     cover_image_id?: string;
+    category?: string;
+    likes?: number;
 }
 
 export interface TimelineEvent extends Models.Document {
@@ -56,9 +58,23 @@ export interface GalleryItem extends Models.Document {
 export interface Comment extends Models.Document {
     content: string;
     author_id: string;
+    author_name?: string;
     narrative_id: string;
     parent_id?: string;
     audio_url?: string;
     likes: number;
+    liked_by?: string[]; // Array of user IDs who liked the comment
     replies?: Comment[];
+}
+
+export interface Group extends Models.Document {
+    name: string;
+    logo_url?: string;
+    logo_svg?: string;
+    logo_id?: string;
+    join_code: string;
+    owner_id: string;
+    accent_color?: string; // Hex code
+    members: string[]; // Array of User IDs
+    description?: string;
 }

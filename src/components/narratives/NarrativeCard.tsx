@@ -53,7 +53,7 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
                             by <Link
                                 to={`/profile/${narrative.author_id}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="hover:text-[#C5A059] transition-colors"
+                                className="hover:text-gold transition-colors"
                             >
                                 {narrative.author || narrative.author_id || "Unknown"}
                             </Link>
@@ -71,8 +71,8 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
                         to={`/narratives/${narrative.$id}`}
                         className="relative inline-flex items-center gap-2 text-sm font-sans font-bold uppercase tracking-widest text-charcoal dark:text-white group/link overflow-hidden pb-1 px-4 py-2"
                     >
-                        <span className="relative z-10 group-hover/link:text-[#C5A059] transition-colors duration-300">Read Story</span>
-                        <span className="absolute bottom-0 left-0 w-full h-[2px] bg-charcoal dark:bg-white origin-left transform scale-x-0 transition-transform duration-300 ease-out group-hover/link:scale-x-100 group-hover/link:bg-[#C5A059]" />
+                        <span className="relative z-10 group-hover/link:text-gold transition-colors duration-300">Read Story</span>
+                        <span className="absolute bottom-0 left-0 w-full h-[2px] bg-charcoal dark:bg-white origin-left transform scale-x-0 transition-transform duration-300 ease-out group-hover/link:scale-x-100 group-hover/link:bg-gold" />
                     </Link>
                 </div>
             </div>

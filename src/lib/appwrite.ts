@@ -24,7 +24,9 @@ export const PROFILES_COLLECTION_ID = "profiles";
 export const GALLERY_COLLECTION_ID = "gallery";
 export const COMMENTS_COLLECTION_ID = "comments";
 export const MEMBERS_COLLECTION_ID = "profiles";
-export const AUDIO_BUCKET_ID = "audio_comments";
+export const GROUPS_COLLECTION_ID = "groups";
+export const GROUP_REQUESTS_COLLECTION_ID = "group_requests";
+export const AUDIO_BUCKET_ID = "legacy_core_assets";
 export const BUCKET_ID = "legacy_core_assets";
 
 /**

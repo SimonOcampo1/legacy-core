@@ -33,10 +33,10 @@ export function ConfirmationModal({
             icon: "bg-red-600/10 text-red-600 border-red-600"
         },
         warning: {
-            header: "bg-[#C5A059] text-black",
-            border: "border-[#C5A059]",
+            header: "bg-gold text-black",
+            border: "border-gold",
             shadow: "shadow-[8px_8px_0px_0px_rgba(197,160,89,1)]",
-            icon: "bg-[#C5A059]/10 text-[#C5A059] border-[#C5A059]"
+            icon: "bg-[var(--accent-color)]/10 text-gold border-gold"
         },
         info: {
             header: "bg-black dark:bg-white text-white dark:text-black",
@@ -48,7 +48,7 @@ export function ConfirmationModal({
 
     const buttonStyles = {
         danger: "bg-red-600 text-white hover:bg-red-700",
-        warning: "bg-[#C5A059] text-black hover:bg-[#b28f4c]",
+        warning: "bg-gold text-black hover:bg-gold/90",
         info: "bg-black dark:bg-white text-white dark:text-black hover:bg-stone-800 dark:hover:bg-stone-200"
     };
 

@@ -4,10 +4,14 @@ import './index.css'
 import App from './App.tsx'
 import { ThemeProvider } from './components/theme-provider.tsx'
 
+import { GroupProvider } from './context/GroupContext.tsx'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider defaultTheme="system" storageKey="legacy-core-theme">
-      <App />
+      <GroupProvider>
+        <App />
+      </GroupProvider>
     </ThemeProvider>
   </StrictMode>,
 )

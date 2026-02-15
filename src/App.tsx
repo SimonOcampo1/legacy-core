@@ -8,11 +8,13 @@ import { Gallery } from "./pages/Gallery";
 import { NarrativeDetail } from "./pages/NarrativeDetail";
 import { SharedNarratives } from "./pages/SharedNarratives";
 import { AdminConsole } from "./pages/AdminConsole";
+import { GlobalConsole } from "./pages/GlobalConsole";
 import { AnimatePresence } from "framer-motion";
 import { GrainOverlay } from "./components/ui/GrainOverlay";
 import { SmoothScroll } from "./components/ui/SmoothScroll";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { PendingApproval } from "./pages/PendingApproval";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -20,6 +22,7 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        <Route path="/pending-approval" element={<PendingApproval />} />
         <Route path="/" element={<Home />} />
         <Route path="/directory" element={<Directory />} />
         <Route path="/directory/:id" element={<Profile />} />
@@ -34,6 +37,7 @@ function AnimatedRoutes() {
 
         <Route element={<ProtectedRoute adminOnly={true} />}>
           <Route path="/admin" element={<AdminConsole />} />
+          <Route path="/global" element={<GlobalConsole />} />
         </Route>
       </Routes>
     </AnimatePresence>

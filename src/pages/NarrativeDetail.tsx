@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { databases, storage, DATABASE_ID, NARRATIVES_COLLECTION_ID, PROFILES_COLLECTION_ID } from "../lib/appwrite";
 import type { Narrative, Member } from "../types";
 import { ArrowLeft, Share2 } from "lucide-react";
-import { MOCK_NARRATIVES } from "./SharedNarratives";
 import { CommentsSection } from "../components/comments/CommentsSection";
+import { motion, useScroll, useSpring } from "framer-motion";
 
 export function NarrativeDetail() {
     const { id } = useParams<{ id: string }>();
@@ -15,21 +15,23 @@ export function NarrativeDetail() {
     const [headerImage, setHeaderImage] = useState<string>("");
     const contentRef = useRef<HTMLDivElement>(null);
 
+    const { scrollYProgress } = useScroll({
+        target: contentRef,
+        offset: ["start start", "end end"]
+    });
+
+    const scaleX = useSpring(scrollYProgress, {
+        stiffness: 100,
+        damping: 30,
+        restDelta: 0.001
+    });
+
     const BUCKET_ID = "legacy_core_assets";
 
     useEffect(() => {
         const fetchNarrative = async () => {
             if (!id) return;
             setLoading(true);
-
-            // Check if it's a mock ID first
-            const mockStory = MOCK_NARRATIVES.find(n => n.$id === id);
-            if (mockStory) {
-                setNarrative(mockStory);
-                setHeaderImage("https://placehold.co/1200x800/png?text=Narrative+Header");
-                setLoading(false);
-                return;
-            }
 
             try {
                 const doc = await databases.getDocument(
@@ -102,54 +104,7 @@ export function NarrativeDetail() {
         fetchNarrative();
     }, [id]);
 
-    const [readingProgress, setReadingProgress] = useState(0);
 
-    useEffect(() => {
-        const updateProgress = () => {
-            if (contentRef.current) {
-                const element = contentRef.current;
-                // If content is shorter than viewport, we are done immediately (or logic needs adjustment)
-                // Better logic for general reading is mapping the element's position relative to viewport.
-                // We want 0% when the top of the content enters (or is at top of screen)
-                // And 100% when the bottom of the content enters the view (user has seen it all)
-
-                // Calculate distance from top of document
-                const elementTop = element.offsetTop;
-                const scrollTop = window.scrollY;
-
-                // Adjust start: Start increasing when the top of the element is near the top of viewport?
-                // Actually, standard reading progress usually is "percentage of content scrolled".
-                // Let's stick to "how much of the content height has passed the bottom of the viewport" or "top of viewport".
-                // User said "finishes once i finish the narrative". That implies when the last line is visible.
-
-                // Calculation:
-                // Start Point: When content starts (elementTop)
-                // End Point: When content ends - windowHeight (so bottom is just visible)
-                const startPoint = elementTop;
-                const endPoint = elementTop + element.clientHeight - window.innerHeight;
-
-                if (endPoint <= startPoint) {
-                    // Content is shorter than screen
-                    setReadingProgress(100);
-                    return;
-                }
-
-                const progress = Math.min(100, Math.max(0, ((scrollTop - startPoint) / (endPoint - startPoint)) * 100));
-                setReadingProgress(progress);
-            }
-        };
-
-        // Use requestAnimationFrame for smoother updates if state updates are bottleneck (though React batching usually handles scroll okay)
-        // For now, attaching directly to scroll.
-        window.addEventListener('scroll', updateProgress);
-        window.addEventListener('resize', updateProgress); // Recalculate on resize
-        updateProgress(); // Initial check
-
-        return () => {
-            window.removeEventListener('scroll', updateProgress);
-            window.removeEventListener('resize', updateProgress);
-        };
-    }, [narrative]); // Re-bind when narrative loads/changes to ensure ref is valid
 
     if (loading) {
         return (
@@ -163,7 +118,7 @@ export function NarrativeDetail() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#09090b] font-mono">
                 <h2 className="text-xl mb-4 uppercase">[ ERROR: FILE_CORRUPTED_OR_MISSING ]</h2>
-                <Link to="/narratives" className="text-xs uppercase border-b border-black dark:border-white hover:text-[#C5A059] hover:border-[#C5A059]">
+                <Link to="/narratives" className="text-xs uppercase border-b border-black dark:border-white hover:text-gold hover:border-gold">
                     Return to Archives
                 </Link>
             </div>
@@ -181,9 +136,9 @@ export function NarrativeDetail() {
             <div className="bg-white dark:bg-[#09090b] min-h-screen font-sans">
                 {/* Progress Bar Top */}
                 <div className="fixed top-0 left-0 w-full h-1 bg-black/10 dark:bg-white/10 z-50">
-                    <div
-                        className="h-full bg-[#C5A059] origin-left will-change-transform"
-                        style={{ transform: `scaleX(${readingProgress / 100})` }}
+                    <motion.div
+                        className="h-full bg-gold origin-left"
+                        style={{ scaleX }}
                     />
                 </div>
 
@@ -208,7 +163,7 @@ export function NarrativeDetail() {
                             </div>
 
                             <div className="mt-8 pt-8 border-t border-black/10 dark:border-white/10 hidden lg:block">
-                                <Link to="/narratives" className="flex items-center gap-2 font-mono text-xs uppercase hover:text-[#C5A059] transition-colors group">
+                                <Link to="/narratives" className="flex items-center gap-2 font-mono text-xs uppercase hover:text-gold transition-colors group">
                                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                     [ RETURN_TO_INDEX ]
                                 </Link>
@@ -224,7 +179,7 @@ export function NarrativeDetail() {
                                         )}
                                     </div>
                                     <div className="flex-1">
-                                        <p className="font-bold text-sm uppercase leading-none group-hover:text-[#C5A059] transition-colors">
+                                        <p className="font-bold text-sm uppercase leading-none group-hover:text-gold transition-colors">
                                             {author?.name || narrative.author}
                                         </p>
                                         <p className="font-mono text-[10px] text-gray-500">VIEW_PROFILE ↗</p>
@@ -248,7 +203,7 @@ export function NarrativeDetail() {
                                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
                                     {narrative.title}
                                 </h1>
-                                <p className="text-xl md:text-2xl font-medium max-w-3xl leading-tight border-l-4 border-[#C5A059] pl-6 py-2">
+                                <p className="text-xl md:text-2xl font-medium max-w-3xl leading-tight border-l-4 border-gold pl-6 py-2">
                                     {narrative.description}
                                 </p>
                             </div>
@@ -268,7 +223,7 @@ export function NarrativeDetail() {
                             {/* Footer Actions */}
                             <div className="mt-20 pt-8 border-t border-black dark:border-white/20 flex justify-between items-center">
                                 <div className="flex gap-4">
-                                    <button className="flex items-center gap-2 font-mono text-xs uppercase hover:text-[#C5A059] transition-colors border border-black dark:border-white/20 px-4 py-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black">
+                                    <button className="flex items-center gap-2 font-mono text-xs uppercase hover:text-gold transition-colors border border-black dark:border-white/20 px-4 py-2 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black">
                                         <Share2 className="w-4 h-4" />
                                         Share_Log
                                     </button>

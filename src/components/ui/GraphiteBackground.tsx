@@ -119,7 +119,7 @@ export const GraphiteBackground = ({
                         <motion.path
                             d="M0 20 C 50 20 50 80 100 80"
                             fill="none"
-                            stroke="#C5A059"
+                            stroke="var(--accent-color)"
                             strokeWidth="0.3"
                             animate={{
                                 d: [

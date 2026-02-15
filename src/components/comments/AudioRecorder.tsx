@@ -130,7 +130,7 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
 
                 <button
                     onClick={togglePlayback}
-                    className="h-6 w-6 flex items-center justify-center border border-black dark:border-white hover:bg-[#C5A059] hover:text-black hover:border-[#C5A059] transition-colors"
+                    className="h-6 w-6 flex items-center justify-center border border-black dark:border-white hover:bg-gold hover:text-black hover:border-gold transition-colors"
                     type="button"
                 >
                     {isPlaying ? <Pause size={10} fill="currentColor" /> : <Play size={10} fill="currentColor" className="ml-0.5" />}
@@ -195,7 +195,7 @@ export function AudioRecorder({ onRecordingComplete, onDelete, isUploading = fal
                         )}
                         type="button"
                     >
-                        <Mic size={14} className="text-black dark:text-white group-hover:text-[#C5A059] transition-colors" />
+                        <Mic size={14} className="text-black dark:text-white group-hover:text-gold transition-colors" />
                         <span>RECORD_AUDIO</span>
                     </motion.button>
                 )}

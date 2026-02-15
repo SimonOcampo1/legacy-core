@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { EmptyState } from "../components/ui/EmptyState";
 import { PageTransition } from "../components/PageTransition";
 import { databases, DATABASE_ID, GALLERY_COLLECTION_ID, getImageUrl } from "../lib/appwrite";
 import { Query } from "appwrite";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useGroup } from "../context/GroupContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { useScrollLock } from "../hooks/useScrollLock";
 import { GalleryManager } from "../components/admin/GalleryManager";
@@ -22,17 +23,20 @@ export function Gallery() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     useScrollLock(isModalOpen);
-    const { isAdmin, isAuthorized, user } = useAuth();
-    const navigate = useNavigate();
+    const { isAuthorized, user } = useAuth();
+    const { currentGroup } = useGroup();
+
 
 
     useEffect(() => {
         const fetchGallery = async () => {
+            if (!currentGroup?.$id) return;
             try {
                 const response = await databases.listDocuments(
                     DATABASE_ID,
                     GALLERY_COLLECTION_ID,
                     [
+                        Query.equal("group_id", currentGroup.$id),
                         Query.orderDesc("sort_date"),
                         Query.limit(100)
                     ]
@@ -54,7 +58,7 @@ export function Gallery() {
         };
 
         fetchGallery();
-    }, []);
+    }, [currentGroup]);
 
     const handleAppend = () => {
         setIsModalOpen(true);
@@ -85,7 +89,7 @@ export function Gallery() {
                 <div className="border-b-2 border-black dark:border-white/20 px-4 md:px-8 pb-8 pt-12 flex flex-col md:flex-row justify-between items-end gap-8">
                     <div>
                         <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-2">
-                            Visual<span className="text-[#C5A059]">_Databank</span>
+                            Visual<span className="text-gold">_Databank</span>
                         </h1>
                         <p className="font-mono text-xs md:text-sm text-gray-500">
                             /// MEDIA REPOSITORY<br />
@@ -96,7 +100,7 @@ export function Gallery() {
                     {isAuthorized && (
                         <button
                             onClick={handleAppend}
-                            className="bg-black text-white dark:bg-white dark:text-black font-mono text-xs px-6 py-3 hover:bg-[#C5A059] hover:text-black transition-colors uppercase font-bold"
+                            className="bg-black text-white dark:bg-white dark:text-black font-mono text-xs px-6 py-3 hover:bg-gold hover:text-black transition-colors uppercase font-bold"
                         >
                             [ + APPEND_ENTRY ]
                         </button>
@@ -107,7 +111,7 @@ export function Gallery() {
                 <div className="px-4 md:px-8 pb-8 flex justify-end">
                     <div className="flex gap-4 font-mono text-[10px] md:text-xs">
                         {['ALL', 'EDITORIAL', 'PARTIES', 'TRAVEL'].map((filter) => (
-                            <button key={filter} className={`uppercase px-2 py-1 border border-transparent hover:border-[#C5A059] hover:text-[#C5A059] transition-all ${filter === 'ALL' ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-gray-500'}`}>
+                            <button key={filter} className={`uppercase px-2 py-1 border border-transparent hover:border-gold hover:text-gold transition-all ${filter === 'ALL' ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-gray-500'}`}>
                                 [{filter}]
                             </button>
                         ))}
@@ -122,14 +126,14 @@ export function Gallery() {
                     >
                         <button
                             onClick={closeLightbox}
-                            className="absolute top-6 right-6 text-white hover:text-[#C5A059] transition-colors"
+                            className="absolute top-6 right-6 text-white hover:text-gold transition-colors"
                         >
                             <X className="w-8 h-8" />
                         </button>
 
                         <button
                             onClick={prevImage}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-[#C5A059] transition-colors p-2 hidden md:block"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gold transition-colors p-2 hidden md:block"
                         >
                             <ChevronLeft className="w-12 h-12" />
                         </button>
@@ -143,7 +147,7 @@ export function Gallery() {
                             <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm p-4 border-t border-white/20 flex justify-between items-end">
                                 <div>
                                     <h3 className="font-bold text-xl uppercase tracking-tight text-white">{galleryItems[selectedImageIndex].title}</h3>
-                                    <p className="font-mono text-xs text-[#C5A059]">{galleryItems[selectedImageIndex].date}</p>
+                                    <p className="font-mono text-xs text-gold">{galleryItems[selectedImageIndex].date}</p>
                                 </div>
                                 <span className="font-mono text-[10px] text-gray-500">IMG_{galleryItems[selectedImageIndex].id.substring(0, 6)}</span>
                             </div>
@@ -151,7 +155,7 @@ export function Gallery() {
 
                         <button
                             onClick={nextImage}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-[#C5A059] transition-colors p-2 hidden md:block"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gold transition-colors p-2 hidden md:block"
                         >
                             <ChevronRight className="w-12 h-12" />
                         </button>
@@ -163,6 +167,15 @@ export function Gallery() {
                         <div className="w-full h-64 flex items-center justify-center font-mono text-sm animate-pulse">
                             [ LOADING_VISUALS ]
                         </div>
+                    ) : galleryItems.length === 0 ? (
+                        <EmptyState
+                            title="VISUAL_VOID"
+                            message="NO VISUAL ASSETS FOUND."
+                            icon={LayoutGrid}
+                            actionLabel="[ UPLOAD_VISUALS ]"
+                            onAction={handleAppend}
+                            className="min-h-[60vh] border-y border-black/10 dark:border-white/10"
+                        />
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-px bg-black dark:bg-white/20 border-b border-black dark:border-white/20">
                             {galleryItems.map((item, index) => (
@@ -180,7 +193,7 @@ export function Gallery() {
                                     {/* Overlay */}
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100">
                                         <p className="font-bold text-white uppercase text-sm leading-none">{item.title}</p>
-                                        <p className="font-mono text-[10px] text-[#C5A059] mt-1">{item.date}</p>
+                                        <p className="font-mono text-[10px] text-gold mt-1">{item.date}</p>
                                     </div>
                                 </div>
                             ))}
@@ -189,7 +202,7 @@ export function Gallery() {
 
                     {!loading && (
                         <div className="flex justify-center items-center py-20 border-t border-black dark:border-white/20">
-                            <button className="font-mono text-xs uppercase hover:text-[#C5A059] hover:border-b hover:border-[#C5A059] transition-all">
+                            <button className="font-mono text-xs uppercase hover:text-gold hover:border-b hover:border-gold transition-all">
                                 [ LOAD_MORE_DATA ]
                             </button>
                         </div>
@@ -220,7 +233,7 @@ export function Gallery() {
                                         </button>
                                     </div>
                                     <div className="p-6">
-                                        <GalleryManager memberId={user?.$id} />
+                                        <GalleryManager memberId={user?.$id} groupId={currentGroup?.$id} />
                                     </div>
                                 </div>
                             </motion.div>

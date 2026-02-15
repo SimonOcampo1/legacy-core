@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { databases, DATABASE_ID, MEMBERS_COLLECTION_ID } from "../../lib/appwrite";
+import { databases, DATABASE_ID, PROFILES_COLLECTION_ID, getImageUrl } from "../../lib/appwrite";
 import { ID, Query } from "appwrite";
-import { UserPlus, Trash2, Mail, Shield, AlertCircle, Loader2, ShieldCheck, ShieldAlert } from "lucide-react";
+import { UserPlus, Trash2, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
+import { EmptyState } from "../ui/EmptyState";
+import { Users } from "lucide-react";
 
 interface Member {
     $id: string;
@@ -12,59 +14,75 @@ interface Member {
     name: string;
     is_authorized: boolean;
     addedAt: string;
+    role: 'member' | 'admin';
+    status: 'active' | 'pending' | 'blocked';
+    avatarUrl?: string;
+    joinedAt: string;
 }
 
-export function MemberManager() {
+export const MemberManager = ({ groupId }: { groupId?: string }) => {
+    // const { user } = useAuth(); // Unused
     const [members, setMembers] = useState<Member[]>([]);
     const [pendingMembers, setPendingMembers] = useState<Member[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [newEmail, setNewEmail] = useState("");
-    const [newName, setNewName] = useState("");
-    const [isAdding, setIsAdding] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState<string | null>(null);
     const [deletingMember, setDeletingMember] = useState<Member | null>(null);
 
+    // Invite Form State
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [inviteName, setInviteName] = useState('');
+    const [inviteRole, setInviteRole] = useState<'member' | 'admin'>('member');
+    const [isAdding, setIsAdding] = useState(false);
+
     useEffect(() => {
-        fetchMembers();
-    }, []);
+        if (groupId) {
+            fetchMembers();
+        }
+    }, [groupId]);
 
     const fetchMembers = async () => {
+        setIsLoading(true);
         try {
+            const queries = [Query.orderDesc('$createdAt')];
+            if (groupId) {
+                queries.push(Query.equal('groups', groupId));
+            }
+
             const response = await databases.listDocuments(
                 DATABASE_ID,
-                MEMBERS_COLLECTION_ID,
-                [Query.orderDesc("$createdAt")]
+                PROFILES_COLLECTION_ID,
+                queries
             );
 
-            const allMembers: Member[] = response.documents.map(doc => ({
+            const fetchedMembers = response.documents.map((doc: any) => ({
                 $id: doc.$id,
                 email: doc.email,
-                name: doc.name || "Anonymous",
-                is_authorized: !!doc.is_authorized,
-                addedAt: doc.$createdAt
-            }));
+                name: doc.name,
+                is_authorized: doc.is_authorized || false,
+                addedAt: doc.$createdAt,
+                role: doc.role || 'member',
+                status: doc.status || 'active',
+                avatarUrl: doc.avatar_id ? getImageUrl(doc.avatar_id) : undefined,
+                joinedAt: doc.$createdAt
+            })) as Member[];
 
-            setMembers(allMembers.filter(m => m.is_authorized));
-            setPendingMembers(allMembers.filter(m => !m.is_authorized));
+            setMembers(fetchedMembers.filter(m => m.status === 'active'));
+            setPendingMembers(fetchedMembers.filter(m => m.status === 'pending'));
+
         } catch (error: any) {
             console.error("Error fetching members:", error);
-            if (error.code === 404) {
-                toast.error("Profiles collection not found. Please verify Appwrite IDs.");
-            } else {
-                toast.error("Failed to load members");
-            }
+            toast.error("Failed to load member directory.");
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     const handleAddMember = async (e: React.FormEvent) => {
         e.preventDefault();
-        const email = newEmail.toLowerCase().trim();
+        if (!inviteEmail) return;
 
-        if (!email) return;
-        if (members.some(m => m.email === email)) {
-            toast.error("This email is already authorized");
+        if (!groupId) {
+            toast.error("No group selected.");
             return;
         }
 
@@ -72,57 +90,62 @@ export function MemberManager() {
         try {
             await databases.createDocument(
                 DATABASE_ID,
-                MEMBERS_COLLECTION_ID,
+                PROFILES_COLLECTION_ID,
                 ID.unique(),
                 {
-                    email,
-                    name: newName || email.split('@')[0],
-                    is_authorized: true, // Admin-added users are pre-authorized
-                    role: "Member",
-                    created_at: new Date().toISOString()
+                    name: inviteName,
+                    email: inviteEmail,
+                    role: inviteRole,
+                    status: 'pending',
+                    groups: [groupId],
+                    bio: 'Invited Member',
+                    slug: inviteName.toLowerCase().replace(/\s+/g, '-'),
+                    is_authorized: false
                 }
             );
-            setNewEmail("");
-            setNewName("");
-            toast.success("Member authorized successfully");
+
+            toast.success(`Invitation initiated to ${inviteEmail}`);
+            setInviteEmail('');
+            setInviteName('');
             fetchMembers();
         } catch (error: any) {
-            console.error("Error adding member:", error);
-            toast.error(`Failed to authorize member: ${error.message || 'Unknown error'}`);
+            console.error("Invite failed:", error);
+            toast.error(`Failed to invite: ${error.message || 'Unknown error'}`);
         } finally {
             setIsAdding(false);
         }
     };
 
-    const handleApproval = async (id: string, approve: boolean) => {
-        setIsProcessing(id);
+    const handleApproval = async (memberId: string, approved: boolean) => {
+        setIsProcessing(memberId);
         try {
-            if (approve) {
-                await databases.updateDocument(DATABASE_ID, MEMBERS_COLLECTION_ID, id, {
-                    is_authorized: true
-                });
-                toast.success("Member approved successfully");
-            } else {
-                await databases.deleteDocument(DATABASE_ID, MEMBERS_COLLECTION_ID, id);
-                toast.success("Request denied and removed");
-            }
+            await databases.updateDocument(
+                DATABASE_ID,
+                PROFILES_COLLECTION_ID,
+                memberId,
+                {
+                    status: approved ? 'active' : 'blocked',
+                    is_authorized: approved
+                }
+            );
+            toast.success(approved ? "Member approved" : "Member request denied");
             fetchMembers();
         } catch (error: any) {
-            console.error("Error processing member:", error);
-            toast.error(`Failed to process request: ${error.message || 'Unknown error'}`);
+            console.error("Error updating member status:", error);
+            toast.error("Failed to update member status");
         } finally {
             setIsProcessing(null);
         }
     };
 
-    const handleDeleteMember = async (member: Member) => {
+    const handleDeleteMember = (member: Member) => {
         setDeletingMember(member);
     };
 
     const confirmDelete = async () => {
         if (!deletingMember) return;
         try {
-            await databases.deleteDocument(DATABASE_ID, MEMBERS_COLLECTION_ID, deletingMember.$id);
+            await databases.deleteDocument(DATABASE_ID, PROFILES_COLLECTION_ID, deletingMember.$id);
             toast.success("Authorization removed");
             setMembers(members.filter(m => m.$id !== deletingMember.$id));
             setDeletingMember(null);
@@ -154,7 +177,7 @@ export function MemberManager() {
                 </div>
                 <div className="border border-black dark:border-white p-6 bg-white dark:bg-black">
                     <div className="font-mono text-xs uppercase opacity-50 mb-2">PENDING_AUTH</div>
-                    <div className="text-4xl font-black text-[#C5A059]">
+                    <div className="text-4xl font-black text-gold">
                         {pendingMembers.length}
                     </div>
                 </div>
@@ -176,8 +199,8 @@ export function MemberManager() {
                     <div className="flex-1">
                         <input
                             type="email"
-                            value={newEmail}
-                            onChange={(e) => setNewEmail(e.target.value)}
+                            value={inviteEmail}
+                            onChange={(e) => setInviteEmail(e.target.value)}
                             placeholder="ENTER_EMAIL_ADDRESS..."
                             className="w-full p-3 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black transition-colors"
                             required
@@ -186,24 +209,39 @@ export function MemberManager() {
                     <div className="flex-1">
                         <input
                             type="text"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
+                            value={inviteName}
+                            onChange={(e) => setInviteName(e.target.value)}
                             placeholder="DESIGNATION_NAME (OPTIONAL)..."
                             className="w-full p-3 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black transition-colors"
                         />
                     </div>
+                    <div className="flex-1">
+                        <select
+                            value={inviteRole}
+                            onChange={(e) => setInviteRole(e.target.value as 'member' | 'admin')}
+                            className="w-full p-3 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black transition-colors appearance-none uppercase"
+                        >
+                            <option value="member">MEMBER</option>
+                            <option value="admin">ADMIN</option>
+                        </select>
+                    </div>
                     <button
                         type="submit"
-                        disabled={isAdding || !newEmail}
-                        className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-colors disabled:opacity-50"
+                        disabled={isAdding || !inviteEmail}
+                        className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-colors disabled:opacity-50"
                     >
                         {isAdding ? "PROCESSING..." : "AUTHORIZE"}
                     </button>
                 </form>
-            </div>
+            </div >
 
             {/* Combined Table */}
-            <div className="border border-black dark:border-white overflow-hidden">
+            < div className="border border-black dark:border-white overflow-hidden min-h-[200px] relative" >
+                {isLoading && (
+                    <div className="absolute inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center">
+                        <div className="animate-spin w-8 h-8 border-2 border-black dark:border-white border-t-transparent rounded-full" />
+                    </div>
+                )}
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-black text-white dark:bg-white dark:text-black">
@@ -232,7 +270,7 @@ export function MemberManager() {
                                 </td>
                                 <td className="px-6 py-4 font-mono text-sm">{member.email}</td>
                                 <td className="px-6 py-4">
-                                    {member.is_authorized ? (
+                                    {member.status === 'active' ? (
                                         <span className="bg-black dark:bg-white text-white dark:text-black px-2 py-1 font-mono text-[10px] uppercase">
                                             AUTHORIZED
                                         </span>
@@ -244,7 +282,7 @@ export function MemberManager() {
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {!member.is_authorized ? (
+                                        {member.status === 'pending' ? (
                                             <>
                                                 <button
                                                     onClick={() => handleApproval(member.$id, true)}
@@ -278,12 +316,16 @@ export function MemberManager() {
                         ))}
                     </tbody>
                 </table>
-                {[...pendingMembers, ...members].length === 0 && (
-                    <div className="p-12 text-center font-mono text-sm uppercase text-gray-500">
-                        NO_PERSONNEL_RECORDS_FOUND
-                    </div>
+                {[...pendingMembers, ...members].length === 0 && !isLoading && (
+                    <EmptyState
+                        title="PERSONNEL_VOID"
+                        message="NO AUTHORIZED PERSONNEL DETECTED IN THE DATABASE. INITIALIZE SECURITY PROTOCOLS."
+                        icon={Users}
+                        actionLabel="[ REFRESH_DIRECTORY ]"
+                        onAction={fetchMembers}
+                    />
                 )}
-            </div>
+            </div >
 
             <ConfirmationModal
                 isOpen={!!deletingMember}
@@ -294,6 +336,6 @@ export function MemberManager() {
                 confirmText="CONFIRM_REVOCATION"
                 variant="danger"
             />
-        </div>
+        </div >
     );
-}
+};

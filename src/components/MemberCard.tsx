@@ -16,10 +16,10 @@ export function MemberCard({ member }: MemberCardProps) {
                 />
             </div>
             <div className="space-y-3 max-w-xs mx-auto">
-                <h3 className="font-serif text-3xl text-slate-900 dark:text-white tracking-wide group-hover:text-[#C5A059] transition-colors duration-300">
+                <h3 className="font-serif text-3xl text-slate-900 dark:text-white tracking-wide group-hover:text-gold transition-colors duration-300">
                     {member.name}
                 </h3>
-                <p className="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-[#C5A059] inline-block pb-1 transition-colors duration-300">
+                <p className="text-[11px] uppercase tracking-[0.25em] font-medium text-slate-500 border-b border-transparent group-hover:border-gold inline-block pb-1 transition-colors duration-300">
                     {member.role}
                 </p>
                 <p className="pt-2 font-editorial text-lg italic text-slate-600 dark:text-slate-400 leading-relaxed">

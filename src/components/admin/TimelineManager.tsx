@@ -15,6 +15,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { DeleteConfirmationModal } from '../ui/DeleteConfirmationModal';
+import { useAuth } from '../../context/AuthContext';
+import { EmptyState } from '../ui/EmptyState';
 
 interface TimelineEvent {
     $id: string;
@@ -35,7 +37,8 @@ interface ProfileOption {
     avatar_id?: string;
 }
 
-export const TimelineManager = ({ memberId }: { memberId?: string }) => {
+export const TimelineManager = ({ groupId, memberId }: { groupId?: string; memberId?: string }) => {
+    const { user } = useAuth();
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +53,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
     const [description, setDescription] = useState('');
     const [dateEvent, setDateEvent] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState('General');
-    const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
+    const [selectedParticipants, setSelectedParticipants] = useState<string[]>(memberId ? [memberId] : []);
     const [availableMembers, setAvailableMembers] = useState<ProfileOption[]>([]);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
@@ -59,8 +62,11 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
         setIsLoading(true);
         try {
             const queries = [Query.orderDesc('date_event')];
+            if (groupId) {
+                queries.push(Query.equal('group_id', groupId));
+            }
             if (memberId) {
-                queries.push(Query.equal('author_id', memberId));
+                queries.push(Query.equal('participant_ids', memberId));
             }
 
             const response = await databases.listDocuments(
@@ -78,10 +84,13 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
     };
 
     useEffect(() => {
-        fetchEvents();
+        if (groupId) {
+            fetchEvents();
+        }
         // Fetch all member profiles for the participant picker
         const fetchMembers = async () => {
             try {
+                // Ideally this should also be filtered by group if profiles were group-scoped
                 const res = await databases.listDocuments(DATABASE_ID, PROFILES_COLLECTION_ID, [Query.limit(100)]);
                 setAvailableMembers(res.documents.map((d: any) => ({ id: d.$id, name: d.name, slug: d.slug, avatar_id: d.avatar_id })));
             } catch (err) {
@@ -89,7 +98,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
             }
         };
         fetchMembers();
-    }, []);
+    }, [groupId]);
 
     const resetForm = () => {
         setTitle('');
@@ -107,6 +116,11 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
         e.preventDefault();
         if (!title || !dateEvent) {
             toast.error("Title and date are required.");
+            return;
+        }
+
+        if (!groupId) {
+            toast.error("No group selected.");
             return;
         }
 
@@ -131,9 +145,10 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                 category,
                 status: 'published',
                 createdAt: editingEvent?.createdAt || new Date().toISOString(),
-                author_id: memberId || 'admin',
+                author_id: user?.$id || 'admin',
                 participant_ids: selectedParticipants,
-                image_id: uploadedImageId
+                image_id: uploadedImageId,
+                group_id: groupId
             };
 
             if (editingEvent) {
@@ -231,7 +246,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                 {!isAddingMode && (
                     <button
                         onClick={() => setIsAddingMode(true)}
-                        className="group flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-all"
+                        className="group flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-all"
                     >
                         <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
                         <span>APPEND_ENTRY</span>
@@ -267,7 +282,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
                                         placeholder="ENTER_EVENT_TITLE..."
-                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-lg font-bold focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors"
+                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-lg font-bold focus:outline-none focus:bg-white dark:focus:bg-black focus:border-gold transition-colors"
                                     />
                                 </div>
                             </div>
@@ -280,7 +295,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                         onChange={(e) => setDescription(e.target.value)}
                                         placeholder="ENTER_DETAILED_DESCRIPTION..."
                                         rows={4}
-                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors"
+                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-gold transition-colors"
                                     />
                                 </div>
                             </div>
@@ -301,7 +316,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                             </button>
                                         </div>
                                     ) : (
-                                        <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-[#C5A059] transition-colors">
+                                        <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-gold transition-colors">
                                             <Upload className="w-6 h-6 text-gray-400 mb-2" />
                                             <span className="font-mono text-[10px] uppercase text-gray-400">CLICK_TO_UPLOAD_IMAGE</span>
                                             <input
@@ -322,7 +337,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                         type="date"
                                         value={dateEvent}
                                         onChange={(e) => setDateEvent(e.target.value)}
-                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors uppercase"
+                                        className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-gold transition-colors uppercase"
                                     />
                                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 </div>
@@ -333,7 +348,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                 <select
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
-                                    className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors appearance-none uppercase rounded-none"
+                                    className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-gold transition-colors appearance-none uppercase rounded-none"
                                 >
                                     <option value="General">General History</option>
                                     <option value="Academic">Academic Achievement</option>
@@ -375,7 +390,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                                     key={m.id}
                                                     type="button"
                                                     onClick={() => toggleParticipant(m.id)}
-                                                    className="flex items-center gap-2 px-3 py-1.5 border border-black/20 dark:border-white/20 font-mono text-[10px] uppercase hover:border-[#C5A059] hover:text-[#C5A059] transition-colors"
+                                                    className="flex items-center gap-2 px-3 py-1.5 border border-black/20 dark:border-white/20 font-mono text-[10px] uppercase hover:border-gold hover:text-gold transition-colors"
                                                 >
                                                     <img src={getImageUrl(m.avatar_id)} alt={m.name} className="w-5 h-5 object-cover border border-black/30 dark:border-white/30" />
                                                     + {m.name}
@@ -399,7 +414,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-10 py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-colors disabled:opacity-50 flex items-center gap-2"
+                                    className="px-10 py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-colors disabled:opacity-50 flex items-center gap-2"
                                 >
                                     {isSubmitting ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -420,13 +435,13 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                     >
                         {/* Search Bar */}
                         <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#C5A059] transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gold transition-colors" />
                             <input
                                 type="text"
                                 placeholder="SEARCH_DATABASE..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-6 py-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors uppercase"
+                                className="w-full pl-12 pr-6 py-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-gold transition-colors uppercase"
                             />
                         </div>
 
@@ -436,15 +451,13 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                 <p className="font-mono text-xs uppercase tracking-widest">QUERYING_DATABASE...</p>
                             </div>
                         ) : filteredEvents.length === 0 ? (
-                            <div className="border border-dashed border-black/20 dark:border-white/20 p-24 text-center">
-                                <p className="font-mono text-sm uppercase text-gray-500 mb-4">NO_MATCHING_RECORDS_FOUND</p>
-                                <button
-                                    onClick={() => setIsAddingMode(true)}
-                                    className="text-[#C5A059] font-mono text-xs underline decoration-1 underline-offset-4 hover:bg-[#C5A059] hover:text-black p-1 transition-colors uppercase"
-                                >
-                                    CREATE_NEW_ENTRY
-                                </button>
-                            </div>
+                            <EmptyState
+                                title="CHRONO_VOID"
+                                message="DATABASE QUERY RETURNED ZERO RESULTS. CREATE A NEW ENTRY TO POPULATE THE CHRONO_LOG."
+                                icon={Search}
+                                actionLabel="[ CREATE_NEW_ENTRY ]"
+                                onAction={() => setIsAddingMode(true)}
+                            />
                         ) : (
                             <div className="relative border border-black dark:border-white overflow-hidden">
                                 {filteredEvents.map((event, index) => (
@@ -455,7 +468,7 @@ export const TimelineManager = ({ memberId }: { memberId?: string }) => {
                                     >
                                         {/* Date Column */}
                                         <div className="p-6 md:w-32 border-r border-black/10 dark:border-white/10 flex flex-col justify-center items-center md:items-start">
-                                            <span className="text-xl font-black text-[#C5A059]">
+                                            <span className="text-xl font-black text-gold">
                                                 {new Date(event.date_event).getFullYear()}
                                             </span>
                                             <span className="font-mono text-[9px] uppercase text-gray-500">

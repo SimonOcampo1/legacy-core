@@ -7,7 +7,7 @@
   --color-secondary: #666666;
   --color-background-light: #ffffff;
   --color-background-dark: #0a0a0a;
-  
+
   /* shadcn-like theme colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -33,7 +33,9 @@
   --color-brutal-black: #09090b;
   --color-brutal-white: #fafafa;
   --color-brutal-gray: #a1a1aa;
-  --color-gold: #C5A059; /* Sticking to the existing gold tone requested */
+  --color-brutal-gray: #a1a1aa;
+  --color-gold: var(--accent-color);
+  /* Dynamic accent color */
 
   /* Typography */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -42,10 +44,15 @@
 
   /* Animations */
   --animate-marquee: marquee 30s linear infinite;
-  
+
   @keyframes marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-100%); }
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-100%);
+    }
   }
 }
 
@@ -59,10 +66,14 @@
     --popover-foreground: 240 10% 3.9%;
     --primary: 240 5.9% 10%;
     --primary-foreground: 0 0% 98%;
+    --primary-foreground: 0 0% 98%;
     /* Map Accent to Gold */
-    --accent: 43 49% 56%; /* converted #C5A059 roughly to HSL */
+    --accent-color: #C5A059;
+    /* Default Gold */
+    --accent: 43 49% 56%;
+    /* converted #C5A059 roughly to HSL */
     --accent-foreground: 0 0% 98%;
-    
+
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
@@ -72,7 +83,7 @@
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
-    --radius: 0rem; 
+    --radius: 0rem;
   }
 
   .dark {
@@ -87,7 +98,7 @@
     /* Dark mode accent same gold */
     --accent: 43 49% 56%;
     --accent-foreground: 0 0% 98%;
-    
+
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
@@ -104,15 +115,19 @@
   .text-gold {
     color: var(--color-gold);
   }
+
   .border-gold {
     border-color: var(--color-gold);
   }
+
   .bg-gold {
     background-color: var(--color-gold);
   }
+
   .hover-text-gold:hover {
     color: var(--color-gold);
   }
+
   .hover-border-gold:hover {
     border-color: var(--color-gold);
   }
@@ -122,13 +137,15 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+
   html {
     scroll-behavior: smooth;
   }
-  
+
   /* Brutalist utilities */
   ::selection {
     @apply bg-black text-white dark:bg-white dark:text-black;
@@ -138,15 +155,15 @@
 /* Custom Utilities for Brutalism */
 @utility brutal-grid {
   background-size: 40px 40px;
-  background-image: 
-    linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
 }
 
 .dark .brutal-grid {
-  background-image: 
-    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
 }
 
 @utility text-stroke-1 {

@@ -5,7 +5,8 @@ import { Trash2, Plus, Upload, X, Loader2, Image as ImageIcon, Check, Calendar }
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { DeleteConfirmationModal } from '../ui/DeleteConfirmationModal';
-
+import { useAuth } from '../../context/AuthContext';
+import { EmptyState } from '../ui/EmptyState';
 
 
 interface GalleryItem {
@@ -17,7 +18,8 @@ interface GalleryItem {
     imageUrl?: string;
 }
 
-export const GalleryManager = ({ memberId }: { memberId?: string }) => {
+export const GalleryManager = ({ groupId, memberId }: { groupId?: string; memberId?: string }) => {
+    const { user } = useAuth();
     const [images, setImages] = useState<GalleryItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
@@ -33,16 +35,22 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
     const [deletingImage, setDeletingImage] = useState<{ id: string, imageId: string, title: string } | null>(null);
 
     useEffect(() => {
-        fetchImages();
-    }, []);
+        if (groupId || memberId) {
+            fetchImages();
+        }
+    }, [groupId, memberId]);
 
     const fetchImages = async () => {
         setIsLoading(true);
         try {
             const queries = [Query.orderDesc('sort_date')];
+            if (groupId) {
+                queries.push(Query.equal('group_id', groupId));
+            }
             if (memberId) {
                 queries.push(Query.equal('author_id', memberId));
             }
+            // If logic required filtering by user, we could add it back, but Admin usually sees whole group content.
 
             const response = await databases.listDocuments(
                 DATABASE_ID,
@@ -79,6 +87,11 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
             return;
         }
 
+        if (!groupId) {
+            toast.error("No group context active.");
+            return;
+        }
+
         setIsUploading(true);
         try {
             const fileUpload = await storage.createFile(BUCKET_ID, ID.unique(), newImageFile);
@@ -95,7 +108,8 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
                     image_id: fileUpload.$id,
                     sort_date: new Date(newDate).toISOString(),
                     display_date: displayDate,
-                    author_id: memberId || 'admin'
+                    author_id: user?.$id || 'admin',
+                    group_id: groupId
                 }
             );
 
@@ -150,7 +164,7 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
 
                 <button
                     onClick={() => setShowUpload(!showUpload)}
-                    className="group flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-all"
+                    className="group flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-all"
                 >
                     {showUpload ? (
                         <>
@@ -182,7 +196,7 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-4">
                                 <label className="font-mono text-[10px] uppercase text-gray-500">SOURCE_FILE</label>
-                                <label className="relative flex flex-col items-center justify-center aspect-video w-full border-2 border-dashed border-black dark:border-white/20 hover:border-[#C5A059] hover:bg-[#C5A059]/5 transition-all cursor-pointer overflow-hidden group bg-white dark:bg-black">
+                                <label className="relative flex flex-col items-center justify-center aspect-video w-full border-2 border-dashed border-black dark:border-white/20 hover:border-gold hover:bg-gold/5 transition-all cursor-pointer overflow-hidden group bg-white dark:bg-black">
                                     <input type="file" onChange={handleFileSelect} accept="image/*" className="hidden" />
                                     {previewUrl ? (
                                         <div className="relative w-full h-full">
@@ -193,10 +207,10 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
                                         </div>
                                     ) : (
                                         <div className="text-center group">
-                                            <div className="w-12 h-12 border border-black dark:border-white flex items-center justify-center mx-auto mb-3 group-hover:bg-[#C5A059] group-hover:border-[#C5A059] group-hover:text-black transition-colors">
+                                            <div className="w-12 h-12 border border-black dark:border-white flex items-center justify-center mx-auto mb-3 group-hover:bg-gold group-hover:border-gold group-hover:text-black transition-colors">
                                                 <ImageIcon className="w-5 h-5" />
                                             </div>
-                                            <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500 group-hover:text-[#C5A059]">SELECT_IMAGE_DATA</span>
+                                            <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500 group-hover:text-gold">SELECT_IMAGE_DATA</span>
                                         </div>
                                     )}
                                 </label>
@@ -211,7 +225,7 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
                                             value={newTitle}
                                             onChange={(e) => setNewTitle(e.target.value)}
                                             placeholder="ENTER_TITLE_ID..."
-                                            className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors"
+                                            className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-gold transition-colors"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -221,7 +235,7 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
                                                 type="date"
                                                 value={newDate}
                                                 onChange={(e) => setNewDate(e.target.value)}
-                                                className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-[#C5A059] transition-colors uppercase"
+                                                className="w-full p-4 bg-transparent border border-black dark:border-white font-mono text-sm focus:outline-none focus:bg-white dark:focus:bg-black focus:border-gold transition-colors uppercase"
                                             />
                                             <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                         </div>
@@ -232,7 +246,7 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
                                     <button
                                         onClick={handleUpload}
                                         disabled={isUploading}
-                                        className="w-full md:w-auto px-8 py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-[#C5A059] hover:text-black dark:hover:bg-[#C5A059] transition-colors disabled:opacity-50 flex items-center justify-center gap-3"
+                                        className="w-full md:w-auto px-8 py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-colors disabled:opacity-50 flex items-center justify-center gap-3"
                                     >
                                         {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                         {isUploading ? "PROCESSING_DATA..." : "EXECUTE_UPLOAD"}
@@ -251,9 +265,14 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
                         <div key={i} className="aspect-square bg-gray-100 dark:bg-white/5 animate-pulse border border-transparent" />
                     ))
                 ) : images.length === 0 ? (
-                    <div className="col-span-full py-24 border border-dashed border-black/20 dark:border-white/20 text-center">
-                        <p className="font-mono text-sm uppercase text-gray-500">ARCHIVE_EMPTY // NO_DATA_FOUND</p>
-                        <button onClick={() => setShowUpload(true)} className="mt-4 text-[#C5A059] font-mono text-xs underline decoration-1 underline-offset-4 hover:bg-[#C5A059] hover:text-black p-1 transition-colors">INITIALIZE_FIRST_ENTRY</button>
+                    <div className="col-span-full">
+                        <EmptyState
+                            title="VISUAL_VOID"
+                            message="NO DATA FOUND IN THE VISUAL DATABANK. INITIALIZE THE FIRST ENTRY TO BEGIN ARCHIVAL."
+                            icon={ImageIcon}
+                            actionLabel="[ INITIALIZE_FIRST_ENTRY ]"
+                            onAction={() => setShowUpload(true)}
+                        />
                     </div>
                 ) : (
                     images.map((img) => (
@@ -272,7 +291,7 @@ export const GalleryManager = ({ memberId }: { memberId?: string }) => {
                             {/* Overlay Info */}
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4">
                                 <div className="flex justify-between items-start">
-                                    <span className="font-mono text-[9px] text-[#C5A059] uppercase tracking-wider border border-[#C5A059] px-1">IMG_{img.$id.substring(0, 4)}</span>
+                                    <span className="font-mono text-[9px] text-gold uppercase tracking-wider border border-gold px-1">IMG_{img.$id.substring(0, 4)}</span>
                                     <button
                                         onClick={() => handleDelete(img.$id, img.image_id, img.title)}
                                         className="text-white hover:text-red-500 transition-colors"
