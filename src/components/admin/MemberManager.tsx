@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { databases, DATABASE_ID, PROFILES_COLLECTION_ID, getImageUrl } from "../../lib/appwrite";
+import { databases, DATABASE_ID, PROFILES_COLLECTION_ID, GROUPS_COLLECTION_ID, getImageUrl } from "../../lib/appwrite";
 import { ID, Query } from "appwrite";
-import { UserPlus, Trash2, ShieldCheck, ShieldAlert } from "lucide-react";
+import { UserPlus, Trash2, ShieldCheck, ShieldAlert, Users } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { EmptyState } from "../ui/EmptyState";
-import { Users } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 interface Member {
     $id: string;
@@ -21,7 +21,7 @@ interface Member {
 }
 
 export const MemberManager = ({ groupId }: { groupId?: string }) => {
-    // const { user } = useAuth(); // Unused
+    const { user } = useAuth();
     const [members, setMembers] = useState<Member[]>([]);
     const [pendingMembers, setPendingMembers] = useState<Member[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -35,25 +35,39 @@ export const MemberManager = ({ groupId }: { groupId?: string }) => {
     const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
-        if (groupId) {
-            fetchMembers();
-        }
+        fetchMembers();
     }, [groupId]);
 
     const fetchMembers = async () => {
         setIsLoading(true);
         try {
-            const queries = [Query.orderDesc('$createdAt')];
-            if (groupId) {
-                queries.push(Query.equal('groups', groupId));
+            if (!groupId) return;
+
+            // 1. Fetch Group to get member IDs
+            const groupDoc = await databases.getDocument(
+                DATABASE_ID,
+                GROUPS_COLLECTION_ID,
+                groupId
+            );
+
+            const memberIds = groupDoc.members || [];
+
+            if (memberIds.length === 0) {
+                setMembers([]);
+                setPendingMembers([]);
+                return;
             }
 
+            // 2. Fetch Profiles matching those IDs
             const response = await databases.listDocuments(
                 DATABASE_ID,
                 PROFILES_COLLECTION_ID,
-                queries
+                [
+                    Query.equal('$id', memberIds)
+                ]
             );
 
+            // 3. Map to Member interface
             const fetchedMembers = response.documents.map((doc: any) => ({
                 $id: doc.$id,
                 email: doc.email,
@@ -88,7 +102,8 @@ export const MemberManager = ({ groupId }: { groupId?: string }) => {
 
         setIsAdding(true);
         try {
-            await databases.createDocument(
+            // 1. Create Placeholder Profile
+            const newDoc = await databases.createDocument(
                 DATABASE_ID,
                 PROFILES_COLLECTION_ID,
                 ID.unique(),
@@ -97,10 +112,28 @@ export const MemberManager = ({ groupId }: { groupId?: string }) => {
                     email: inviteEmail,
                     role: inviteRole,
                     status: 'pending',
-                    groups: [groupId],
+                    // group_id removed
                     bio: 'Invited Member',
                     slug: inviteName.toLowerCase().replace(/\s+/g, '-'),
                     is_authorized: false
+                }
+            );
+
+            // 2. Update Group to include new member ID
+            const groupDoc = await databases.getDocument(
+                DATABASE_ID,
+                GROUPS_COLLECTION_ID,
+                groupId
+            );
+
+            const currentMembers = groupDoc.members || [];
+
+            await databases.updateDocument(
+                DATABASE_ID,
+                GROUPS_COLLECTION_ID,
+                groupId,
+                {
+                    members: [...currentMembers, newDoc.$id]
                 }
             );
 
@@ -139,6 +172,10 @@ export const MemberManager = ({ groupId }: { groupId?: string }) => {
     };
 
     const handleDeleteMember = (member: Member) => {
+        if (user && member.$id === user.$id) {
+            toast.error("You cannot remove yourself from the group.");
+            return;
+        }
         setDeletingMember(member);
     };
 
@@ -319,9 +356,9 @@ export const MemberManager = ({ groupId }: { groupId?: string }) => {
                 {[...pendingMembers, ...members].length === 0 && !isLoading && (
                     <EmptyState
                         title="PERSONNEL_VOID"
-                        message="NO AUTHORIZED PERSONNEL DETECTED IN THE DATABASE. INITIALIZE SECURITY PROTOCOLS."
+                        message="NO MEMBERS FOUND."
                         icon={Users}
-                        actionLabel="[ REFRESH_DIRECTORY ]"
+                        actionLabel="[ REFRESH_LIST ]"
                         onAction={fetchMembers}
                     />
                 )}

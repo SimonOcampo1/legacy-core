@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { databases, DATABASE_ID, GROUPS_COLLECTION_ID, GROUP_REQUESTS_COLLECTION_ID } from "../../lib/appwrite";
+import { databases, DATABASE_ID, GROUPS_COLLECTION_ID, GROUP_REQUESTS_COLLECTION_ID, PROFILES_COLLECTION_ID } from "../../lib/appwrite";
 import { ID, Query } from "appwrite";
 import { CheckCircle, XCircle, TerminalSquare } from "lucide-react";
 import { toast } from "sonner";
@@ -50,7 +50,7 @@ export const GroupRequestManager = () => {
             if (approved) {
                 // 1. Create the Group
                 const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                await databases.createDocument(
+                const newGroup = await databases.createDocument(
                     DATABASE_ID,
                     GROUPS_COLLECTION_ID,
                     ID.unique(),
@@ -65,9 +65,21 @@ export const GroupRequestManager = () => {
                         members: [request.requester_id]
                     }
                 );
+
+                // 2. Update Requester's Profile
+                await databases.updateDocument(
+                    DATABASE_ID,
+                    PROFILES_COLLECTION_ID,
+                    request.requester_id,
+                    {
+                        group_id: newGroup.$id,
+                        is_authorized: true,
+                        role: 'admin'
+                    }
+                );
             }
 
-            // 2. Update Request Status
+            // 3. Update Request Status
             await databases.updateDocument(
                 DATABASE_ID,
                 GROUP_REQUESTS_COLLECTION_ID,
@@ -187,9 +199,9 @@ export const GroupRequestManager = () => {
                 {pendingRequests.length === 0 && !isLoading && (
                     <EmptyState
                         title="REQUEST_VOID"
-                        message="NO PENDING GROUP REQUESTS IN THE QUEUE. THE NETWORK IS STABLE."
+                        message="NO PENDING REQUESTS."
                         icon={TerminalSquare}
-                        actionLabel="[ REFRESH_SYSTEM ]"
+                        actionLabel="[ REFRESH ]"
                         onAction={fetchRequests}
                     />
                 )}

@@ -1,4 +1,4 @@
-import { storage } from "../../lib/appwrite";
+import { cn, stripHtml } from "../../lib/utils";
 import { Link, useNavigate } from "react-router-dom";
 import type { Narrative } from "../../types";
 
@@ -61,10 +61,9 @@ export function NarrativeCard({ narrative }: NarrativeCardProps) {
                     </div>
                 </div>
 
-                <div
-                    className="prose prose-lg prose-stone dark:prose-invert text-stone-600 dark:text-stone-300 mx-auto text-left font-serif leading-loose line-clamp-4 mb-10"
-                    dangerouslySetInnerHTML={{ __html: narrative.content }}
-                />
+                <p className="text-stone-600 dark:text-stone-300 mx-auto text-left font-serif leading-loose line-clamp-4 mb-10">
+                    {stripHtml(narrative.content)}
+                </p>
 
                 <div className="flex justify-center">
                     <Link

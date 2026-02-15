@@ -73,30 +73,39 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
     return (
         <div className="flex flex-wrap items-center gap-px p-4 border-b border-black dark:border-white bg-gray-50 dark:bg-white/5 sticky top-0 z-10">
-            <div className="flex items-center mr-4">
-                <button
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                    className={cn(
-                        "p-2 font-black text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase",
-                        editor.isActive('heading', { level: 1 }) ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
-                    )}
-                    title="H1"
-                    type="button"
-                >
-                    H1
-                </button>
-                <button
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                    className={cn(
-                        "p-2 font-black text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase",
-                        editor.isActive('heading', { level: 2 }) ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
-                    )}
-                    title="H2"
-                    type="button"
-                >
-                    H2
-                </button>
-            </div>
+            <button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                className={cn(
+                    "p-2 font-black text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase",
+                    editor.isActive('heading', { level: 1 }) ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
+                )}
+                title="H1"
+                type="button"
+            >
+                H1
+            </button>
+            <button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                className={cn(
+                    "p-2 font-black text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase",
+                    editor.isActive('heading', { level: 2 }) ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
+                )}
+                title="H2"
+                type="button"
+            >
+                H2
+            </button>
+            <button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                className={cn(
+                    "p-2 font-black text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase",
+                    editor.isActive('heading', { level: 3 }) ? 'bg-black text-[gold] dark:bg-white dark:text-black' : ''
+                )}
+                title="H3"
+                type="button"
+            >
+                H3
+            </button>
 
             <div className="flex items-center mr-4 border-l border-black dark:border-white pl-4">
                 <button
@@ -203,7 +212,7 @@ export const NarrativeEditor = ({ memberId, groupId, initialData, onSuccess }: N
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
-                heading: { levels: [1, 2] },
+                heading: { levels: [1, 2, 3] },
                 blockquote: {
                     HTMLAttributes: {
                         class: 'border-l-4 border-gold pl-6 py-2 my-8 italic text-xl font-serif bg-gray-50 dark:bg-white/5',

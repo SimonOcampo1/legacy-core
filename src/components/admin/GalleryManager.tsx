@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { storage, databases, DATABASE_ID, GALLERY_COLLECTION_ID, BUCKET_ID, getImageUrl } from '../../lib/appwrite';
 import { ID, Query } from 'appwrite';
-import { Trash2, Plus, Upload, X, Loader2, Image as ImageIcon, Check, Calendar } from 'lucide-react';
+import { Trash2, Plus, Upload, X, Loader2, Image as ImageIcon, Check, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { DeleteConfirmationModal } from '../ui/DeleteConfirmationModal';
@@ -131,6 +131,26 @@ export const GalleryManager = ({ groupId, memberId }: { groupId?: string; member
         setDeletingImage({ id, imageId, title });
     };
 
+    // Lightbox State
+    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+    const openLightbox = (index: number) => setSelectedImageIndex(index);
+    const closeLightbox = () => setSelectedImageIndex(null);
+
+    const nextImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (selectedImageIndex !== null) {
+            setSelectedImageIndex((prev) => (prev === null ? null : (prev + 1) % images.length));
+        }
+    };
+
+    const prevImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (selectedImageIndex !== null) {
+            setSelectedImageIndex((prev) => (prev === null ? null : (prev - 1 + images.length) % images.length));
+        }
+    };
+
     const confirmDelete = async () => {
         if (!deletingImage) return;
 
@@ -141,6 +161,8 @@ export const GalleryManager = ({ groupId, memberId }: { groupId?: string; member
             setImages(prev => prev.filter(img => img.$id !== deletingImage.id));
             toast.success("Visual record discarded.");
             setDeletingImage(null);
+            // Close lightbox if the deleted image was open or just refresh index
+            if (selectedImageIndex !== null) closeLightbox();
         } catch (error) {
             console.error("Delete failed", error);
             toast.error("Failed to remove record.");
@@ -268,9 +290,9 @@ export const GalleryManager = ({ groupId, memberId }: { groupId?: string; member
                     <div className="col-span-full">
                         <EmptyState
                             title="VISUAL_VOID"
-                            message="NO DATA FOUND IN THE VISUAL DATABANK. INITIALIZE THE FIRST ENTRY TO BEGIN ARCHIVAL."
+                            message="NO VISUAL ASSETS FOUND."
                             icon={ImageIcon}
-                            actionLabel="[ INITIALIZE_FIRST_ENTRY ]"
+                            actionLabel="[ UPLOAD_IMAGE ]"
                             onAction={() => setShowUpload(true)}
                         />
                     </div>
@@ -280,7 +302,9 @@ export const GalleryManager = ({ groupId, memberId }: { groupId?: string; member
                             key={img.$id}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="group relative aspect-square bg-gray-100 dark:bg-black border border-black dark:border-white overflow-hidden"
+                            layoutId={`gallery-img-${img.$id}`}
+                            onClick={() => openLightbox(images.indexOf(img))}
+                            className="group relative aspect-square bg-gray-100 dark:bg-black border border-black dark:border-white overflow-hidden cursor-pointer"
                         >
                             <img
                                 src={img.imageUrl}
@@ -293,7 +317,10 @@ export const GalleryManager = ({ groupId, memberId }: { groupId?: string; member
                                 <div className="flex justify-between items-start">
                                     <span className="font-mono text-[9px] text-gold uppercase tracking-wider border border-gold px-1">IMG_{img.$id.substring(0, 4)}</span>
                                     <button
-                                        onClick={() => handleDelete(img.$id, img.image_id, img.title)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(img.$id, img.image_id, img.title);
+                                        }}
                                         className="text-white hover:text-red-500 transition-colors"
                                         title="DELETE_RECORD"
                                     >
@@ -315,6 +342,50 @@ export const GalleryManager = ({ groupId, memberId }: { groupId?: string; member
                     ))
                 )}
             </div>
+
+            {/* Lightbox Overlay */}
+            {selectedImageIndex !== null && images[selectedImageIndex] && (
+                <div
+                    className="fixed inset-0 z-[120] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm"
+                    onClick={closeLightbox}
+                >
+                    <button
+                        onClick={closeLightbox}
+                        className="absolute top-6 right-6 text-white hover:text-gold transition-colors z-[130]"
+                    >
+                        <X className="w-8 h-8" />
+                    </button>
+
+                    <button
+                        onClick={prevImage}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gold transition-colors p-2 hidden md:block z-[130]"
+                    >
+                        <ChevronLeft className="w-12 h-12" />
+                    </button>
+
+                    <div className="max-w-6xl max-h-[90vh] relative p-1 border border-white/20 bg-black" onClick={(e) => e.stopPropagation()}>
+                        <img
+                            src={images[selectedImageIndex].imageUrl}
+                            alt={images[selectedImageIndex].title}
+                            className="max-h-[85vh] w-auto object-contain"
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm p-4 border-t border-white/20 flex justify-between items-end">
+                            <div>
+                                <h3 className="font-bold text-xl uppercase tracking-tight text-white">{images[selectedImageIndex].title}</h3>
+                                <p className="font-mono text-xs text-gold">{images[selectedImageIndex].display_date}</p>
+                            </div>
+                            <span className="font-mono text-[10px] text-gray-500">IMG_{images[selectedImageIndex].$id.substring(0, 6)}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={nextImage}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gold transition-colors p-2 hidden md:block z-[130]"
+                    >
+                        <ChevronRight className="w-12 h-12" />
+                    </button>
+                </div>
+            )}
 
             <DeleteConfirmationModal
                 isOpen={!!deletingImage}

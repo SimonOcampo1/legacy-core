@@ -195,9 +195,9 @@ export const NarrativeManager = ({ groupId }: { groupId?: string }) => {
                         ) : filteredNarratives.length === 0 ? (
                             <EmptyState
                                 title="NARRATIVE_VOID"
-                                message="NARRATIVE ARCHIVE QUERY RETURNED NO DATA. INITIATE NEW ENTRY PROTOCOL."
+                                message="NO NARRATIVES FOUND."
                                 icon={Search}
-                                actionLabel="[ CREATE_NEW_ENTRY ]"
+                                actionLabel="[ NEW_ENTRY ]"
                                 onAction={() => setIsAddingMode(true)}
                             />
                         ) : (

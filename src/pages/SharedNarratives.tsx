@@ -11,6 +11,7 @@ import { useGroup } from "../context/GroupContext";
 import { useScrollLock } from "../hooks/useScrollLock";
 import { AnimatePresence, motion } from "framer-motion";
 import { NarrativeEditor } from "../components/admin/NarrativeEditor";
+import { stripHtml } from "../lib/utils";
 
 
 
@@ -149,7 +150,7 @@ export function SharedNarratives() {
                                                 </h2>
                                             </div>
                                             <p className="font-mono text-sm opacity-60 max-w-2xl line-clamp-2 mt-4">
-                                                {narrative.description || narrative.content.substring(0, 150)}...
+                                                {narrative.description || stripHtml(narrative.content).substring(0, 150)}...
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2 mt-8 font-mono text-xs opacity-40 uppercase">

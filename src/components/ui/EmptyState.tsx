@@ -6,7 +6,7 @@ interface EmptyStateProps {
     title: string;
     message: string;
     icon?: LucideIcon;
-    actionLabel: string;
+    actionLabel?: string;
     actionLink?: string;
     onAction?: () => void;
     className?: string;
@@ -47,19 +47,21 @@ export function EmptyState({
                     TERMINAL_STATUS: RESOLUTION_REQUIRED // DATA_STREAM_NULL
                 </p>
 
-                <div className="pt-4">
-                    {actionLink ? (
-                        <Link to={actionLink} className={buttonClasses}>
-                            <span className="relative z-10">{actionLabel}</span>
-                            <div className="absolute inset-0 bg-gold translate-x-1 translate-y-1 -z-10 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform" />
-                        </Link>
-                    ) : (
-                        <button onClick={onAction} className={buttonClasses}>
-                            <span className="relative z-10">{actionLabel}</span>
-                            <div className="absolute inset-0 bg-gold translate-x-1 translate-y-1 -z-10 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform" />
-                        </button>
-                    )}
-                </div>
+                {actionLabel && (
+                    <div className="pt-4">
+                        {actionLink ? (
+                            <Link to={actionLink} className={buttonClasses}>
+                                <span className="relative z-10">{actionLabel}</span>
+                                <div className="absolute inset-0 bg-gold translate-x-1 translate-y-1 -z-10 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform" />
+                            </Link>
+                        ) : (
+                            <button onClick={onAction} className={buttonClasses}>
+                                <span className="relative z-10">{actionLabel}</span>
+                                <div className="absolute inset-0 bg-gold translate-x-1 translate-y-1 -z-10 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform" />
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Corner Decor */}

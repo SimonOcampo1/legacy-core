@@ -1,11 +1,12 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Mail, Share, Bookmark, ArrowRight, Shield } from "lucide-react";
+import { Mail, Share, Bookmark, ArrowRight, Shield, FileText } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
 import { useState, useEffect } from "react";
 import { databases, DATABASE_ID, PROFILES_COLLECTION_ID, NARRATIVES_COLLECTION_ID, getImageUrl } from "../lib/appwrite";
 import { Query } from "appwrite";
 import type { Member, Narrative } from "../types";
+import { EmptyState } from "../components/ui/EmptyState";
 
 // Local interface for the display-ready narrative structure
 interface ProfileNarrative {
@@ -23,10 +24,12 @@ import { GalleryManager } from "../components/admin/GalleryManager";
 import { NarrativeEditor } from "../components/admin/NarrativeEditor";
 import { ProfileEditModal } from "../components/profile/ProfileEditModal";
 import { Settings, Edit3, Plus, ArrowLeft } from "lucide-react";
+import { useGroup } from "../context/GroupContext";
 
 export function Profile() {
     const navigate = useNavigate();
     const { user: currentUser } = useAuth();
+    const { currentGroup } = useGroup();
     const { id } = useParams<{ id: string }>();
     const [member, setMember] = useState<Member | null>(null);
     const [narratives, setNarratives] = useState<ProfileNarrative[]>([]);
@@ -78,18 +81,25 @@ export function Profile() {
                 social: {
                     email: memberDoc.has_email ? "mailto:email@example.com" : undefined,
                     linkedin: memberDoc.has_linkedin ? "#" : undefined
-                }
+                },
+                joined: memberDoc.$createdAt
             };
             setMember(mappedMember);
 
-            // Fetch Narratives for this member
+            // Fetch Narratives for this member AND current group
+            const narrativeQueries = [
+                Query.equal("author_id", [id || ""]),
+                Query.orderDesc("date_event")
+            ];
+
+            if (currentGroup?.$id) {
+                narrativeQueries.push(Query.equal("group_id", currentGroup.$id));
+            }
+
             const narrativesResponse = await databases.listDocuments(
                 DATABASE_ID,
                 NARRATIVES_COLLECTION_ID,
-                [
-                    Query.equal("author_id", [id || ""]),
-                    Query.orderDesc("date_event")
-                ]
+                narrativeQueries
             );
 
             const mappedNarratives: ProfileNarrative[] = (narrativesResponse.documents as unknown as Narrative[]).map((doc) => ({
@@ -114,7 +124,7 @@ export function Profile() {
 
     useEffect(() => {
         fetchProfile();
-    }, [id, currentUser?.$id]);
+    }, [id, currentUser?.$id, currentGroup?.$id]);
 
     // Scroll to top when editor opens
     useEffect(() => {
@@ -189,6 +199,7 @@ export function Profile() {
                     <NarrativeEditor
                         memberId={member.id}
                         initialData={editingNarrative}
+                        groupId={currentGroup?.$id}
                         onSuccess={handleNarrativeSuccess}
                     />
                 </div>
@@ -200,10 +211,10 @@ export function Profile() {
         <PageTransition>
             <div className="bg-white dark:bg-[#09090b] min-h-screen pt-12 font-sans">
                 {/* Header Section with Split Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 border-b-2 border-black dark:border-white/20 min-h-[60vh]">
+                <div className="grid grid-cols-1 lg:grid-cols-12 border-b-2 border-black dark:border-white/20 lg:min-h-[65vh] min-h-[auto]">
 
                     {/* Left: Image & Identity */}
-                    <div className="lg:col-span-5 relative min-h-[60vh] lg:min-h-0 bg-gray-100 dark:bg-stone-900 border-r border-black dark:border-white/20 group">
+                    <div className="lg:col-span-4 relative min-h-[50vh] lg:min-h-0 bg-gray-100 dark:bg-stone-900 border-r border-black dark:border-white/20 group">
                         <img
                             src={member.imageUrl}
                             alt={member.name}
@@ -223,16 +234,7 @@ export function Profile() {
                             </div>
                         </div>
 
-                        {/* Edit Profile Button (Owner Only) - Always visible/accessible for owner */}
-                        {isOwner && (
-                            <button
-                                onClick={() => setIsProfileModalOpen(true)}
-                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 bg-black text-white px-6 py-3 font-mono text-xs uppercase hover:bg-gold hover:text-black flex items-center gap-2"
-                            >
-                                <Edit3 className="w-4 h-4" />
-                                EDIT_IDENTITY
-                            </button>
-                        )}
+                        {/* Edit Profile Button removed from here */}
 
                         {/* Quick Actions Overlay */}
                         <div className="absolute bottom-0 left-0 right-0 grid grid-cols-3 divide-x divide-white/20 border-t border-white/20 bg-black/40 backdrop-blur-md text-white z-10">
@@ -245,13 +247,22 @@ export function Profile() {
                     </div>
 
                     {/* Right: Data & Bio */}
-                    <div className="lg:col-span-7 flex flex-col">
-                        <div className="p-8 lg:p-16 border-b border-black dark:border-white/20 flex-grow relative">
-                            <div className="absolute top-8 right-8">
+                    <div className="lg:col-span-8 flex flex-col">
+                        <div className="p-8 lg:p-12 border-b border-black dark:border-white/20 flex-grow relative flex flex-col justify-center">
+                            <div className="absolute top-8 right-8 flex items-center gap-4">
+                                {isOwner && (
+                                    <button
+                                        onClick={() => setIsProfileModalOpen(true)}
+                                        className="flex items-center gap-2 bg-black text-white px-4 py-2 font-mono text-xs uppercase hover:bg-gold hover:text-black transition-colors"
+                                    >
+                                        <Edit3 className="w-3 h-3" />
+                                        EDIT_IDENTITY
+                                    </button>
+                                )}
                                 <Settings className="w-4 h-4 animate-spin-slow opacity-20" />
                             </div>
 
-                            <h1 className="text-5xl lg:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-6">
+                            <h1 className="text-6xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.9] mb-6">
                                 {member.name.split(' ').map((word, i) => (
                                     <span key={i} className="block">{word}</span>
                                 ))}
@@ -285,7 +296,11 @@ export function Profile() {
                             </div>
                             <div className="p-6 flex flex-col justify-between">
                                 <span className="text-gray-500">JOINED</span>
-                                <span className="text-xl font-bold">2014</span>
+                                <span className="text-xl font-bold">
+                                    {member.joined
+                                        ? new Date(member.joined).getFullYear()
+                                        : "2014"}
+                                </span>
                             </div>
                             <div className="p-6 flex flex-col justify-between hover:bg-black hover:text-gold dark:hover:bg-white dark:hover:text-black transition-colors cursor-pointer group">
                                 <span className="group-hover:text-gold">CONTACT</span>
@@ -324,11 +339,11 @@ export function Profile() {
                             // But here we might want to wrap it or ensure it shows list + add button
                             // Current TimelineManager seems to cover crud. 
                             // Let's ensure it has memberId prop passed which we did.
-                            <TimelineManager memberId={member.id} />
+                            <TimelineManager memberId={member.id} groupId={currentGroup?.$id} />
                         )}
 
                         {activeTab === 'gallery' && (
-                            <GalleryManager memberId={member.id} />
+                            <GalleryManager memberId={member.id} groupId={currentGroup?.$id} />
                         )}
 
                         {activeTab === 'narratives' && (
@@ -390,11 +405,14 @@ export function Profile() {
                                     ))}
 
                                     {narratives.length === 0 && (
-                                        <div className="text-center py-12 border border-dashed border-gray-300 dark:border-gray-700">
-                                            <p className="font-mono text-sm text-gray-400 uppercase">
-                                                {isOwner ? "NO_LOGS_YET. START_YOUR_FIRST_ENTRY." : "NO_LOGS_AVAILABLE_FOR_USER"}
-                                            </p>
-                                        </div>
+                                        <EmptyState
+                                            title="NARRATIVE_VOID"
+                                            message={isOwner ? "NO LOGS YET." : "NO LOGS FOUND."}
+                                            icon={FileText}
+                                            actionLabel={isOwner ? "[ CREATE_ENTRY ]" : undefined}
+                                            onAction={isOwner ? () => setShowNarrativeEditor(true) : undefined}
+                                            className="border border-dashed border-gray-300 dark:border-gray-700"
+                                        />
                                     )}
                                 </div>
                             </div>

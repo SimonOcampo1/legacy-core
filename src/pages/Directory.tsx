@@ -7,12 +7,14 @@ import { PageTransition } from "../components/PageTransition";
 import type { Member } from "../types";
 import { Link } from "react-router-dom";
 import { useGroup } from "../context/GroupContext";
+import { useAuth } from "../context/AuthContext";
 
 export function Directory() {
     const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
     const BUCKET_ID = "legacy_core_assets";
     const { currentGroup } = useGroup();
+    const { user: currentUser } = useAuth();
 
     useEffect(() => {
         const fetchMembers = async () => {
@@ -24,11 +26,28 @@ export function Directory() {
                     [
                         Query.limit(100),
                         Query.equal("is_authorized", true),
-                        Query.equal("group_id", currentGroup.$id)
+                        Query.equal("$id", currentGroup.members)
                     ]
                 );
 
-                const mappedMembers = response.documents.map((doc: any) => {
+                let docs = response.documents;
+
+                // Ensure current user is included if they are missing (e.g. if is_authorized is false or group mismatch but valid user)
+                if (currentUser && !docs.find((d: any) => d.$id === currentUser.$id)) {
+                    try {
+                        const myProfile = await databases.getDocument(
+                            DATABASE_ID,
+                            PROFILES_COLLECTION_ID,
+                            currentUser.$id
+                        );
+                        // Prepend current user
+                        docs = [myProfile, ...docs];
+                    } catch (e) {
+                        console.warn("Could not fetch current user profile for directory inclusion", e);
+                    }
+                }
+
+                const mappedMembers = docs.map((doc: any) => {
                     let imageUrl = "https://placehold.co/400x400/png?text=Profile";
                     if (doc.avatar_id) {
                         if (doc.avatar_id.startsWith("http")) {
@@ -95,7 +114,7 @@ export function Directory() {
                         {members.length === 0 ? (
                             <EmptyState
                                 title="PERSONNEL_VOID"
-                                message="NO PERSONNEL RECORDS FOUND."
+                                message="NO MEMBERS FOUND."
                                 icon={Users}
                                 actionLabel="[ RETURN_HOME ]"
                                 actionLink="/"

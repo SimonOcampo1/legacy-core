@@ -4,6 +4,7 @@ export interface Member {
     role: string;
     quote: string;
     imageUrl: string;
+    joined?: string; // ISO Date string
     // Extended profile fields
     bio?: string;
     bioIntro?: string; // The "Currently..." quote

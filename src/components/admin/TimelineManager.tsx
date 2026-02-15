@@ -84,7 +84,7 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
     };
 
     useEffect(() => {
-        if (groupId) {
+        if (groupId || memberId) {
             fetchEvents();
         }
         // Fetch all member profiles for the participant picker
@@ -98,7 +98,7 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
             }
         };
         fetchMembers();
-    }, [groupId]);
+    }, [groupId, memberId]);
 
     const resetForm = () => {
         setTitle('');
@@ -243,7 +243,7 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
                     </p>
                 </div>
 
-                {!isAddingMode && (
+                {!isAddingMode && groupId && (
                     <button
                         onClick={() => setIsAddingMode(true)}
                         className="group flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-all"
@@ -453,9 +453,9 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
                         ) : filteredEvents.length === 0 ? (
                             <EmptyState
                                 title="CHRONO_VOID"
-                                message="DATABASE QUERY RETURNED ZERO RESULTS. CREATE A NEW ENTRY TO POPULATE THE CHRONO_LOG."
+                                message="NO TEMPORAL RECORDS FOUND."
                                 icon={Search}
-                                actionLabel="[ CREATE_NEW_ENTRY ]"
+                                actionLabel="[ ADD_EVENT ]"
                                 onAction={() => setIsAddingMode(true)}
                             />
                         ) : (
@@ -464,10 +464,11 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
                                     <motion.div
                                         key={event.$id}
                                         layout="position"
-                                        className={`group flex flex-col md:flex-row items-stretch border-b border-black/10 dark:border-white/10 last:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${index % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]'}`}
+                                        onClick={() => window.location.href = `/timeline#${event.$id}`}
+                                        className={`group flex flex-col md:flex-row items-stretch border-b border-black/10 dark:border-white/10 last:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]'}`}
                                     >
                                         {/* Date Column */}
-                                        <div className="p-6 md:w-32 border-r border-black/10 dark:border-white/10 flex flex-col justify-center items-center md:items-start">
+                                        <div className="p-6 md:w-32 border-r border-black/10 dark:border-white/10 flex flex-col justify-center items-center md:items-start pointer-events-none">
                                             <span className="text-xl font-black text-gold">
                                                 {new Date(event.date_event).getFullYear()}
                                             </span>
@@ -477,7 +478,7 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
                                         </div>
 
                                         {/* Content Column */}
-                                        <div className="p-6 flex-1 flex flex-col justify-center gap-3">
+                                        <div className="p-6 flex-1 flex flex-col justify-center gap-3 pointer-events-none">
                                             <div className="flex items-center gap-3">
                                                 <span className="px-2 py-1 border border-black dark:border-white text-[10px] font-mono uppercase tracking-wider font-bold">
                                                     {event.category}

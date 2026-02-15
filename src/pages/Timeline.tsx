@@ -88,6 +88,23 @@ export function Timeline() {
         fetchEvents();
     }, [currentGroup]);
 
+    // Handle scroll to hash on load
+    useEffect(() => {
+        if (!loading && events.length > 0 && window.location.hash) {
+            const id = window.location.hash.substring(1);
+            const element = document.getElementById(id);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Add a temporary highlight effect
+                    const highlightClasses = ['bg-[#C5A059]/20', 'dark:bg-[#C5A059]/30', 'shadow-[0_0_40px_-5px_#C5A059]', 'rounded-xl'];
+                    element.classList.add(...highlightClasses);
+                    setTimeout(() => element.classList.remove(...highlightClasses), 2000);
+                }, 500); // Delay to ensure layout is stable
+            }
+        }
+    }, [loading, events]);
+
     return (
         <PageTransition>
             <div className="min-h-screen bg-white dark:bg-[#09090b] pt-12">
@@ -129,7 +146,7 @@ export function Timeline() {
                 ) : (
                     <div className="relative border-l-2 border-black dark:border-white/20 ml-4 md:ml-32 lg:ml-40 my-24 pr-4 md:pr-12 space-y-24">
                         {events.map((event) => (
-                            <div key={event.id} className="relative pl-12 group">
+                            <div key={event.id} id={event.id} className="relative pl-12 group scroll-mt-32 transition-all duration-500">
                                 {/* Timeline Node */}
                                 <div className="absolute -left-[9px] top-12 w-4 h-4 bg-black dark:bg-white border-2 border-white dark:border-black ring-2 ring-black dark:ring-white group-hover:scale-125 transition-transform duration-300 z-10" />
 
@@ -178,7 +195,7 @@ export function Timeline() {
                                                             return (
                                                                 <Link
                                                                     key={pid}
-                                                                    to={`/ profile / ${profile.slug || profile.id} `}
+                                                                    to={`/directory/${profile.id}`}
                                                                     className="relative group/avatar"
                                                                     title={profile.name}
                                                                 >

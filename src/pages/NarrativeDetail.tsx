@@ -190,14 +190,16 @@ export function NarrativeDetail() {
 
                         {/* Title & Hero */}
                         <div className="lg:col-span-9 relative">
-                            <div className="absolute inset-0 z-0">
-                                <img
-                                    src={headerImage}
-                                    alt="Header"
-                                    className="w-full h-full object-cover opacity-20 dark:opacity-30 grayscale contrast-125"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#09090b] to-transparent" />
-                            </div>
+                            {headerImage && headerImage !== "https://images.unsplash.com/photo-1497018686234-eb1aba3c6e94?q=80&w=1200&auto=format&fit=crop" && (
+                                <div className="absolute inset-0 z-0">
+                                    <img
+                                        src={headerImage}
+                                        alt="Header"
+                                        className="w-full h-full object-cover opacity-20 dark:opacity-30 grayscale contrast-125"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#09090b] to-transparent" />
+                                </div>
+                            )}
 
                             <div className="relative z-10 p-8 lg:p-16 h-full flex flex-col justify-end">
                                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.9] mb-8">
