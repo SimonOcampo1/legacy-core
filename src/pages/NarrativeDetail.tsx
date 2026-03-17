@@ -144,9 +144,62 @@ export function NarrativeDetail() {
 
                 <article className="max-w-[1920px] mx-auto">
                     {/* Header Region */}
-                    <header className="grid grid-cols-1 lg:grid-cols-12 min-h-[50vh] border-b-2 border-black dark:border-white/20">
-                        {/* Meta Data Sidebar */}
-                        <div className="lg:col-span-3 border-r border-black dark:border-white/20 bg-gray-100 dark:bg-white/5 p-8 flex flex-col justify-between">
+                    <header className="grid grid-cols-1 lg:grid-cols-12 lg:min-h-[50vh] border-b-2 border-black dark:border-white/20">
+                        {/* Mobile Hero Image — shown first on mobile only */}
+                        {headerImage && headerImage !== "https://images.unsplash.com/photo-1497018686234-eb1aba3c6e94?q=80&w=1200&auto=format&fit=crop" && (
+                            <div className="lg:hidden w-full h-56 sm:h-72 relative overflow-hidden order-1">
+                                <img
+                                    src={headerImage}
+                                    alt="Header"
+                                    className="w-full h-full object-cover grayscale contrast-125"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#09090b] to-transparent opacity-60" />
+                                {/* Back button overlay */}
+                                <div className="absolute top-4 left-4 z-10">
+                                    <Link to="/narratives" className="flex items-center gap-2 font-mono text-[10px] uppercase bg-black/70 text-white px-3 py-1.5 hover:bg-gold hover:text-black transition-colors">
+                                        <ArrowLeft className="w-3 h-3" />
+                                        BACK
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Mobile Title — shown second on mobile */}
+                        <div className="lg:hidden order-2 p-6 pb-4">
+                            <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter leading-[0.9] mb-4">
+                                {narrative.title}
+                            </h1>
+                            <p className="text-lg font-medium max-w-3xl leading-tight border-l-4 border-gold pl-4 py-1">
+                                {narrative.description}
+                            </p>
+                        </div>
+
+                        {/* Mobile Meta — shown third on mobile */}
+                        <div className="lg:hidden order-3 px-6 pb-6">
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[10px] text-gray-500 border-t border-black/10 dark:border-white/10 pt-4">
+                                <div>
+                                    <span className="opacity-50">LOG_ID:</span>{" "}
+                                    <span className="text-black dark:text-white uppercase">{narrative.$id.substring(0, 8)}</span>
+                                </div>
+                                <div>
+                                    <span className="opacity-50">DATE:</span>{" "}
+                                    <span className="text-black dark:text-white">{date}</span>
+                                </div>
+                                <Link to={`/directory/${narrative.author_id}`} className="group flex items-center gap-2 hover:text-gold transition-colors">
+                                    <div className="w-6 h-6 border border-black dark:border-white grayscale group-hover:grayscale-0 overflow-hidden">
+                                        {author?.imageUrl ? (
+                                            <img src={author.imageUrl} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-gray-300" />
+                                        )}
+                                    </div>
+                                    <span className="text-black dark:text-white uppercase group-hover:text-gold">{author?.name || "REDACTED"}</span>
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Desktop: Meta Data Sidebar */}
+                        <div className="hidden lg:flex lg:col-span-3 border-r border-black dark:border-white/20 bg-gray-100 dark:bg-white/5 p-8 flex-col justify-between">
                             <div className="font-mono text-xs space-y-4 text-gray-500">
                                 <div>
                                     <span className="block opacity-50">LOG_ID</span>
@@ -162,7 +215,7 @@ export function NarrativeDetail() {
                                 </div>
                             </div>
 
-                            <div className="mt-8 pt-8 border-t border-black/10 dark:border-white/10 hidden lg:block">
+                            <div className="mt-8 pt-8 border-t border-black/10 dark:border-white/10">
                                 <Link to="/narratives" className="flex items-center gap-2 font-mono text-xs uppercase hover:text-gold transition-colors group">
                                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                     [ RETURN_TO_INDEX ]
@@ -188,8 +241,8 @@ export function NarrativeDetail() {
                             </div>
                         </div>
 
-                        {/* Title & Hero */}
-                        <div className="lg:col-span-9 relative">
+                        {/* Desktop: Title & Hero */}
+                        <div className="hidden lg:block lg:col-span-9 relative">
                             {headerImage && headerImage !== "https://images.unsplash.com/photo-1497018686234-eb1aba3c6e94?q=80&w=1200&auto=format&fit=crop" && (
                                 <div className="absolute inset-0 z-0">
                                     <img

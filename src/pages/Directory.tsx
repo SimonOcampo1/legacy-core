@@ -110,7 +110,7 @@ export function Directory() {
                         [ LOADING_DATABASE ]
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 border-l border-black dark:border-white/20">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 border-l border-black dark:border-white/20">
                         {members.length === 0 ? (
                             <EmptyState
                                 title="PERSONNEL_VOID"
@@ -125,10 +125,10 @@ export function Directory() {
                                 <Link
                                     to={`/directory/${member.id}`}
                                     key={member.id}
-                                    className="group relative border-r border-b border-black dark:border-white/20 bg-white dark:bg-[#09090b] aspect-[3/4] overflow-hidden hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors duration-0"
+                                    className="group relative border-r border-b border-black dark:border-white/20 bg-white dark:bg-[#09090b] aspect-[2/3] md:aspect-[3/4] overflow-hidden hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors duration-0"
                                 >
                                     {/* Image */}
-                                    <div className="w-full h-[70%] bg-gray-200 dark:bg-gray-800 relative grayscale group-hover:grayscale-0 transition-all duration-300">
+                                    <div className="w-full h-[65%] md:h-[70%] bg-gray-200 dark:bg-gray-800 relative grayscale group-hover:grayscale-0 transition-all duration-300">
                                         <img
                                             src={member.imageUrl}
                                             alt={member.name}
@@ -139,18 +139,18 @@ export function Directory() {
                                     </div>
 
                                     {/* Info */}
-                                    <div className="p-4 flex flex-col justify-between h-[30%] border-t border-black dark:border-white/20">
+                                    <div className="p-2 md:p-4 flex flex-col justify-between h-[35%] md:h-[30%] border-t border-black dark:border-white/20">
                                         <div>
-                                            <h3 className="font-bold text-lg leading-tight uppercase tracking-tight group-hover:text-gold transition-colors">
+                                            <h3 className="font-bold text-xs md:text-lg leading-tight uppercase tracking-tight group-hover:text-gold transition-colors line-clamp-2">
                                                 {member.name}
                                             </h3>
-                                            <p className="font-mono text-[10px] opacity-60 mt-1 uppercase">
+                                            <p className="font-mono text-[8px] md:text-[10px] opacity-60 mt-0.5 md:mt-1 uppercase truncate">
                                                 {member.role || "MEMBER"}
                                             </p>
                                         </div>
                                         <div className="flex justify-between items-end">
-                                            <span className="font-mono text-[10px]">ID: {member.id.substring(0, 4)}</span>
-                                            <div className="w-2 h-2 bg-black dark:bg-white group-hover:bg-gold" />
+                                            <span className="font-mono text-[8px] md:text-[10px]">ID: {member.id.substring(0, 4)}</span>
+                                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-black dark:bg-white group-hover:bg-gold" />
                                         </div>
                                     </div>
                                 </Link>

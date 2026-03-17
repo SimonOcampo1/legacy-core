@@ -144,21 +144,77 @@ export function Timeline() {
                         className="min-h-[60vh]"
                     />
                 ) : (
-                    <div className="relative border-l-2 border-black dark:border-white/20 ml-4 md:ml-32 lg:ml-40 my-24 pr-4 md:pr-12 space-y-24">
+                    <div className="relative border-l-2 border-black dark:border-white/20 ml-4 md:ml-32 lg:ml-40 my-12 md:my-24 pr-4 md:pr-12 space-y-8 md:space-y-24">
                         {events.map((event) => (
-                            <div key={event.id} id={event.id} className="relative pl-12 group scroll-mt-32 transition-all duration-500">
+                            <div key={event.id} id={event.id} className="relative pl-6 md:pl-12 group scroll-mt-32 transition-all duration-500">
                                 {/* Timeline Node */}
-                                <div className="absolute -left-[9px] top-12 w-4 h-4 bg-black dark:bg-white border-2 border-white dark:border-black ring-2 ring-black dark:ring-white group-hover:scale-125 transition-transform duration-300 z-10" />
+                                <div className="absolute -left-[9px] top-6 md:top-12 w-4 h-4 bg-black dark:bg-white border-2 border-white dark:border-black ring-2 ring-black dark:ring-white group-hover:scale-125 transition-transform duration-300 z-10" />
 
                                 {/* Date Marker (Left Sidebar) */}
-                                <div className="md:absolute md:-left-40 md:top-12 md:w-32 md:text-right mb-4 md:mb-0">
-                                    <div className="font-mono text-sm text-gray-500">{event.date}</div>
-                                    <div className="font-black text-3xl text-black dark:text-white leading-none">{event.year}</div>
+                                <div className="md:absolute md:-left-40 md:top-12 md:w-32 md:text-right mb-2 md:mb-0">
+                                    <div className="font-mono text-[10px] md:text-sm text-gray-500">{event.date}</div>
+                                    <div className="font-black text-xl md:text-3xl text-black dark:text-white leading-none">{event.year}</div>
                                 </div>
 
-                                {/* Event Card */}
-                                <div className="border-2 border-black dark:border-white bg-white dark:bg-transparent overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-2 hover:translate-y-2 transition-all duration-300">
-                                    <div className="grid grid-cols-1 lg:grid-cols-2">
+                                {/* Event Card — Compact horizontal on mobile, full on desktop */}
+                                <div className="border-2 border-black dark:border-white bg-white dark:bg-transparent overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] md:dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 md:hover:translate-x-2 md:hover:translate-y-2 transition-all duration-300">
+                                    {/* Mobile: compact horizontal layout */}
+                                    <div className="md:hidden flex">
+                                        {event.image && (
+                                            <div className="w-24 min-w-[96px] h-auto border-r-2 border-black dark:border-white overflow-hidden flex-shrink-0">
+                                                <img
+                                                    src={event.image}
+                                                    alt={event.title}
+                                                    className="w-full h-full object-cover grayscale contrast-125"
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="p-4 flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                {event.category && (
+                                                    <span className="font-mono text-[9px] uppercase border border-black dark:border-white px-1.5 py-0.5">
+                                                        {event.category}
+                                                    </span>
+                                                )}
+                                                {event.location && (
+                                                    <span className="font-mono text-[9px] text-gold uppercase">
+                                                        {event.location}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h3 className="text-lg font-black uppercase leading-[0.95] tracking-tighter mb-2 break-words text-black dark:text-white">
+                                                {event.title}
+                                            </h3>
+                                            <p className="font-mono text-[10px] leading-relaxed text-gray-700 dark:text-gray-300 line-clamp-2">
+                                                {event.description}
+                                            </p>
+                                            {/* Participants */}
+                                            {event.participantIds && event.participantIds.length > 0 && (
+                                                <div className="mt-3 pt-2 border-t border-black/10 dark:border-white/10 flex -space-x-1">
+                                                    {event.participantIds.slice(0, 4).map((pid: string) => {
+                                                        const profile = profiles[pid];
+                                                        if (!profile) return null;
+                                                        return (
+                                                            <Link key={pid} to={`/directory/${profile.id}`}>
+                                                                <img
+                                                                    src={getImageUrl(profile.avatar_id)}
+                                                                    className="w-6 h-6 border border-black dark:border-white grayscale bg-gray-200 object-cover"
+                                                                    alt={profile.name}
+                                                                />
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                    {event.participantIds.length > 4 && (
+                                                        <span className="font-mono text-[9px] ml-2 self-center text-gray-500">+{event.participantIds.length - 4}</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Desktop: full 2-column layout */}
+                                    <div className="hidden md:grid grid-cols-1 lg:grid-cols-2">
                                         {/* Content Side */}
                                         <div className="p-8 md:p-12 flex flex-col justify-between min-h-[400px]">
                                             <div>

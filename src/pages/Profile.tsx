@@ -1,12 +1,13 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Mail, Share, Bookmark, ArrowRight, Shield, FileText } from "lucide-react";
+import { Mail, Share, Bookmark, ArrowRight, Shield, FileText, ChevronDown } from "lucide-react";
 import { PageTransition } from "../components/PageTransition";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { databases, DATABASE_ID, PROFILES_COLLECTION_ID, NARRATIVES_COLLECTION_ID, getImageUrl } from "../lib/appwrite";
 import { Query } from "appwrite";
 import type { Member, Narrative } from "../types";
 import { EmptyState } from "../components/ui/EmptyState";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Local interface for the display-ready narrative structure
 interface ProfileNarrative {
@@ -19,12 +20,80 @@ interface ProfileNarrative {
 
 type TabType = 'narratives' | 'timeline' | 'gallery';
 
+const TAB_OPTIONS: { id: TabType; label: string; icon: string }[] = [
+    { id: 'narratives', label: 'NARRATIVE_LOGS', icon: '▸' },
+    { id: 'timeline', label: 'TIMELINE_DATA', icon: '▸' },
+    { id: 'gallery', label: 'VISUAL_ARCHIVE', icon: '▸' },
+];
+
 import { TimelineManager } from "../components/admin/TimelineManager";
 import { GalleryManager } from "../components/admin/GalleryManager";
 import { NarrativeEditor } from "../components/admin/NarrativeEditor";
 import { ProfileEditModal } from "../components/profile/ProfileEditModal";
 import { Settings, Edit3, Plus, ArrowLeft } from "lucide-react";
 import { useGroup } from "../context/GroupContext";
+
+/* ─── Mobile Tab Dropdown (matches UserMenu style) ─── */
+function MobileTabDropdown({ activeTab, onTabChange }: { activeTab: TabType; onTabChange: (tab: TabType) => void }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const currentLabel = TAB_OPTIONS.find(t => t.id === activeTab)?.label || 'SELECT';
+
+    return (
+        <div className="md:hidden relative font-mono text-xs uppercase" ref={dropRef}>
+            {/* Trigger button */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full flex items-center justify-between px-4 py-4 border-b-2 border-transparent transition-all duration-200 ${isOpen
+                        ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white'
+                        : 'hover:bg-gray-100 dark:hover:bg-white/10'
+                    }`}
+            >
+                <span className="tracking-widest font-bold">[{currentLabel}]</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'text-gold'
+                    }`} />
+            </button>
+
+            {/* Dropdown panel */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 5 }}
+                        transition={{ duration: 0.1 }}
+                        className="absolute left-0 right-0 mt-0 border-2 border-black dark:border-white bg-white dark:bg-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] z-[60]"
+                    >
+                        {TAB_OPTIONS.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => { onTabChange(tab.id); setIsOpen(false); }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left border-b border-black/10 dark:border-white/10 last:border-0 ${activeTab === tab.id
+                                        ? 'bg-black text-white dark:bg-white dark:text-black'
+                                        : 'hover:bg-gold hover:text-black'
+                                    }`}
+                            >
+                                <span className="text-gold">{tab.icon}</span>
+                                <span>{tab.label}</span>
+                            </button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
 
 export function Profile() {
     const navigate = useNavigate();
@@ -248,41 +317,44 @@ export function Profile() {
 
                     {/* Right: Data & Bio */}
                     <div className="lg:col-span-8 flex flex-col">
-                        <div className="p-8 lg:p-12 border-b border-black dark:border-white/20 flex-grow relative flex flex-col justify-center">
-                            <div className="absolute top-8 right-8 flex items-center gap-4">
-                                {isOwner && (
-                                    <button
-                                        onClick={() => setIsProfileModalOpen(true)}
-                                        className="flex items-center gap-2 bg-black text-white px-4 py-2 font-mono text-xs uppercase hover:bg-gold hover:text-black transition-colors"
-                                    >
-                                        <Edit3 className="w-3 h-3" />
-                                        EDIT_IDENTITY
-                                    </button>
-                                )}
+                        <div className="p-6 md:p-8 lg:p-12 border-b border-black dark:border-white/20 flex-grow relative flex flex-col justify-center">
+                            {/* Settings icon — top right on all sizes */}
+                            <div className="absolute top-6 right-6 md:top-8 md:right-8">
                                 <Settings className="w-4 h-4 animate-spin-slow opacity-20" />
                             </div>
 
-                            <h1 className="text-6xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.9] mb-6">
+                            <h1 className="text-5xl md:text-6xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.9] mb-4 md:mb-6">
                                 {member.name.split(' ').map((word, i) => (
                                     <span key={i} className="block">{word}</span>
                                 ))}
                             </h1>
 
-                            <div className="flex flex-wrap gap-4 mb-12">
+                            {/* Edit button — inline below name on mobile, doesn't overlap */}
+                            {isOwner && (
+                                <button
+                                    onClick={() => setIsProfileModalOpen(true)}
+                                    className="flex items-center gap-2 bg-black text-white px-4 py-2 font-mono text-xs uppercase hover:bg-gold hover:text-black transition-colors mb-4 md:mb-6 self-start"
+                                >
+                                    <Edit3 className="w-3 h-3" />
+                                    EDIT_IDENTITY
+                                </button>
+                            )}
+
+                            <div className="flex flex-wrap gap-2 md:gap-4 mb-8 md:mb-12">
                                 {honors.map((honor, index) => (
-                                    <span key={index} className="font-mono text-xs border border-black dark:border-white/20 px-3 py-1 uppercase tracking-wider">
+                                    <span key={index} className="font-mono text-[10px] md:text-xs border border-black dark:border-white/20 px-2 md:px-3 py-1 uppercase tracking-wider">
                                         {honor}
                                     </span>
                                 ))}
                             </div>
 
-                            <div className="space-y-6 max-w-2xl">
+                            <div className="space-y-4 md:space-y-6 max-w-2xl">
                                 {member.bioIntro && (
-                                    <p className="text-xl font-bold uppercase leading-tight">
+                                    <p className="text-lg md:text-xl font-bold uppercase leading-tight">
                                         {member.bioIntro}
                                     </p>
                                 )}
-                                <p className="font-mono text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                                <p className="font-mono text-xs md:text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                                     {member.bio || member.quote}
                                 </p>
                             </div>
@@ -312,24 +384,25 @@ export function Profile() {
 
                 {/* Content Section - Unified View */}
                 <div className="max-w-[1920px] mx-auto min-h-[50vh]">
-                    {/* Tabs */}
-                    <div className="flex border-b border-black dark:border-white/20 sticky top-0 bg-white dark:bg-[#09090b] z-20 overflow-x-auto">
-                        {[
-                            { id: 'narratives', label: 'NARRATIVE_LOGS' },
-                            { id: 'timeline', label: 'TIMELINE_DATA' },
-                            { id: 'gallery', label: 'VISUAL_ARCHIVE' }
-                        ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id as TabType)}
-                                className={`px-8 py-6 font-mono text-sm uppercase tracking-wider transition-colors whitespace-nowrap ${activeTab === tab.id
-                                    ? 'bg-black text-white dark:bg-white dark:text-black'
-                                    : 'hover:bg-gray-100 dark:hover:bg-white/10'
-                                    }`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
+                    {/* Mobile: Custom dropdown | Desktop: Tabs */}
+                    <div className="border-b border-black dark:border-white/20 sticky top-16 md:top-0 bg-white dark:bg-[#09090b] z-20">
+                        {/* Mobile custom dropdown — matches UserMenu style */}
+                        <MobileTabDropdown activeTab={activeTab} onTabChange={setActiveTab} />
+                        {/* Desktop tabs */}
+                        <div className="hidden md:flex">
+                            {TAB_OPTIONS.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`px-8 py-6 font-mono text-sm uppercase tracking-wider transition-colors whitespace-nowrap ${activeTab === tab.id
+                                        ? 'bg-black text-white dark:bg-white dark:text-black'
+                                        : 'hover:bg-gray-100 dark:hover:bg-white/10'
+                                        }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Tab Content */}

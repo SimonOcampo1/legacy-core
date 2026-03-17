@@ -133,9 +133,9 @@ export function Gallery() {
 
                         <button
                             onClick={prevImage}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gold transition-colors p-2 hidden md:block"
+                            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 text-white hover:text-gold transition-colors p-2"
                         >
-                            <ChevronLeft className="w-12 h-12" />
+                            <ChevronLeft className="w-8 h-8 md:w-12 md:h-12" />
                         </button>
 
                         <div className="max-w-6xl max-h-[90vh] relative p-1 border border-white/20 bg-black" onClick={(e) => e.stopPropagation()}>
@@ -155,9 +155,9 @@ export function Gallery() {
 
                         <button
                             onClick={nextImage}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gold transition-colors p-2 hidden md:block"
+                            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 text-white hover:text-gold transition-colors p-2"
                         >
-                            <ChevronRight className="w-12 h-12" />
+                            <ChevronRight className="w-8 h-8 md:w-12 md:h-12" />
                         </button>
                     </div>
                 )}

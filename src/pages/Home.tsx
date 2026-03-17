@@ -5,7 +5,6 @@ import { ArrowUpRight, ArrowRight, Activity, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { databases, DATABASE_ID, NARRATIVES_COLLECTION_ID, GALLERY_COLLECTION_ID, TIMELINE_COLLECTION_ID, getImageUrl } from "../lib/appwrite";
 import { Query, type Models } from "appwrite";
-import { GroupLogo } from "../components/groups/GroupLogo";
 import { InteractiveGridBackground } from "../components/ui/InteractiveGridBackground";
 import { useGroup } from "../context/GroupContext";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -155,7 +154,7 @@ export function Home() {
             <div className="bg-white dark:bg-[#09090b] text-black dark:text-gray-100 min-h-screen font-sans selection:bg-gold selection:text-black">
 
                 {/* Hero Section */}
-                <section id="hero" ref={heroRef} className="relative w-full h-screen flex flex-col justify-between p-4 md:p-8 border-b-2 border-black dark:border-white/20 overflow-hidden">
+                <section id="hero" ref={heroRef} className="relative w-full h-[100svh] flex flex-col justify-between p-4 md:p-8 border-b-2 border-black dark:border-white/20 overflow-hidden">
                     {/* Interactive Grid Background */}
                     <InteractiveGridBackground />
 
@@ -185,7 +184,7 @@ export function Home() {
                             animate="visible"
                             className="text-left"
                         >
-                            <motion.h1 variants={itemVariants} className="text-[12vw] leading-[0.85] font-black tracking-tighter text-black dark:text-white mix-blend-difference flex flex-col items-start">
+                            <motion.h1 variants={itemVariants} className="text-[20vw] md:text-[12vw] leading-[0.85] font-black tracking-tighter text-black dark:text-white mix-blend-difference flex flex-col items-start">
                                 <span className="block hover:text-transparent hover:text-stroke-black dark:hover:text-stroke-white transition-all duration-300">
                                     {currentGroup ? currentGroup.name.split(' ')[0] : "LEGACY"}
                                 </span>
@@ -224,10 +223,10 @@ export function Home() {
                 {/* Narratives List (Brutalist Table) */}
                 <section className="w-full border-b-2 border-black dark:border-white/20">
                     <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-black dark:divide-white/20 border-b border-black dark:border-white/20">
-                        <div className="p-4 md:p-8 col-span-1 bg-black text-white dark:bg-white dark:text-black sticky top-0 md:h-screen md:sticky md:top-0 z-10">
-                            <h2 className="font-mono text-sm tracking-widest mb-4 text-gold">/// ARCHIVE_INDEX</h2>
-                            <p className="text-3xl font-bold tracking-tighter">LATEST ENTRIES</p>
-                            <div className="mt-8 hidden md:block w-8 h-1 bg-gold" />
+                        <div className="p-4 md:p-8 col-span-1 bg-black text-white dark:bg-white dark:text-black sticky top-16 z-10">
+                            <h2 className="font-mono text-xs md:text-sm tracking-widest mb-2 md:mb-4 text-gold">/// ARCHIVE_INDEX</h2>
+                            <p className="text-2xl md:text-3xl font-bold tracking-tighter">LATEST ENTRIES</p>
+                            <div className="mt-4 md:mt-8 hidden md:block w-8 h-1 bg-gold" />
                         </div>
                         <div className="col-span-3">
                             {/* Narrative Items */}
@@ -237,7 +236,7 @@ export function Home() {
                                     message="NO NARRATIVE DATA FOUND."
                                     icon={ScrollText}
                                     actionLabel="[ INITIALIZE_FIRST_ENTRY ]"
-                                    actionLink="/admin/narratives"
+                                    actionLink="/narratives"
                                 />
                             ) : (
                                 <>
@@ -250,11 +249,11 @@ export function Home() {
                                             transition={{ duration: 0.4, delay: index * 0.1 }}
                                         >
                                             <Link to={`/narratives/${item.id}`} className="block group">
-                                                <div className="grid grid-cols-12 gap-4 p-4 md:p-6 border-b border-black/10 dark:border-white/10 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 relative overflow-hidden">
+                                                <div className="grid grid-cols-12 gap-2 md:gap-4 p-3 md:p-6 border-b border-black/10 dark:border-white/10 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 relative overflow-hidden">
                                                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-                                                    <div className="col-span-2 font-mono text-xs opacity-50 pt-1 group-hover:text-gold transition-colors">{(index + 1).toString().padStart(2, '0')}</div>
-                                                    <div className="col-span-8">
-                                                        <h3 className="text-xl md:text-3xl font-bold uppercase tracking-tight mb-2 group-hover:translate-x-2 transition-transform duration-200">{item.title}</h3>
+                                                    <div className="col-span-1 md:col-span-2 font-mono text-xs opacity-50 pt-1 group-hover:text-gold transition-colors">{(index + 1).toString().padStart(2, '0')}</div>
+                                                    <div className="col-span-9 md:col-span-8">
+                                                        <h3 className="text-lg md:text-3xl font-bold uppercase tracking-tight mb-1 md:mb-2 group-hover:translate-x-2 transition-transform duration-200">{item.title}</h3>
                                                         <p className="font-mono text-xs md:text-sm opacity-60 line-clamp-1">{item.excerpt.replace(/<[^>]*>?/gm, '')}</p>
                                                     </div>
                                                     <div className="col-span-2 flex justify-end items-start">
@@ -290,7 +289,7 @@ export function Home() {
                                     message="NO TEMPORAL RECORDS FOUND."
                                     icon={Calendar}
                                     actionLabel="[ ARCHIVE_NEW_EVENT ]"
-                                    actionLink="/admin/timeline"
+                                    actionLink="/timeline"
                                 />
                             ) : (
                                 <div className="space-y-8">
@@ -321,7 +320,7 @@ export function Home() {
                 {/* Gallery Marquee */}
                 <section className="w-full overflow-hidden border-b-2 border-black dark:border-white/20 py-8 md:py-16 brutal-grid bg-white dark:bg-[#09090b]">
                     <div className="mb-8 px-4 md:px-8 flex justify-between items-end">
-                        <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase relative inline-block">
+                        <h2 className="text-3xl md:text-4xl lg:text-6xl font-black tracking-tighter uppercase relative inline-block">
                             Visual<br />
                             <span className="text-gold">Databank</span>
                         </h2>
@@ -338,7 +337,7 @@ export function Home() {
                             message="NO VISUAL ASSETS FOUND."
                             icon={LayoutGrid}
                             actionLabel="[ UPLOAD_VISUALS ]"
-                            actionLink="/admin/gallery"
+                            actionLink="/gallery"
                             className="h-[400px] border-y"
                         />
                     ) : (
@@ -348,7 +347,7 @@ export function Home() {
                                 {[...galleryImages].map((img, i) => (
                                     <div
                                         key={`${img.id}-track1-${i}`}
-                                        className="relative w-[300px] h-[400px] bg-gray-200 dark:bg-gray-800 flex-none overflow-hidden border border-transparent hover:border-gold cursor-pointer group/image"
+                                        className="relative w-[200px] h-[280px] md:w-[300px] md:h-[400px] bg-gray-200 dark:bg-gray-800 flex-none overflow-hidden border border-transparent hover:border-gold cursor-pointer group/image"
                                         onClick={() => setSelectedImage(img)}
                                     >
                                         <div className="absolute inset-0 bg-black/20 group-hover/image:bg-transparent transition-colors z-10" />
@@ -369,7 +368,7 @@ export function Home() {
                                 {[...galleryImages].map((img, i) => (
                                     <div
                                         key={`${img.id}-track2-${i}`}
-                                        className="relative w-[300px] h-[400px] bg-gray-200 dark:bg-gray-800 flex-none overflow-hidden border border-transparent hover:border-gold cursor-pointer group/image"
+                                        className="relative w-[200px] h-[280px] md:w-[300px] md:h-[400px] bg-gray-200 dark:bg-gray-800 flex-none overflow-hidden border border-transparent hover:border-gold cursor-pointer group/image"
                                         onClick={() => setSelectedImage(img)}
                                     >
                                         <div className="absolute inset-0 bg-black/20 group-hover/image:bg-transparent transition-colors z-10" />

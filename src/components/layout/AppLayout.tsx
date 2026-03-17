@@ -6,6 +6,7 @@ import { ModeToggle } from "../mode-toggle";
 import { UserMenu } from "./UserMenu";
 import { GroupSwitcher } from "../groups/GroupSwitcher";
 import { GroupLogo } from "../groups/GroupLogo";
+import { Home, Clock, Image, Users, ScrollText } from "lucide-react";
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -57,7 +58,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                             }
                         }}
                     >
-                        <GroupLogo className="h-10 w-auto max-w-[200px] text-black dark:text-white group-hover:text-gold transition-colors duration-300" />
+                        <GroupLogo className="h-8 md:h-10 w-auto max-w-[140px] md:max-w-[200px] text-black dark:text-white group-hover:text-gold transition-colors duration-300" />
                     </Link>
 
                     {/* Group Switcher */}
@@ -110,10 +111,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
             {/* Mobile Navigation Bar (Bottom) */}
             {isApproved && (
-                <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#09090b] border-t-2 border-black dark:border-white/20 h-16 flex items-center justify-around px-2 font-mono text-[10px]">
+                <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#09090b] border-t-2 border-black dark:border-white/20 h-14 flex items-center justify-around px-1 safe-area-bottom">
                     <Link
                         to="/"
-                        className={isActive('/') ? "text-gold" : ""}
+                        className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-colors ${isActive('/') ? "text-gold" : "text-gray-500 dark:text-gray-400"}`}
                         onClick={(e) => {
                             if (location.pathname === "/") {
                                 e.preventDefault();
@@ -121,10 +122,25 @@ export function AppLayout({ children }: AppLayoutProps) {
                             }
                         }}
                     >
-                        [HOME]
+                        <Home className="w-5 h-5" />
+                        <span className="font-mono text-[9px] uppercase">Home</span>
                     </Link>
-                    <Link to="/narratives" className={isActive('/narratives') ? "text-gold" : ""}>[ARCHIVE]</Link>
-                    <Link to="/timeline" className={isActive('/timeline') ? "text-gold" : ""}>[TIME]</Link>
+                    <Link to="/timeline" className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-colors ${isActive('/timeline') ? "text-gold" : "text-gray-500 dark:text-gray-400"}`}>
+                        <Clock className="w-5 h-5" />
+                        <span className="font-mono text-[9px] uppercase">Time</span>
+                    </Link>
+                    <Link to="/gallery" className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-colors ${isActive('/gallery') ? "text-gold" : "text-gray-500 dark:text-gray-400"}`}>
+                        <Image className="w-5 h-5" />
+                        <span className="font-mono text-[9px] uppercase">Gallery</span>
+                    </Link>
+                    <Link to="/directory" className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-colors ${isActive('/directory') ? "text-gold" : "text-gray-500 dark:text-gray-400"}`}>
+                        <Users className="w-5 h-5" />
+                        <span className="font-mono text-[9px] uppercase">People</span>
+                    </Link>
+                    <Link to="/narratives" className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-colors ${isActive('/narratives') ? "text-gold" : "text-gray-500 dark:text-gray-400"}`}>
+                        <ScrollText className="w-5 h-5" />
+                        <span className="font-mono text-[9px] uppercase">Archive</span>
+                    </Link>
                 </div>
             )}
 

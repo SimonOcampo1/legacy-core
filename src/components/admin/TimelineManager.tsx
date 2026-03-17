@@ -233,12 +233,12 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
     return (
         <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b-2 border-black dark:border-white pb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 border-b-2 border-black dark:border-white pb-4 md:pb-6">
                 <div>
-                    <h2 className="text-4xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter flex items-center gap-4">
+                    <h2 className="text-2xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter flex items-center gap-4">
                         CHRONO_LOG
                     </h2>
-                    <p className="font-mono text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mt-2">
+                    <p className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mt-1 md:mt-2">
                         // TIMELINE_EVENT_REGISTRY
                     </p>
                 </div>
@@ -246,7 +246,7 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
                 {!isAddingMode && groupId && (
                     <button
                         onClick={() => setIsAddingMode(true)}
-                        className="group flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-all"
+                        className="group flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-all"
                     >
                         <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
                         <span>APPEND_ENTRY</span>
@@ -261,12 +261,12 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden border border-black dark:border-white p-6 bg-gray-50 dark:bg-white/5"
+                        className="border border-black dark:border-white p-4 md:p-6 bg-gray-50 dark:bg-white/5"
                     >
-                        <div className="flex justify-between items-center mb-8 pb-4 border-b border-black/10 dark:border-white/10">
-                            <h3 className="font-mono text-xs uppercase font-bold flex items-center gap-2">
-                                <Edit2 className="w-4 h-4" />
-                                {editingEvent ? 'MODIFYING_RECORD_ID:' + editingEvent.$id.substring(0, 6) : 'NEW_DATA_ENTRY'}
+                        <div className="flex justify-between items-center mb-6 md:mb-8 pb-4 border-b border-black/10 dark:border-white/10">
+                            <h3 className="font-mono text-[10px] md:text-xs uppercase font-bold flex items-center gap-2">
+                                <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
+                                {editingEvent ? 'MODIFY:' + editingEvent.$id.substring(0, 6) : 'NEW_DATA_ENTRY'}
                             </h3>
                             <button onClick={resetForm} className="text-gray-500 hover:text-red-500 transition-colors">
                                 <X className="w-5 h-5" />
@@ -403,18 +403,18 @@ export const TimelineManager = ({ groupId, memberId }: { groupId?: string; membe
                                 </div>
                             </div>
 
-                            <div className="md:col-span-2 pt-6 border-t border-black/10 dark:border-white/10 flex justify-end gap-4">
+                            <div className="md:col-span-2 pt-4 md:pt-6 border-t border-black/10 dark:border-white/10 flex flex-col-reverse md:flex-row justify-end gap-3 md:gap-4">
                                 <button
                                     type="button"
                                     onClick={resetForm}
-                                    className="px-8 py-4 bg-transparent border border-transparent font-mono text-xs uppercase hover:text-red-500 transition-colors"
+                                    className="px-6 py-3 md:px-8 md:py-4 bg-transparent border border-black/20 dark:border-white/20 font-mono text-xs uppercase hover:text-red-500 hover:border-red-500 transition-colors text-center"
                                 >
-                                    CANCEL_OPERATION
+                                    CANCEL
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-10 py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-colors disabled:opacity-50 flex items-center gap-2"
+                                    className="px-6 py-3 md:px-10 md:py-4 bg-black dark:bg-white text-white dark:text-black font-mono text-xs uppercase hover:bg-gold hover:text-black dark:hover:bg-gold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {isSubmitting ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />

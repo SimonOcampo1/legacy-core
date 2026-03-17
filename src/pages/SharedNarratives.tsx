@@ -91,7 +91,7 @@ export function SharedNarratives() {
                 {/* Header */}
                 <div className="border-b-2 border-black dark:border-white/20 px-4 md:px-8 pb-8 pt-12 flex flex-col md:flex-row justify-between items-end gap-8">
                     <div>
-                        <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-2">
+                        <h1 className="text-4xl md:text-7xl font-black uppercase tracking-tighter mb-2">
                             Shared<span className="text-gold">_Narratives</span>
                         </h1>
                         <p className="font-mono text-xs md:text-sm text-gray-500">

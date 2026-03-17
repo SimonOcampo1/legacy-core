@@ -42,7 +42,7 @@ export function GroupSwitcher() {
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 5 }}
-                            className="absolute top-full text-left right-0 w-64 mt-2 bg-white dark:bg-[#09090b] border border-black dark:border-white shadow-xl z-50 overflow-hidden"
+                            className="absolute top-full text-left left-0 md:left-auto md:right-0 w-[calc(100vw-2rem)] max-w-72 mt-2 bg-white dark:bg-[#09090b] border-2 border-black dark:border-white shadow-xl z-[60] overflow-hidden"
                         >
                             <div className="p-3 border-b border-black/10 dark:border-white/10 bg-gray-50 dark:bg-white/5">
                                 <p className="font-mono text-[10px] text-gray-500 uppercase mb-1">Current Network</p>
